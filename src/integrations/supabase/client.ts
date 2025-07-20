@@ -2,23 +2,40 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
-const SUPABASE_URL = "YOUR_SUPABASE_URL";
-const SUPABASE_PUBLISHABLE_KEY = "YOUR_SUPABASE_PUBLISHABLE_KEY";
+// Safely get environment variables
+const getEnvVar = (key: string): string => {
+  const value = import.meta.env[key];
+  return typeof value === 'string' ? value : '';
+};
 
-// Google OAuth credentials
-const GOOGLE_CLIENT_ID = "YOUR_GOOGLE_CLIENT_ID";
-const GOOGLE_CLIENT_SECRET = "YOUR_GOOGLE_CLIENT_SECRET";
+// Get environment variables
+const supabaseUrl = getEnvVar('VITE_SUPABASE_URL');
+const supabaseAnonKey = getEnvVar('VITE_SUPABASE_ANON_KEY');
 
-// Import the supabase client like this:
-// import { supabase } from "@/integrations/supabase/client";
+// Create a default export for the supabase client
+let supabaseClient: any = null;
 
-export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
-  auth: {
-    persistSession: true,
-    autoRefreshToken: true,
-    storage: localStorage,
-    flowType: 'pkce',
-    // Configure auth providers
-    detectSessionInUrl: true
+try {
+  if (!supabaseUrl) {
+    console.error('Missing VITE_SUPABASE_URL environment variable');
+  } else if (!supabaseAnonKey) {
+    console.error('Missing VITE_SUPABASE_ANON_KEY environment variable');
+  } else {
+    // Create the Supabase client
+    supabaseClient = createClient<Database>(supabaseUrl, supabaseAnonKey, {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        storage: localStorage,
+        flowType: 'pkce',
+        detectSessionInUrl: true
+      }
+    });
+    console.log('Supabase client initialized successfully');
   }
-});
+} catch (error) {
+  console.error('Error initializing Supabase client:', error);
+}
+
+// Export the client
+export const supabase = supabaseClient;
