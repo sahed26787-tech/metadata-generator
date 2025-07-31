@@ -1,18 +1,19 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
-import { LogOut, Crown, Infinity, Clock } from 'lucide-react';
+import { LogOut, Crown, Infinity, Clock, Key } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import ApiKeyInput from '@/components/ApiKeyInput';
 import { formatDistanceToNow } from 'date-fns';
 
 const UserProfile: React.FC = () => {
-  const { user, profile, signOut } = useAuth();
+  const { user, profile, signOut, apiKey, updateApiKey } = useAuth();
   
   if (!user || !profile) return null;
 
-  // Show unlimited credits for all users
-  const remainingCredits = '∞';
+  // Calculate remaining credits based on user type
+  const remainingCredits = profile.is_premium ? '∞' : `${Math.max(0, 15 - profile.credits_used)}`;
 
   // Get user's profile picture from their metadata or user object
   // For Google auth, the picture is typically in user.user_metadata.avatar_url
@@ -78,12 +79,38 @@ const UserProfile: React.FC = () => {
         <div className="flex items-center justify-between mb-1">
           <span className="text-orange-500 text-xl">Credits remaining</span>
           <div className="flex items-center font-medium text-amber-400">
-            <Infinity className="h-4 w-4 mr-1 rounded-xl" />
+            {profile.is_premium ? (
+              <Infinity className="h-4 w-4 mr-1 rounded-xl" />
+            ) : (
+              <span className="text-xl">{Math.max(0, 15 - profile.credits_used)}/15</span>
+            )}
           </div>
         </div>
       </div>
 
       <div className="p-4 border-t border-gray-800">
+        <div className="mb-4">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center">
+              <Key className="h-4 w-4 mr-2 text-blue-400" />
+              <span className="text-white font-medium">API Key</span>
+            </div>
+            <span className="text-xs bg-blue-900/50 text-blue-300 px-2 py-1 rounded border border-blue-800">
+              {apiKey ? apiKey.substring(0, 8) + '...' : 'Not Set'}
+            </span>
+          </div>
+          
+          <div className="p-3 bg-gray-800/50 border border-gray-700 rounded">
+            <ApiKeyInput 
+              apiKey={apiKey} 
+              onApiKeyChange={(key) => {
+                updateApiKey(key); // Use the context function to update the key
+              }}
+              compact={true}
+            />
+          </div>
+        </div>
+        
         <Button 
           variant="ghost" 
           className="w-full justify-center text-gray-400 hover:text-white hover:bg-gray-800"

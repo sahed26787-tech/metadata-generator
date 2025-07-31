@@ -174,7 +174,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
   }, [isProcessing]);
 
   return (
-    <div className="dropzone-container bg-[#192048] border border-solid border-gray-700 rounded-xl overflow-hidden shadow-lg">      
+    <div className="dropzone-container bg-[#030712] border border-solid border-blue-900 rounded-xl overflow-hidden shadow-lg max-w-3xl mx-auto">      
       <div 
         className={`drop-zone flex flex-col items-center justify-center p-12 transition-all duration-300 cursor-pointer ${isDragging ? 'dropzone-active bg-blue-900/10 border-blue-400' : 'hover:bg-gray-800/30'}`} 
         onDragOver={handleDragOver} 
@@ -184,27 +184,27 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
         onClick={handleBrowseClick}
         data-testid="drop-zone"
       >
-        <div className="bg-gray-500/50 p-5 rounded-full mb-5 cursor-pointer hover:bg-gray-500/70 transition-colors">
-          <img src="/upload-icon.png" alt="Upload" className="h-12 w-12" />
+        <div className="bg-gray-600/50 p-4 rounded-full mb-6 cursor-pointer hover:bg-gray-600/70 transition-colors">
+          <Upload className="h-8 w-8 text-white" />
         </div>
         
-        <h3 className="text-2xl font-bold text-white mb-5 font-['Inter']">Upload Files</h3>
+        <h3 className="text-2xl font-bold text-white mb-6">Choose Files</h3>
         
-        <div className="file-type-tabs flex gap-2 mb-8">
+        <div className="file-type-tabs flex gap-2 mb-6">
           <button 
-            className={`px-5 py-2 rounded-full text-white font-semibold text-sm ${activeTab === 'images' ? 'bg-blue-600' : 'bg-blue-500/80'}`} 
+            className="px-6 py-2 rounded-full text-white font-medium text-sm bg-blue-600 hover:bg-blue-700 transition-colors" 
             onClick={(e) => handleTabClick('images', e)}
           >
-            JPG/PNG
+            Images
           </button>
           <button 
-            className={`px-5 py-2 rounded-full text-white font-semibold text-sm ${activeTab === 'vectors' ? 'bg-purple-600' : 'bg-purple-500/80'}`} 
+            className="px-6 py-2 rounded-full text-white font-medium text-sm bg-purple-600 hover:bg-purple-700 transition-colors" 
             onClick={(e) => handleTabClick('vectors', e)}
           >
-            SVG
+            Vectors
           </button>
           <button 
-            className={`px-5 py-2 rounded-full text-white font-semibold text-sm ${activeTab === 'videos' ? 'bg-red-600' : 'bg-red-500/80'}`} 
+            className="px-6 py-2 rounded-full text-white font-medium text-sm bg-red-600 hover:bg-red-700 transition-colors" 
             onClick={(e) => handleTabClick('videos', e)}
           >
             Videos
@@ -213,14 +213,15 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
         
         <div className="privacy-notice flex items-center justify-center mb-2">
           <Lock className="h-4 w-4 text-gray-400 mr-2" />
-          <span className="text-gray-400 text-sm">Data Protection Statement</span>
+          <span className="text-gray-400 text-sm">Privacy Statement</span>
         </div>
         
-        <p className="text-gray-400 text-sm text-center mb-2 max-w-md">We analyze files on-device only, then purge all data after extracting metadata.</p>
+        <p className="text-gray-400 text-sm text-center mb-4 max-w-md">
+          We process your files directly on your device. All data is
+          automatically removed after metadata extraction.
+        </p>
         
-        <p className="text-blue-400 text-sm font-semibold mt-1">Upload a maximum of 500 files in a single action</p>
-        
-        <p className="text-green-400 text-xs mt-3">High-quality previews with optimized processing (200x200px)</p>
+        <p className="text-gray-200 text-sm font-medium mt-2">Process Unlimited images in a Single Action</p>
         
         <input 
           type="file" 

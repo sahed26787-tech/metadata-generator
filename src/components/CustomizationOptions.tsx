@@ -144,7 +144,8 @@ const CustomizationOptions: React.FC<CustomizationOptionsProps> = ({
       {/* Settings Header */}
       <div className="flex items-center justify-between p-2 rounded cursor-pointer hover:bg-gray-700/40 transition-colors" onClick={toggleSettings}>
         <div className="flex items-center space-x-2">
-          <h2 className="text-sm font-medium bg-[#F15A29] text-white px-3 py-1 rounded-full inline-block">Settings</h2>
+          <Settings className="h-5 w-5 text-[#F15A29]" />
+          <h2 className="text-sm font-medium text-[#F15A29]">SETTINGS</h2>
         </div>
         {settingsExpanded ? <ChevronDown className="h-4 w-4 text-gray-400" /> : <ChevronRight className="h-4 w-4 text-gray-400" />}
       </div>
@@ -185,16 +186,7 @@ const CustomizationOptions: React.FC<CustomizationOptionsProps> = ({
               />
             </div>}
           
-          {/* Transparent Background */}
-          <FeatureToggle 
-            title="White Background" 
-            description={t('features.silhouetteDesc')} 
-            bullets={["Add \"isolated on white background\" to the end of the title", "Include \"white background\" as a keyword", "Mention white background in the description"]} 
-            tooltipText="Optimize metadata for isolated objects on white background to improve their discoverability in search results." 
-            enabled={transparentBgEnabled} 
-            onEnabledChange={onTransparentBgEnabledChange} 
-            footer="Use this for isolated objects on white background to improve their discoverability." 
-          />
+
           
           {/* Isolated on Transparent Background */}
           <FeatureToggle 
@@ -240,122 +232,7 @@ const CustomizationOptions: React.FC<CustomizationOptionsProps> = ({
           />
         </div>}
 
-      {/* API Key Header */}
-      <div className="flex items-center justify-between p-2 rounded cursor-pointer hover:bg-gray-700/40 transition-colors border-t border-gray-700" onClick={toggleApiKey}>
-        <div className="flex items-center space-x-2">
-          <h2 className="text-sm font-medium bg-[#F15A29] text-white px-3 py-1 rounded-full inline-block">API KEY</h2>
-        </div>
-        {apiKeyExpanded ? <ChevronDown className="h-4 w-4 text-gray-400" /> : <ChevronRight className="h-4 w-4 text-gray-400" />}
-      </div>
 
-      {apiKeyExpanded && <div className="space-y-2 ml-2 mt-2">
-          <div className="space-y-1">
-            <div className="flex items-center justify-between">
-              <label className="text-xs text-gray-400">Gemini API Key:</label>
-              {currentApiKey && (
-                <button 
-                  onClick={() => {
-                    // If there are additional API keys, promote the first one to main
-                    if (additionalApiKeys.length > 0) {
-                      const firstAdditional = additionalApiKeys[0];
-                      const remainingKeys = additionalApiKeys.slice(1);
-                      
-                      // Set the first additional key as the main key
-                      setCurrentApiKey(firstAdditional);
-                      
-                      // Update the additional keys list (remove the promoted key)
-                      setAdditionalApiKeys(remainingKeys);
-                      
-                      // Save changes to localStorage
-                      localStorage.setItem('gemini-api-key', firstAdditional);
-                      localStorage.setItem('additional-api-keys', JSON.stringify(remainingKeys));
-                      
-                      // Update parent component's state
-                      if (onApiKeyChange) {
-                        onApiKeyChange(firstAdditional);
-                      }
-                      
-                      toast.success("Main API key removed. Second API key promoted to main.");
-                    } else {
-                      // If no additional keys, just clear the main key
-                      setCurrentApiKey('');
-                      
-                      // Save changes to localStorage
-                      localStorage.removeItem('gemini-api-key');
-                      
-                      // Update parent component's state
-                      if (onApiKeyChange) {
-                        onApiKeyChange('');
-                      }
-                      
-                      toast.info("API key cleared. Please add a new key.");
-                    }
-                  }}
-                  className="text-red-400 hover:text-red-300"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              )}
-            </div>
-            <input 
-              type="text" 
-              value={currentApiKey} 
-              onChange={handleApiKeyChange} 
-              placeholder={t('apiKey.placeholder')}
-              className="w-full px-3 py-2 text-sm rounded-md bg-gray-800 border border-gray-700 text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
-            />
-          </div>
-          
-          {additionalApiKeys.map((key, index) => (
-            <div key={index} className="space-y-1">
-              <div className="flex items-center justify-between">
-                <label className="text-xs text-gray-400">Additional API Key {index + 1}:</label>
-                <button 
-                  onClick={() => removeAdditionalApiKey(index)}
-                  className="text-red-400 hover:text-red-300"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              </div>
-              <input 
-                type="text" 
-                value={key} 
-                onChange={(e) => updateAdditionalApiKey(index, e.target.value)} 
-                placeholder="Enter additional API key"
-                className="w-full px-3 py-2 text-sm rounded-md bg-gray-800 border border-gray-700 text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
-              />
-            </div>
-          ))}
-          
-          <div className="flex items-center">
-            <Button 
-              onClick={addNewApiKey}
-              className="flex items-center text-gray-200 bg-[#4c4c4c] hover:bg-gray-700 text-sm py-1 px-3 rounded"
-            >
-              <Plus className="h-4 w-4 mr-1" /> Add Key
-            </Button>
-          </div>
-          
-          <Button
-            onClick={saveApiKey}
-            className="w-full bg-[#F15A29] hover:bg-[#e04d18] text-white py-2 px-4 rounded transition-colors"
-          >
-            Save
-          </Button>
-          
-          <div className="mt-2">
-            <Button
-              onClick={getApiKey}
-              className="w-full bg-[#482880] hover:bg-[#3a206e] text-white py-1 px-3 rounded text-xs transition-colors"
-            >
-              GET API KEY
-            </Button>
-          </div>
-          
-          <p className="text-xs text-gray-400 mt-1">
-            Add multiple API keys to bypass Gemini's 15 requests/min limit
-          </p>
-        </div>}
     </div>;
 };
 

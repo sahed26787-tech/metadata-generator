@@ -163,7 +163,7 @@ const ApiKeyInput: React.FC<ApiKeyInputProps> = ({ apiKey, onApiKeyChange, compa
               placeholder="Enter your Gemini API key"
               value={inputKey}
               onChange={(e) => setInputKey(e.target.value)}
-              className="bg-gray-800 border-gray-700 text-gray-200 focus:ring-amber-500/30 pr-10 h-9"
+              className="bg-gray-800 border-gray-700 text-gray-200 focus:ring-blue-500/30 pr-10 h-9"
             />
             <Button
               type="button"
@@ -185,41 +185,48 @@ const ApiKeyInput: React.FC<ApiKeyInputProps> = ({ apiKey, onApiKeyChange, compa
         </div>
         
         {/* API key chips and Add Key button */}
-        <div className="flex flex-nowrap items-center gap-1 mt-1 overflow-x-auto pb-1">
-          {apiKeys.map((key, index) => (
-            <div 
-              key={index}
-              onClick={() => selectKey(index)}
-              className={`flex items-center px-2 py-1 text-xs rounded cursor-pointer flex-shrink-0 ${
-                inputKey === key ? 'bg-[#f68003] text-white' : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
-              }`}
-            >
-              <span className="truncate max-w-[60px]">{key.substring(0, 8)}</span>
+        {apiKeys.length > 0 && (
+          <div>
+            <div className="text-xs text-gray-400 mb-1">Saved API Keys:</div>
+            <div className="flex flex-wrap items-center gap-1 mt-1 pb-1">
+              {apiKeys.map((key, index) => (
+                <div 
+                  key={index}
+                  onClick={() => selectKey(index)}
+                  className={`flex items-center px-2 py-1 text-xs rounded cursor-pointer flex-shrink-0 ${
+                    inputKey === key ? 'bg-blue-700 text-white' : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+                  }`}
+                >
+                  <span className="truncate max-w-[60px]">{key.substring(0, 8)}</span>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
+          </div>
+        )}
         
-        <button 
-          onClick={handleAddNewKey}
-          className="flex items-center text-gray-300 hover:text-white text-sm mt-1"
-        >
-          <Plus className="h-4 w-4 mr-1" />
-          Add Key
-        </button>
+        <div className="flex items-center justify-between">
+          <button 
+            onClick={handleAddNewKey}
+            className="flex items-center text-blue-400 hover:text-blue-300 text-xs"
+          >
+            <Plus className="h-3 w-3 mr-1" />
+            Add Another API Key
+          </button>
+        </div>
         
         {/* Save/Clear buttons */}
         <div className="flex gap-2 mt-3">
           <Button 
             onClick={handleSaveKey}
-            className="bg-[#f68003] hover:bg-[#dd7003] text-white border-none font-medium h-10 flex-1 rounded-md"
+            className="bg-blue-600 hover:bg-blue-700 text-white border-none font-medium h-9 flex-1 rounded-md"
           >
-            Save
+            Save API Key
           </Button>
           {inputKey && (
             <Button 
               variant="outline" 
               onClick={handleClearKey}
-              className="border-gray-700 text-gray-300 hover:bg-gray-800 hover:text-white font-medium h-10 px-6 rounded-md"
+              className="border-gray-700 text-gray-300 hover:bg-gray-800 hover:text-white font-medium h-9 px-4 rounded-md"
             >
               Clear
             </Button>
@@ -228,23 +235,21 @@ const ApiKeyInput: React.FC<ApiKeyInputProps> = ({ apiKey, onApiKeyChange, compa
         
         {/* Help text */}
         <div className="text-xs text-gray-400">
-          <div className="flex items-center gap-1 flex-wrap">
-            <span>You need to</span>
-            <span className="font-semibold text-[#f68003]">set your own API key</span>
-            <span>from</span>
+          <div className="flex items-center justify-between flex-wrap">
+            <span>Need an API key?</span>
             <a 
               href="https://aistudio.google.com/app/apikey" 
               target="_blank" 
               rel="noopener noreferrer"
-              className="text-[#f68003] hover:text-[#dd7003] font-medium transition-colors"
+              className="text-blue-400 hover:text-blue-300 font-medium transition-colors"
             >
-              Google Gemini AI
+              Get from Google AI Studio
             </a>
           </div>
           
           {/* Rate limit info */}
           <div className="mt-1">
-            <span>Add multiple API keys to bypass Gemini's 15 requests/min limit</span>
+            <span>Multiple keys help bypass Gemini's 15 requests/min limit</span>
           </div>
         </div>
       </div>

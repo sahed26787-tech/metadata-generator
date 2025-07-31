@@ -1,7 +1,7 @@
 import React from 'react';
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { FileImage, MessageSquareText } from "lucide-react";
+import { FileImage, MessageSquareText, ChevronDown } from "lucide-react";
 import { useText } from '@/hooks/useText';
 
 export type GenerationMode = 'metadata' | 'imageToPrompt';
@@ -18,27 +18,32 @@ const GenerationModeSelector: React.FC<GenerationModeSelectorProps> = ({
   const t = useText();
 
   return <div className="space-y-2">
-      <h3 className="text-sm font-medium text-[#f68003]">{t('sidebar.modeSelection')}</h3>
+      <div className="flex items-center justify-between">
+        <h3 className="text-sm font-medium text-[#FF6B00]">Mode Selection</h3>
+        <ChevronDown className="h-4 w-4 text-gray-400" />
+      </div>
       <RadioGroup value={selectedMode} onValueChange={value => onModeChange(value as GenerationMode)} className="grid grid-cols-2 gap-2">
-        <div className={`flex items-center p-2 rounded cursor-pointer transition-colors ${
+        <div className={`flex items-center rounded cursor-pointer transition-colors ${
           selectedMode === 'metadata' 
-            ? 'bg-[#0a1233] border-2 border-[#FF6B00] shadow-sm' 
-            : 'bg-[#192048] border border-gray-700 hover:bg-[#132153]'
+            ? 'bg-blue-700 border border-blue-500' 
+            : 'bg-gray-800 border border-gray-700 hover:bg-gray-700'
         }`}>
           <RadioGroupItem value="metadata" id="metadata" className="sr-only" />
-          <Label htmlFor="metadata" className="flex items-center justify-center w-full cursor-pointer">
-            <span className="text-sm font-medium text-white">Meta Data</span>
+          <Label htmlFor="metadata" className="flex items-center py-1.5 px-3 w-full cursor-pointer">
+            <FileImage className="h-4 w-4 mr-2 text-blue-300" />
+            <span className="text-xs font-medium text-white">Metadata</span>
           </Label>
         </div>
         
-        <div className={`flex items-center p-2 rounded cursor-pointer transition-colors ${
+        <div className={`flex items-center rounded cursor-pointer transition-colors ${
           selectedMode === 'imageToPrompt' 
-            ? 'bg-[#0a1233] border-2 border-[#FF6B00] shadow-sm' 
-            : 'bg-[#192048] border border-gray-700 hover:bg-[#132153]'
+            ? 'bg-purple-800 border border-purple-500' 
+            : 'bg-gray-800 border border-gray-700 hover:bg-gray-700'
         }`}>
           <RadioGroupItem value="imageToPrompt" id="imageToPrompt" className="sr-only" />
-          <Label htmlFor="imageToPrompt" className="flex items-center justify-center w-full cursor-pointer">
-            <span className="text-sm font-medium text-white">Image to Prompt</span>
+          <Label htmlFor="imageToPrompt" className="flex items-center py-1.5 px-3 w-full cursor-pointer">
+            <MessageSquareText className="h-4 w-4 mr-2 text-purple-300" />
+            <span className="text-xs font-medium text-white">Image to Prompt</span>
           </Label>
         </div>
       </RadioGroup>

@@ -21,7 +21,7 @@ const FeatureToggle: React.FC<FeatureToggleProps> = ({
   footer
 }) => {
   return <div className="space-y-1 pt-1 border-t border-gray-700">
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-center py-2">
         <div className="flex items-center">
           <h3 className="text-sm font-medium text-white">{title}</h3>
           {tooltipText && <TooltipProvider>

@@ -19,6 +19,7 @@ interface AuthContextType {
   forceSignOut: (email: string) => Promise<void>;
   getRandomApiKey: () => string;
   apiKey: string;
+  updateApiKey: (key: string) => void;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -232,8 +233,42 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const incrementCreditsUsed = async (): Promise<boolean> => {
     if (!user || !profile) return false;
     
-    // All users can use premium features, regardless of status
-    return true;
+    // If user is premium, allow unlimited processing
+    if (profile.is_premium) {
+      return true;
+    }
+    
+    // For free users, check if they've reached the 15 credits limit
+    if (profile.credits_used >= 15) {
+      toast.error('You have reached your 15 credits lifetime limit. Please upgrade to continue processing images.');
+      return false;
+    }
+    
+    try {
+      // Increment the credits used count in the database
+      const { error } = await supabase
+        .from('profiles')
+        .update({ credits_used: profile.credits_used + 1 })
+        .eq('id', user.id);
+      
+      if (error) {
+        console.error('Error updating credits:', error);
+        toast.error('Failed to update credits. Please try again.');
+        return false;
+      }
+      
+      // Update local profile state
+      setProfile({
+        ...profile,
+        credits_used: profile.credits_used + 1
+      });
+      
+      return true;
+    } catch (error) {
+      console.error('Error in incrementCreditsUsed:', error);
+      toast.error('An error occurred while processing your request.');
+      return false;
+    }
   };
 
   // Add a heartbeat function to keep the session alive
@@ -267,6 +302,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, [user]);
 
+  // Function to update API key without page reload
+  const updateApiKey = (key: string) => {
+    setApiKey(key);
+    localStorage.setItem('gemini-api-key', key);
+  };
+
   const value = {
     session,
     user,
@@ -279,7 +320,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     canGenerateMetadata,
     forceSignOut,
     getRandomApiKey,
-    apiKey
+    apiKey,
+    updateApiKey
   };
 
   return (

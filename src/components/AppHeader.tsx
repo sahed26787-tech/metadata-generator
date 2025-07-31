@@ -89,12 +89,12 @@ const AppHeader: React.FC<AppHeaderProps> = ({
     window.location.reload();
   };
   
-  return <header className="bg-secondary border-b border-gray-700 py-2 px-4">
+  return <header className="bg-[#3B4856] border-b border-gray-700 py-2 px-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center">
           <h1 onClick={navigateToHome} className="text-xl font-bold flex items-center cursor-pointer hover:opacity-80 transition-opacity">
             <img src="/new-site-logo.png" alt="PixCraftAI" className="h-12 w-auto mr-3" />
-            <span className="text-[#F15A29] text-xl font-bold">PixCraftAI - Metadata Generator</span>
+            <span className="text-[#F15A29] text-xl font-bold">PixCraftAI</span>
           </h1>
           
           {/* Sidebar toggle button - Modified to only show the icon */}
@@ -122,17 +122,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
             <RefreshCcw className="h-4 w-4" />
           </Button>
           
-          {/* Left side Pricing button */}
-          {user && (
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="ml-4 bg-[#F15A29] text-white border-[#F15A29] hover:bg-[#e04d18] hover:shadow-lg transition-all duration-200 ease-in-out hover:scale-105 rounded-full px-4 font-medium"
-              onClick={() => navigate('/pricing')}
-            >
-              Pricing
-            </Button>
-          )}
+
         </div>
         
         {/* Empty center area */}
@@ -154,6 +144,15 @@ const AppHeader: React.FC<AppHeaderProps> = ({
         
           {user && (
             <>
+              {/* Pricing button left of profile icon */}
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="bg-[#F15A29] text-white border-[#F15A29] hover:bg-[#e04d18] hover:shadow-lg transition-all duration-200 ease-in-out hover:scale-105 rounded-full px-4 font-medium"
+                onClick={() => navigate('/pricing')}
+              >
+                Pricing
+              </Button>
               <HoverCard>
                 <HoverCardTrigger asChild>
                   <div className="h-8 w-8 rounded-full flex items-center justify-center cursor-pointer overflow-hidden">
@@ -170,15 +169,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
                 </HoverCardContent>
               </HoverCard>
               
-              {/* Right side Pricing button */}
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="ml-4 bg-[#F15A29] text-white border-[#F15A29] hover:bg-[#e04d18] hover:shadow-lg transition-all duration-200 ease-in-out hover:scale-105 rounded-full px-4 font-medium"
-                onClick={() => navigate('/pricing')}
-              >
-                Pricing
-              </Button>
+
             </>
           )}
         </div>
