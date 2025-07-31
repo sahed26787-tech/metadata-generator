@@ -93,8 +93,8 @@ const AppHeader: React.FC<AppHeaderProps> = ({
       <div className="flex items-center justify-between">
         <div className="flex items-center">
           <h1 onClick={navigateToHome} className="text-xl font-bold flex items-center cursor-pointer hover:opacity-80 transition-opacity">
-            <img src="/paintbrush-logo.png" alt="Robi Technology" className="h-12 w-auto mr-3" />
-            <span className="text-[#F15A29] text-xl font-bold">CSV PRO</span>
+            <img src="/new-site-logo.png" alt="PixCraftAI" className="h-12 w-auto mr-3" />
+            <span className="text-[#F15A29] text-xl font-bold">PixCraftAI - Metadata Generator</span>
           </h1>
           
           {/* Sidebar toggle button - Modified to only show the icon */}
@@ -121,39 +121,22 @@ const AppHeader: React.FC<AppHeaderProps> = ({
           >
             <RefreshCcw className="h-4 w-4" />
           </Button>
-        </div>
-        
-        {/* Center action buttons */}
-        <div className="flex items-center space-x-2 absolute left-1/2 transform -translate-x-1/2">
-          {user && <>
+          
+          {/* Left side Pricing button */}
+          {user && (
             <Button 
               variant="outline" 
               size="sm" 
-              className="bg-[#F15A29] text-white border-[#F15A29] hover:bg-[#e04d18] hover:shadow-lg transition-all duration-200 ease-in-out hover:scale-105 rounded-full px-4 font-medium"
+              className="ml-4 bg-[#F15A29] text-white border-[#F15A29] hover:bg-[#e04d18] hover:shadow-lg transition-all duration-200 ease-in-out hover:scale-105 rounded-full px-4 font-medium"
               onClick={() => navigate('/pricing')}
             >
               Pricing
             </Button>
-            
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="bg-[#F15A29] text-white border-[#F15A29] hover:bg-[#e04d18] hover:shadow-lg transition-all duration-200 ease-in-out hover:scale-105 rounded-full px-4 font-medium"
-              onClick={openTutorialVideo}
-            >
-              Tutorial
-            </Button>
-            
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="bg-[#F15A29] text-white border-[#F15A29] hover:bg-[#e04d18] hover:shadow-lg transition-all duration-200 ease-in-out hover:scale-105 rounded-full px-4 font-medium"
-              onClick={openWhatsAppSupport}
-            >
-              Support
-            </Button>
-          </>}
+          )}
         </div>
+        
+        {/* Empty center area */}
+        <div className="flex-1"></div>
         
         <div className="flex items-center space-x-4">
           {/* Show the login button for non-authenticated users */}
@@ -169,21 +152,35 @@ const AppHeader: React.FC<AppHeaderProps> = ({
             </Button>
           )}
         
-          {user && <HoverCard>
-              <HoverCardTrigger asChild>
-                <div className="h-8 w-8 rounded-full flex items-center justify-center cursor-pointer overflow-hidden">
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage src={getProfilePicture()} alt={user.email} />
-                    <AvatarFallback className="bg-gradient-to-r from-blue-500 to-purple-500 text-white font-medium">
-                      {user.email.charAt(0).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                </div>
-              </HoverCardTrigger>
-              <HoverCardContent className="w-80">
-                <UserProfile />
-              </HoverCardContent>
-            </HoverCard>}
+          {user && (
+            <>
+              <HoverCard>
+                <HoverCardTrigger asChild>
+                  <div className="h-8 w-8 rounded-full flex items-center justify-center cursor-pointer overflow-hidden">
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={getProfilePicture()} alt={user.email} />
+                      <AvatarFallback className="bg-gradient-to-r from-blue-500 to-purple-500 text-white font-medium">
+                        {user.email.charAt(0).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                  </div>
+                </HoverCardTrigger>
+                <HoverCardContent className="w-80">
+                  <UserProfile />
+                </HoverCardContent>
+              </HoverCard>
+              
+              {/* Right side Pricing button */}
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="ml-4 bg-[#F15A29] text-white border-[#F15A29] hover:bg-[#e04d18] hover:shadow-lg transition-all duration-200 ease-in-out hover:scale-105 rounded-full px-4 font-medium"
+                onClick={() => navigate('/pricing')}
+              >
+                Pricing
+              </Button>
+            </>
+          )}
         </div>
       </div>
     </header>;
