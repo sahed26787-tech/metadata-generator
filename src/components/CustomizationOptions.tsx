@@ -151,7 +151,17 @@ const CustomizationOptions: React.FC<CustomizationOptionsProps> = ({
       </div>
 
       {settingsExpanded && <div className="space-y-2 ml-2">
-          {/* Silhouette */}
+          {/* Single Word Keywords - First in reference photo */}
+          <FeatureToggle 
+            title="SINGLE WORD KEYWORDS" 
+            description="When enabled, generated keywords will be single words only."
+            tooltipText="Use this to ensure all generated keywords contain only single words. This will split any multi-word keywords into individual words." 
+            enabled={singleWordKeywordsEnabled} 
+            onEnabledChange={onSingleWordKeywordsEnabledChange} 
+            footer="Helpful for platforms that prefer single-word keywords instead of phrases." 
+          />
+          
+          {/* Silhouette - Second in reference photo */}
           <FeatureToggle 
             title={t('features.silhouette')} 
             description={t('features.silhouetteDesc')} 
@@ -162,7 +172,7 @@ const CustomizationOptions: React.FC<CustomizationOptionsProps> = ({
             footer="Use this for silhouette-style images to improve their discoverability in marketplaces." 
           />
           
-          {/* Custom Prompt */}
+          {/* Custom Prompt - Third in reference photo */}
           <FeatureToggle 
             title={t('features.customPrompt')} 
             description={t('features.customPromptDesc')} 
@@ -171,26 +181,11 @@ const CustomizationOptions: React.FC<CustomizationOptionsProps> = ({
             onEnabledChange={handleCustomPromptEnabledChange} 
           />
           
-          {enabled && <div className="space-y-1 ml-4">
-              <div className="flex justify-between items-center">
-                <span className="text-xs text-gray-400">Enter your custom prompt:</span>
-                <button onClick={handleResetToDefault} className="text-xs text-blue-400 hover:text-blue-300">
-                  {t('general.cancel')}
-                </button>
-              </div>
-              <textarea 
-                value={customPrompt} 
-                onChange={handleCustomPromptChange} 
-                placeholder="Enter your custom prompt here. For example: 'Create Valentine's Day themed metadata for this image.'" 
-                className="w-full h-32 px-3 py-2 text-sm rounded-md bg-gray-800 border border-gray-700 text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none" 
-              />
-            </div>}
+          {/* No tips when enabled, as per reference photo */}
           
-
-          
-          {/* Isolated on Transparent Background */}
+          {/* Isolated on Transparent Background - Fourth in reference photo */}
           <FeatureToggle 
-            title="Transparent Background" 
+            title="TRANSPARENT BACKGROUND" 
             description={t('features.silhouetteDesc')} 
             bullets={["Add \"isolated on transparent background\" to the end of the title", "Include \"transparent background\" as a keyword", "Mention transparent background in the description"]} 
             tooltipText="Optimize metadata for isolated objects on transparent background to improve their discoverability in search results." 
@@ -199,36 +194,13 @@ const CustomizationOptions: React.FC<CustomizationOptionsProps> = ({
             footer="Use this for isolated objects on transparent background to improve their discoverability." 
           />
           
-          {/* Prohibited Words */}
+          {/* Prohibited Words - Fifth in reference photo */}
           <FeatureToggle 
             title={t('features.prohibitedWords')} 
             description="Words that should be avoided in the generated metadata." 
             tooltipText="Words that should be avoided in the generated metadata. The AI will try to exclude these terms from titles, descriptions, and keywords." 
             enabled={prohibitedWordsEnabled} 
             onEnabledChange={onProhibitedWordsEnabledChange} 
-          />
-          
-          {prohibitedWordsEnabled && <div className="space-y-1 ml-4">
-              <input 
-                type="text" 
-                value={prohibitedWords} 
-                onChange={handleProhibitedWordsChange} 
-                placeholder="Enter words to avoid, separated by commas (e.g., vector, clipart, cartoon)" 
-                className="w-full px-3 py-2 text-sm rounded-md bg-gray-800 border border-gray-700 text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
-              />
-              <p className="text-xs text-gray-400">
-                Gemini will avoid using these words in the generated metadata. Separate multiple words with commas.
-              </p>
-            </div>}
-            
-          {/* Single Word Keywords */}
-          <FeatureToggle 
-            title="SINGLE WORD KEYWORDS" 
-            description="When enabled, generated keywords will be single words only."
-            tooltipText="Use this to ensure all generated keywords contain only single words. This will split any multi-word keywords into individual words." 
-            enabled={singleWordKeywordsEnabled} 
-            onEnabledChange={onSingleWordKeywordsEnabledChange} 
-            footer="Helpful for platforms that prefer single-word keywords instead of phrases." 
           />
         </div>}
 

@@ -53,21 +53,21 @@ const Index: React.FC = () => {
   const [currentBatchIndex, setCurrentBatchIndex] = useState(0);
   const [isBatchProcessing, setIsBatchProcessing] = useState(false);
   
-  // Default platform is now AdobeStock
-  const [platforms, setPlatforms] = useState<Platform[]>(['AdobeStock']);
+  // Default platform is now Freepik
+  const [platforms, setPlatforms] = useState<Platform[]>(['Freepik']);
   
   const [generationMode, setGenerationMode] = useState<GenerationMode>('metadata');
   const [selectedTab, setSelectedTab] = useState('image');
   const [shouldRedirect, setShouldRedirect] = useState(false);
   const navigate = useNavigate();
 
-  // Updated default values for metadata customization
-  const [minTitleWords, setMinTitleWords] = useState(5);
-  const [maxTitleWords, setMaxTitleWords] = useState(20);
-  const [minKeywords, setMinKeywords] = useState(20);
-  const [maxKeywords, setMaxKeywords] = useState(30);
-  const [minDescriptionWords, setMinDescriptionWords] = useState(8);
-  const [maxDescriptionWords, setMaxDescriptionWords] = useState(40);
+  // Updated default values for metadata customization to match reference photo
+  const [minTitleWords, setMinTitleWords] = useState(8);
+  const [maxTitleWords, setMaxTitleWords] = useState(22);
+  const [minKeywords, setMinKeywords] = useState(43);
+  const [maxKeywords, setMaxKeywords] = useState(48);
+  const [minDescriptionWords, setMinDescriptionWords] = useState(12);
+  const [maxDescriptionWords, setMaxDescriptionWords] = useState(30);
   
   // Custom prompt state
   const [customPromptEnabled, setCustomPromptEnabled] = useState(false);
@@ -675,81 +675,23 @@ const Index: React.FC = () => {
                 />
               </div>
               
-              {pendingCount > 0 && (
-                <div className="flex justify-center mt-8">
-                  {!user ? (
-                    <Button
-                      onClick={() => navigate('/auth')}
-                      className="glow-button bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 text-lg rounded-md shadow-lg transition-all duration-300 border-none"
-                    >
-                      <LogIn className="mr-2 h-5 w-5" />
-                      Login to Process {pendingCount} Image{pendingCount !== 1 ? 's' : ''}
-                    </Button>
-                  ) : (
-                    <Button
-                      onClick={handleProcessImages}
-                      disabled={isProcessing || isBatchProcessing || !apiKey}
-                      className="glow-button bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 text-lg rounded-md shadow-lg transition-all duration-300 border-none"
-                    >
-                      {isProcessing || isBatchProcessing ? (
-                        <>
-                          <Loader2 className="h-5 w-5 animate-spin mr-2" />
-                          {isBatchProcessing ? `Auto-processing Batch ${currentBatchIndex + 1}/${batches.length}...` : 'Processing...'}
-                        </>
-                      ) : (
-                        <>
-                          <Sparkles className="mr-2 h-5 w-5" />
-                          Auto-process All {pendingCount} Image{pendingCount !== 1 ? 's' : ''}
-                        </>
-                      )}
-                    </Button>
-                  )}
-                  
-                  {/* Timer indicator */}
-                  {(isProcessing || isBatchProcessing) && (
-                    <Button
-                      disabled
-                      className="ml-2 bg-gray-700 text-white px-4 py-3 text-lg rounded-md shadow-lg"
-                    >
-                      <Clock className="h-5 w-5 mr-2" />
-                      {isBatchProcessing ? `Batch ${currentBatchIndex + 1}/${batches.length}: ${formatTime(elapsedTime)}` : formatTime(elapsedTime)}
-                    </Button>
-                  )}
-                  
-                  {/* Completion time indicator */}
-                  {!isProcessing && completionTime && (
-                    <Button
-                      disabled
-                      className="ml-2 bg-green-700 text-white px-4 py-3 text-lg rounded-md shadow-lg"
-                    >
-                      <Clock className="h-5 w-5 mr-2" />
-                      Completed in {completionTime}
-                    </Button>
-                  )}
-                </div>
-              )}
+              <div className="flex justify-center mt-4">
+                <Button
+                  onClick={handleProcessImages}
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-2 rounded-md flex items-center justify-center gap-2"
+                  disabled={isProcessing || isBatchProcessing || images.filter(img => img.status === 'pending').length === 0 || !apiKey}
+                >
+                  {isProcessing || isBatchProcessing ? 
+                    <Loader2 className="h-4 w-4 animate-spin mr-1" /> : 
+                    <Play className="h-4 w-4 mr-1" />
+                  }
+                  <span>Process All</span>
+                </Button>
+              </div>
+
               
               <div className="mt-6 flex flex-col gap-4">
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center gap-2">
-                    <Button
-                      onClick={handleProcessImages}
-                      className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-6 py-2 rounded-md shadow-md flex items-center justify-center gap-2 w-40"
-                      disabled={isProcessing || isBatchProcessing || images.filter(img => img.status === 'pending').length === 0}
-                    >
-                      {isProcessing || isBatchProcessing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
-                      <span>Auto-Process All</span>
-                    </Button>
-                    
-                    {batches.length > 0 && (
-                      <div className="flex items-center gap-2 ml-4">
-                        <span className="text-sm text-gray-400">
-                          Auto-processing: Batch {currentBatchIndex + 1} of {batches.length}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                  
+                <div className="flex justify-end items-center">
                   <div className="flex items-center gap-2">
                     {(isProcessing || isBatchProcessing) && (
                       <div className="text-sm text-blue-400">
@@ -764,36 +706,7 @@ const Index: React.FC = () => {
                   </div>
                 </div>
                 
-                {batches.length > 0 && (
-                  <div className="text-sm text-gray-400 flex flex-wrap gap-2">
-                    {batches.map((batch, index) => (
-                      <div 
-                        key={index} 
-                        className={`px-3 py-1 rounded-full ${
-                          index === currentBatchIndex && (isProcessing || isBatchProcessing)
-                            ? 'bg-blue-600 text-white border-2 border-blue-300' 
-                            : index < currentBatchIndex 
-                              ? 'bg-green-600 text-white' 
-                              : index === currentBatchIndex
-                                ? 'bg-yellow-600 text-white'
-                                : 'bg-gray-700 text-gray-300'
-                        }`}
-                      >
-                        Batch {index + 1}: {batch.length} images
-                        {index === currentBatchIndex && (isProcessing || isBatchProcessing) && (
-                          <span className="ml-2">
-                            <Loader2 className="h-3 w-3 inline animate-spin" />
-                          </span>
-                        )}
-                        {index < currentBatchIndex && (
-                          <span className="ml-2">
-                            <Check className="h-3 w-3 inline" />
-                          </span>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                )}
+
               </div>
               
               <div className="mt-8">

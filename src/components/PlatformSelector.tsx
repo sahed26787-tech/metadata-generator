@@ -21,16 +21,6 @@ const platforms: {
   };
 }[] = [
   {
-    id: 'AdobeStock',
-    icon: <span className="text-sm font-bold text-purple-400">St</span>,
-    name: 'AdobeStock',
-    colors: {
-      ring: "ring-purple-500",
-      bg: "bg-purple-900/30",
-      glow: "from-purple-500/30 via-purple-500/20 to-purple-500/10"
-    }
-  },
-  {
     id: 'Freepik',
     icon: <Crown className="h-5 w-5 text-yellow-400" />,
     name: 'Freepik',
@@ -38,6 +28,16 @@ const platforms: {
       ring: "ring-yellow-500",
       bg: "bg-yellow-900/30",
       glow: "from-yellow-500/30 via-yellow-500/20 to-yellow-500/10"
+    }
+  },
+  {
+    id: 'AdobeStock',
+    icon: <span className="text-sm font-bold text-purple-400">St</span>,
+    name: 'AdobeStock',
+    colors: {
+      ring: "ring-purple-500",
+      bg: "bg-purple-900/30",
+      glow: "from-purple-500/30 via-purple-500/20 to-purple-500/10"
     }
   },
   {

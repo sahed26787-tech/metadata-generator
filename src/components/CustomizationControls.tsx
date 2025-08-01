@@ -42,7 +42,7 @@ const SettingRow: React.FC<SettingRowProps> = ({
 }) => {
   return <div className="mb-4">
       <div className="flex justify-between items-center mb-1">
-        <div className="text-xs text-gray-400 flex items-center">
+        <div className="text-xs text-gray-300 flex items-center">
           {label}
           <TooltipProvider>
             <Tooltip>
@@ -55,7 +55,7 @@ const SettingRow: React.FC<SettingRowProps> = ({
             </Tooltip>
           </TooltipProvider>
         </div>
-        <span className="text-xs font-medium text-white bg-gray-700 px-2 py-0.5 rounded">{currentValue}</span>
+        <span className="text-xs font-medium text-white bg-gray-800 px-2 py-0.5 rounded">{currentValue}</span>
       </div>
       <div className="flex items-center">
         <Slider value={[value]} min={minValue} max={maxValue} step={1} className="flex-1" onValueChange={onChange} />

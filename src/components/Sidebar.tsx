@@ -107,13 +107,13 @@ const Sidebar: React.FC<SidebarProps> = ({
     return null;
   }
   
-  return <aside className="w-80 bg-[#1A1E2E] border-r border-gray-700 flex flex-col h-screen overflow-auto">
+  return <aside className="w-80 bg-[#0F1323] border-r border-gray-700 flex flex-col h-screen overflow-auto">
       <div className="p-4 border-b border-gray-700">
         <GenerationModeSelector selectedMode={selectedMode} onModeChange={onModeChange} />
       </div>
       
       <div className="p-4 border-b border-gray-700 py-[8px]">
-        <h3 className="text-sm font-medium mb-4 bg-[#F15A29] text-white px-3 py-1 rounded-full inline-block">Metadata Customization</h3>
+        <h3 className="text-sm font-medium mb-4 text-[#F15A29]">Metadata Customization</h3>
         <CustomizationControls 
           minTitleWords={minTitleWords} 
           onMinTitleWordsChange={onMinTitleWordsChange} 

@@ -21,9 +21,9 @@ const FeatureToggle: React.FC<FeatureToggleProps> = ({
   footer
 }) => {
   return <div className="space-y-1 pt-1 border-t border-gray-700">
-      <div className="flex justify-between items-center py-2">
+      <div className="flex justify-between items-center py-3">
         <div className="flex items-center">
-          <h3 className="text-sm font-medium text-white">{title}</h3>
+          <h3 className="text-sm font-medium text-white uppercase">{title}</h3>
           {tooltipText && <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -35,16 +35,12 @@ const FeatureToggle: React.FC<FeatureToggleProps> = ({
               </Tooltip>
             </TooltipProvider>}
         </div>
-        <Switch checked={enabled} onCheckedChange={onEnabledChange} className="ml-auto" />
+        <div className="w-12">
+          <Switch checked={enabled} onCheckedChange={onEnabledChange} className="ml-auto" />
+        </div>
       </div>
       
-      {enabled && <div className="p-3 bg-gray-800/50 rounded border border-gray-700 text-xs text-gray-300 space-y-1">
-          <p className="font-medium">{description}</p>
-          {bullets && bullets.length > 0 && <ul className="list-disc list-inside space-y-1 text-blue-300">
-              {bullets.map((item, index) => <li key={index}>{item}</li>)}
-            </ul>}
-          {footer && <p className="text-gray-400 mt-1">{footer}</p>}
-        </div>}
+      {/* No tips message when enabled, as per reference photo */}
     </div>;
 };
 export default FeatureToggle;
