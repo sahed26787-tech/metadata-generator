@@ -1,34 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { Navigate, Link } from 'react-router-dom';
-import { Loader2, FileType } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { GoogleLoginButton } from '@/components/GoogleLoginButton';
 import { toast } from 'sonner';
 
 const Auth: React.FC = () => {
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const images = [
-    '/images/1st Page.jpg',
-    '/images/2nd Page.jpg',
-    '/images/3rd Page.jpg',
-    '/images/4th Page.jpg',
-    '/images/5th Page.jpg',
-    '/images/6th Page.jpg'
-  ];
-  
   const {
     user,
     isLoading
   } = useAuth();
-
-  // Rotate through all 6 images
-  useEffect(() => {
-    const intervalId = setInterval(() => {
-      setCurrentImageIndex((prevIndex) => (prevIndex + 1) % images.length);
-    }, 5000); // Change image every 5 seconds
-
-    return () => clearInterval(intervalId); // Clean up on unmount
-  }, []);
 
   // Redirect if already authenticated
   if (!isLoading && user) {
@@ -49,20 +30,12 @@ const Auth: React.FC = () => {
   return (
     <div className="flex min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Left section with image */}
-      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden">
-        {images.map((image, index) => (
-          <img 
-            key={image}
-            src={image} 
-            alt={`Robi Technology Background ${index + 1}`}
-            className={`object-cover w-full h-full absolute inset-0 transition-opacity duration-1000 ${
-              index === currentImageIndex ? 'opacity-100' : 'opacity-0'
-            }`}
-          />
-        ))}
-        <div className="absolute inset-0 bg-gradient-to-tr from-black/50 to-transparent z-10">
-          {/* Removed the text overlay */}
-        </div>
+      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-[#1a1f2e] items-center justify-center">
+        <img 
+          src="/images/hosting/website-hosting-illustration.jpg" 
+          alt="Website Hosting Illustration"
+          className="w-full h-full object-cover"
+        />
       </div>
       
       {/* Right section with form */}
@@ -71,13 +44,8 @@ const Auth: React.FC = () => {
           {/* Logo */}
           <div className="flex justify-center mb-8">
             <div className="flex items-center">
-              <img 
-                src="/images/Icon (1).png" 
-                alt="CSV PRO Logo" 
-                className="h-16 w-auto"
-              />
-              <span className="text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-blue-400 ml-2 flex items-center">
-                CSV PRO
+              <span className="text-5xl font-bold text-[#F15A29] flex items-center">
+                PixcraftAI
               </span>
             </div>
           </div>
