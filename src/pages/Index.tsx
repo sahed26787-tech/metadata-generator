@@ -53,8 +53,8 @@ const Index: React.FC = () => {
   const [currentBatchIndex, setCurrentBatchIndex] = useState(0);
   const [isBatchProcessing, setIsBatchProcessing] = useState(false);
   
-  // Default platform is now Freepik
-  const [platforms, setPlatforms] = useState<Platform[]>(['Freepik']);
+  // Default platform is AdobeStock
+  const [platforms, setPlatforms] = useState<Platform[]>(['AdobeStock']);
   
   const [generationMode, setGenerationMode] = useState<GenerationMode>('metadata');
   const [selectedTab, setSelectedTab] = useState('image');
@@ -675,19 +675,21 @@ const Index: React.FC = () => {
                 />
               </div>
               
-              <div className="flex justify-center mt-4">
-                <Button
-                  onClick={handleProcessImages}
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-2 rounded-md flex items-center justify-center gap-2"
-                  disabled={isProcessing || isBatchProcessing || images.filter(img => img.status === 'pending').length === 0 || !apiKey}
-                >
-                  {isProcessing || isBatchProcessing ? 
-                    <Loader2 className="h-4 w-4 animate-spin mr-1" /> : 
-                    <Play className="h-4 w-4 mr-1" />
-                  }
-                  <span>Process All</span>
-                </Button>
-              </div>
+              {images.length > 0 && (
+                <div className="flex justify-center mt-4">
+                  <Button
+                    onClick={handleProcessImages}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-2 rounded-md flex items-center justify-center gap-2"
+                    disabled={isProcessing || isBatchProcessing || images.filter(img => img.status === 'pending').length === 0 || !apiKey}
+                  >
+                    {isProcessing || isBatchProcessing ? 
+                      <Loader2 className="h-4 w-4 animate-spin mr-1" /> : 
+                      <Play className="h-4 w-4 mr-1" />
+                    }
+                    <span>Process All</span>
+                  </Button>
+                </div>
+              )}
 
               
               <div className="mt-6 flex flex-col gap-4">
@@ -698,15 +700,8 @@ const Index: React.FC = () => {
                         Processing time: {formatTime(elapsedTime)}
                       </div>
                     )}
-                    {completionTime && !isProcessing && !isBatchProcessing && (
-                      <div className="text-sm text-green-400">
-                        Completed in: {completionTime}
-                      </div>
-                    )}
                   </div>
                 </div>
-                
-
               </div>
               
               <div className="mt-8">

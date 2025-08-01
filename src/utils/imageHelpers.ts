@@ -50,7 +50,9 @@ export const formatImagesAsCSV = (
       const filename = img.file.name;
       const title = img.result?.title ? removeSymbolsFromTitle(img.result.title) : '';
       const description = img.result?.description || '';
-      const keywords = (img.result?.keywords || []).join(',');
+      // Filter out keywords that start with ❌ (cut keywords)
+      const filteredKeywords = (img.result?.keywords || []).filter(keyword => !keyword.startsWith('❌'));
+      const keywords = filteredKeywords.join(',');
       const prompt = img.result?.prompt || '';
       const baseModel = img.result?.baseModel || 'leonardo';
 
@@ -88,15 +90,18 @@ export const formatVideosAsCSV = (videos: ProcessedImage[], isShutterstock?: boo
       // Get description for Shutterstock
       const description = video.result?.description || '';
       
-      // Join keywords
-      const keywords = (video.result?.keywords || []).join(',');
+      // Filter out keywords that start with ❌ (cut keywords)
+      const filteredKeywords = (video.result?.keywords || []).filter(keyword => !keyword.startsWith('❌'));
+      const keywords = filteredKeywords.join(',');
       
       // Determine category
       // Use the existing category if available, otherwise determine it
+      // Filter out cut keywords for category determination
+      const filteredKeywordsForCategory = (video.result?.keywords || []).filter(keyword => !keyword.startsWith('❌'));
       const category = video.result?.category || determineVideoCategory(
         title,
         description,
-        video.result?.keywords || []
+        filteredKeywordsForCategory
       );
       
       // Format the row with proper CSV escaping
@@ -268,7 +273,9 @@ export const suggestCategoriesForShutterstock = (title: string, description: str
  * Suggest categories for Adobe Stock
  */
 export const suggestCategoriesForAdobeStock = (title: string, keywords: string[]): string[] => {
-  const content = `${title} ${keywords.join(' ')}`.toLowerCase();
+  // Filter out cut keywords
+  const filteredKeywords = keywords.filter(keyword => !keyword.startsWith('❌'));
+  const content = `${title} ${filteredKeywords.join(' ')}`.toLowerCase();
   
   const categories: string[] = [];
   

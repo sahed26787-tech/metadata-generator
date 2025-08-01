@@ -5,7 +5,11 @@ import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import UserProfile from '@/components/UserProfile';
-import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
+import { 
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent
+} from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 interface AppHeaderProps {
@@ -89,7 +93,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
     window.location.reload();
   };
   
-  return <header className="bg-[#0F1323] border-b border-gray-700 py-2 px-4">
+  return <header className="bg-[#1F2937] border-b border-gray-700 py-2 px-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center">
           <h1 onClick={navigateToHome} className="text-xl font-bold flex items-center cursor-pointer hover:opacity-80 transition-opacity">
@@ -129,17 +133,27 @@ const AppHeader: React.FC<AppHeaderProps> = ({
         <div className="flex-1"></div>
         
         <div className="flex items-center space-x-4">
-          {/* Show the login button for non-authenticated users */}
+          {/* Show the pricing and login buttons for non-authenticated users */}
           {!user && (
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="bg-blue-600 hover:bg-blue-700 text-white border-blue-700 transition-all duration-300 hover:shadow-lg transform hover:-translate-y-1" 
-              onClick={() => navigate('/auth')}
-            >
-              <LogIn className="h-4 w-4 mr-1" />
-              Login / Sign Up
-            </Button>
+            <>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="bg-amber-500 hover:bg-amber-600 text-black font-medium border-amber-500 px-4 py-1"
+                onClick={() => navigate('/pricing')}
+              >
+                Pricing
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="bg-blue-600 hover:bg-blue-700 text-white border-blue-700 transition-all duration-300 hover:shadow-lg transform hover:-translate-y-1" 
+                onClick={() => navigate('/auth')}
+              >
+                <LogIn className="h-4 w-4 mr-1" />
+                Login / Sign Up
+              </Button>
+            </>
           )}
         
           {user && (
@@ -148,13 +162,13 @@ const AppHeader: React.FC<AppHeaderProps> = ({
               <Button 
                 variant="outline" 
                 size="sm" 
-                className="bg-[#F15A29] text-white border-[#F15A29] hover:bg-[#e04d18] hover:shadow-lg transition-all duration-200 ease-in-out hover:scale-105 rounded-full px-4 font-medium"
+                className="bg-amber-500 hover:bg-amber-600 text-black font-medium border-amber-500 px-4 py-1"
                 onClick={() => navigate('/pricing')}
               >
                 Pricing
               </Button>
-              <HoverCard>
-                <HoverCardTrigger asChild>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
                   <div className="h-8 w-8 rounded-full flex items-center justify-center cursor-pointer overflow-hidden">
                     <Avatar className="h-8 w-8">
                       <AvatarImage src={getProfilePicture()} alt={user.email} />
@@ -163,11 +177,11 @@ const AppHeader: React.FC<AppHeaderProps> = ({
                       </AvatarFallback>
                     </Avatar>
                   </div>
-                </HoverCardTrigger>
-                <HoverCardContent className="w-80">
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-96 p-0 bg-gray-900 border border-gray-800">
                   <UserProfile />
-                </HoverCardContent>
-              </HoverCard>
+                </DropdownMenuContent>
+              </DropdownMenu>
               
 
             </>

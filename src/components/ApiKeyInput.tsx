@@ -232,26 +232,18 @@ const ApiKeyInput: React.FC<ApiKeyInputProps> = ({ apiKey, onApiKeyChange, compa
             </Button>
           )}
         </div>
-        
-        {/* Help text */}
-        <div className="text-xs text-gray-400">
-          <div className="flex items-center justify-between flex-wrap">
-            <span>Need an API key?</span>
-            <a 
-              href="https://aistudio.google.com/app/apikey" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="text-blue-400 hover:text-blue-300 font-medium transition-colors"
-            >
-              Get from Google AI Studio
-            </a>
-          </div>
-          
-          {/* Rate limit info */}
-          <div className="mt-1">
-            <span>Multiple keys help bypass Gemini's 15 requests/min limit</span>
-          </div>
+
+        {/* GET KEY button */}
+        <div className="mt-3">
+          <Button 
+            onClick={() => window.open("https://aistudio.google.com/app/apikey", "_blank")}
+            className="bg-green-600 hover:bg-green-700 text-white border-none font-medium h-9 w-full rounded-md"
+          >
+            GET KEY
+          </Button>
         </div>
+        
+
       </div>
     );
   }
@@ -354,25 +346,7 @@ const ApiKeyInput: React.FC<ApiKeyInputProps> = ({ apiKey, onApiKeyChange, compa
           </div>
         )}
         
-        {/* Help text */}
-        <div className="text-sm text-gray-400 flex items-center gap-2">
-          <span>You need to</span>
-          <span className="font-semibold text-[#f68003]">set your own API key</span>
-          <span>from</span>
-          <a 
-            href="https://aistudio.google.com/app/apikey" 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="text-[#f68003] hover:text-[#dd7003] font-medium transition-colors"
-          >
-            Google Gemini AI
-          </a>
-        </div>
-        
-        {/* Rate limit info */}
-        <div className="text-xs text-gray-400 mt-1">
-          <span>Add multiple API keys to bypass Gemini's 15 requests/min limit</span>
-        </div>
+
       </div>
     </div>
   );

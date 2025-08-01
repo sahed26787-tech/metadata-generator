@@ -25,6 +25,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
   onRegenerateImage
 }) => {
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [refreshKey, setRefreshKey] = useState<number>(0);
   if (images.length === 0) return null;
   const handleCopyToClipboard = (text: string, id: string) => {
     navigator.clipboard.writeText(text);
@@ -114,12 +115,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
               <span>Download All</span>
             </Button>}
           
-          {/* Progress indicator button */}
-          {images.length > 0 && 
-            <Button variant="outline" size="sm" className="flex items-center justify-center gap-1 bg-gray-900 hover:bg-gray-800 text-blue-400 border-none rounded-md px-3 py-1 min-w-[50px]">
-              <span className="font-medium">{completedImages.length}/{images.length}</span>
-            </Button>
-          }
+
           
           <Button variant="outline" size="sm" onClick={onClearAll} className="flex items-center gap-1">
             <X className="h-4 w-4" />
@@ -144,7 +140,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                         <span className="ml-2 text-gray-400">EPS Design File</span>
                       </div> : <img src={image.previewUrl} alt={image.file.name} className="w-full object-cover max-h-[400px]" />}
                   </div>
-                  <div className="text-gray-400">{image.file.name}</div>
+                  
                 </div>
                 
                 {/* Right column - Generated Prompt */}
@@ -191,7 +187,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                           <span className="ml-2 text-gray-400">EPS Design File</span>
                         </div> : <img src={image.previewUrl} alt={image.file.name} className="w-full object-cover max-h-[400px]" />}
                     </div>
-                    <div className="text-gray-400">{image.file.name}</div>
+                    
                   </div>
                   
                   <div className="p-6">
@@ -274,9 +270,36 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                           </Button>
                         </div>
                         <div className="flex flex-wrap gap-2 mt-2">
-                          {image.result?.keywords && image.result.keywords.length > 0 ? image.result.keywords.map((keyword, index) => <span key={index} className="bg-blue-600 text-white text-xs px-3 py-1 rounded-full">
-                                {keyword}
-                              </span>) : <span className="text-gray-400">No keywords available</span>}
+                          {image.result?.keywords && image.result.keywords.length > 0 ? image.result.keywords.map((keyword, index) => {
+                                const isCut = keyword.startsWith('❌');
+                                const displayKeyword = isCut ? keyword.substring(1) : keyword;
+                                
+                                return (
+                                  <span 
+                                    key={index} 
+                                    className={`${isCut ? 'bg-gray-600 line-through' : 'bg-blue-600'} text-white text-xs px-3 py-1 rounded-full flex items-center gap-1 group relative`}
+                                  >
+                                    {displayKeyword}
+                                    {!isCut && (
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          const updatedKeywords = [...(image.result?.keywords || [])];
+                                          updatedKeywords[index] = `❌${keyword}`;
+                                          if (image.result) {
+                                            image.result.keywords = updatedKeywords;
+                                          }
+                                          // Force re-render
+                                          setRefreshKey(prev => prev + 1);
+                                        }}
+                                        className="ml-1 text-red-500 focus:outline-none opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                                      >
+                                        <X className="h-3 w-3" />
+                                      </button>
+                                    )}
+                                  </span>
+                                );
+                              }) : <span className="text-gray-400">No keywords available</span>}
                         </div>
                       </div>
 

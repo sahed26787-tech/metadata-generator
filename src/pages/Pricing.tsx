@@ -20,7 +20,7 @@ const PricingPage: React.FC = () => {
           
           <div className="grid md:grid-cols-3 gap-6 mt-8">
             {/* Free Plan */}
-            <Card className="bg-[#0F1323] border border-gray-800 shadow-xl relative overflow-hidden">
+            <Card className="bg-[#1F2937] border border-gray-800 shadow-xl relative overflow-hidden">
               <CardHeader className="pb-0">
                 <h2 className="text-2xl font-bold text-white">Free</h2>
                 <div className="flex items-baseline mt-2">
@@ -48,7 +48,7 @@ const PricingPage: React.FC = () => {
             </Card>
             
             {/* Basic Plan */}
-            <Card className="bg-[#0F1323] border border-gray-800 shadow-xl relative overflow-hidden">
+            <Card className="bg-[#1F2937] border border-gray-800 shadow-xl relative overflow-hidden">
               <CardHeader className="pb-0">
                 <h2 className="text-2xl font-bold text-white">Basic</h2>
                 <div className="flex items-baseline mt-2">
@@ -79,7 +79,7 @@ const PricingPage: React.FC = () => {
             </Card>
             
             {/* Premium Plan */}
-            <Card className="bg-[#0F1323] border border-gray-800 shadow-xl relative overflow-hidden">
+            <Card className="bg-[#1F2937] border border-gray-800 shadow-xl relative overflow-hidden">
               <div className="absolute top-0 right-0 bg-amber-500 text-black px-3 py-1 text-xs font-semibold">
                 POPULAR
               </div>

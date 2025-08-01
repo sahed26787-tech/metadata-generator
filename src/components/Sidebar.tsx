@@ -107,7 +107,7 @@ const Sidebar: React.FC<SidebarProps> = ({
     return null;
   }
   
-  return <aside className="w-80 bg-[#0F1323] border-r border-gray-700 flex flex-col h-screen overflow-auto">
+  return <aside className="w-80 bg-[#1F2937] border-r border-gray-700 flex flex-col h-screen overflow-auto">
       <div className="p-4 border-b border-gray-700">
         <GenerationModeSelector selectedMode={selectedMode} onModeChange={onModeChange} />
       </div>
