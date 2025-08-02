@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Download, Copy, X, Check, Film, FileType, CheckCircle, RefreshCw, Clock } from 'lucide-react';
 import { ProcessedImage, formatImagesAsCSV, formatVideosAsCSV, downloadCSV, formatFileSize, removeSymbolsFromTitle, removeCommasFromDescription } from '@/utils/imageHelpers';
@@ -26,6 +26,27 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
 }) => {
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [refreshKey, setRefreshKey] = useState<number>(0);
+  const [lastCompletedId, setLastCompletedId] = useState<string | null>(null);
+  const completedImagesRef = useRef<HTMLDivElement>(null);
+  const completedImageRefs = useRef<{[key: string]: HTMLDivElement | null}>({});
+  // Track when new images are completed
+  useEffect(() => {
+    const completedImages = images.filter(img => img.status === 'complete');
+    const lastCompleted = completedImages[completedImages.length - 1];
+    
+    if (lastCompleted && lastCompleted.id !== lastCompletedId) {
+      setLastCompletedId(lastCompleted.id);
+      
+      // Scroll to the newly completed image with animation
+      setTimeout(() => {
+        const imageElement = completedImageRefs.current[lastCompleted.id];
+        if (imageElement && completedImagesRef.current) {
+          imageElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 300);
+    }
+  }, [images, lastCompletedId]);
+
   if (images.length === 0) return null;
   const handleCopyToClipboard = (text: string, id: string) => {
     navigator.clipboard.writeText(text);
@@ -125,8 +146,11 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
       </div>
 
       {/* Image to Prompt mode display - Updated to show image with prompt */}
-      {generationMode === 'imageToPrompt' && completedImages.length > 0 && <div className="grid grid-cols-1 gap-6">
-          {completedImages.map(image => <div key={image.id} className="bg-black rounded-lg border border-gray-800 overflow-hidden">
+      {generationMode === 'imageToPrompt' && completedImages.length > 0 && <div className="grid grid-cols-1 gap-6" ref={completedImagesRef}>
+          {completedImages.map(image => <div 
+              key={image.id} 
+              ref={el => completedImageRefs.current[image.id] = el}
+              className={`bg-black rounded-lg border border-gray-800 overflow-hidden ${lastCompletedId === image.id ? 'animate-scroll-highlight' : ''}`}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4">
                 {/* Left column - Source Image */}
                 <div className="p-4 border border-gray-800 rounded-lg">
@@ -170,11 +194,14 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
         </div>}
 
       {/* Metadata mode display */}
-      {generationMode === 'metadata' && hasCompletedImages && <div className="overflow-auto">
+      {generationMode === 'metadata' && hasCompletedImages && <div className="overflow-auto" ref={completedImagesRef}>
           {completedImages.map(image => {
         // Clean title by removing symbols
         const cleanTitle = image.result?.title ? removeSymbolsFromTitle(image.result.title) : '';
-        return <div key={image.id} className="mb-6 bg-gray-800/30 border border-gray-700/50 rounded-lg overflow-hidden">
+        return <div 
+          key={image.id} 
+          ref={el => completedImageRefs.current[image.id] = el}
+          className={`mb-6 bg-gray-800/30 border border-gray-700/50 rounded-lg overflow-hidden ${lastCompletedId === image.id ? 'animate-scroll-highlight' : ''}`}>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="p-6 border-r border-gray-700/50">
                     <h3 className="text-amber-500 text-lg mb-2">Image Preview</h3>
@@ -459,7 +486,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                       <Button 
                         variant="default" 
                         size="sm" 
-                        className="bg-orange-500 hover:bg-orange-600 text-white font-semibold px-5 py-2 h-9 rounded-md shadow-md transition-all duration-300 hover:scale-105 hover:shadow-lg"
+                        className="bg-green-500 hover:bg-green-600 text-white font-semibold px-5 py-2 h-9 rounded-md shadow-md transition-all duration-300 hover:scale-105 hover:shadow-lg flex items-center"
                         onClick={() => onRegenerateImage(image.id)}
                       >
                         <RefreshCw className="h-4 w-4 mr-2 animate-spin animate-duration-[2500ms]" />

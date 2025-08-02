@@ -147,6 +147,11 @@ export default {
 				'float': {
 					'0%, 100%': { transform: 'translateY(0)' },
 					'50%': { transform: 'translateY(-10px)' },
+				},
+				'scroll-highlight': {
+					'0%': { transform: 'translateY(0)', boxShadow: '0 0 0 rgba(74, 222, 128, 0)' },
+					'50%': { transform: 'translateY(0)', boxShadow: '0 0 15px rgba(74, 222, 128, 0.6)' },
+					'100%': { transform: 'translateY(0)', boxShadow: '0 0 0 rgba(74, 222, 128, 0)' }
 				}
 			},
 			animation: {
@@ -159,6 +164,7 @@ export default {
 				'pulse-subtle': 'pulse-subtle 2s ease-in-out infinite',
 				'scale-in': 'scale-in 0.3s ease-out',
 				'float': 'float 6s ease-in-out infinite',
+				'scroll-highlight': 'scroll-highlight 3s ease-in-out infinite',
 			},
 			backdropFilter: {
 				'none': 'none',
