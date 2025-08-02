@@ -34,7 +34,8 @@ export const formatImagesAsCSV = (
   isVecteezy?: boolean,
   isDepositphotos?: boolean,
   is123RF?: boolean,
-  isAlamy?: boolean
+  isAlamy?: boolean,
+  epsEnabled?: boolean
 ): string => {
   const header = isFreepikOnly
     ? '"File name";"Title";"Keywords";"Prompt";"Base-Model"'
@@ -47,7 +48,20 @@ export const formatImagesAsCSV = (
   const rows = images
     .filter(img => img.status === 'complete' && img.result)
     .map(img => {
-      const filename = img.file.name;
+      // Convert filename to EPS if enabled and it's an image file
+      let filename = img.file.name;
+      if (epsEnabled) {
+        // Check if the file is a convertible image type
+        const lowerFilename = filename.toLowerCase();
+        if (lowerFilename.endsWith('.jpg') || 
+            lowerFilename.endsWith('.jpeg') || 
+            lowerFilename.endsWith('.png') || 
+            lowerFilename.endsWith('.svg')) {
+          // Replace the extension with .eps
+          filename = filename.substring(0, filename.lastIndexOf('.')) + '.eps';
+        }
+      }
+      
       const title = img.result?.title ? removeSymbolsFromTitle(img.result.title) : '';
       const description = img.result?.description || '';
       // Filter out keywords that start with ❌ (cut keywords)
@@ -71,7 +85,7 @@ export const formatImagesAsCSV = (
 /**
  * Format videos as CSV
  */
-export const formatVideosAsCSV = (videos: ProcessedImage[], isShutterstock?: boolean): string => {
+export const formatVideosAsCSV = (videos: ProcessedImage[], isShutterstock?: boolean, epsEnabled?: boolean): string => {
   // Create CSV header row - Shutterstock requires specific format
   const header = isShutterstock 
     ? '"Filename","Description","Keywords"'
@@ -82,7 +96,20 @@ export const formatVideosAsCSV = (videos: ProcessedImage[], isShutterstock?: boo
     .filter(video => video.status === 'complete' && video.result)
     .map(video => {
       // Ensure we have a filename
-      const filename = video.file.name;
+      let filename = video.file.name;
+      
+      // Convert filename to EPS if enabled and it's an image file
+      if (epsEnabled) {
+        // Check if the file is a convertible image type
+        const lowerFilename = filename.toLowerCase();
+        if (lowerFilename.endsWith('.jpg') || 
+            lowerFilename.endsWith('.jpeg') || 
+            lowerFilename.endsWith('.png') || 
+            lowerFilename.endsWith('.svg')) {
+          // Replace the extension with .eps
+          filename = filename.substring(0, filename.lastIndexOf('.')) + '.eps';
+        }
+      }
       
       // Clean title
       const title = video.result?.title ? removeSymbolsFromTitle(video.result.title) : '';

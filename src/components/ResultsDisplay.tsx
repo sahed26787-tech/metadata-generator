@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { Download, Copy, X, Check, Film, FileType, CheckCircle, RefreshCw, Clock } from 'lucide-react';
+import { Download, Copy, X, Check, Film, FileType, CheckCircle, RefreshCw, Clock, FileIcon } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { ProcessedImage, formatImagesAsCSV, formatVideosAsCSV, downloadCSV, formatFileSize, removeSymbolsFromTitle, removeCommasFromDescription } from '@/utils/imageHelpers';
 import { toast } from 'sonner';
 import { GenerationMode } from '@/components/GenerationModeSelector';
@@ -15,6 +17,8 @@ interface ResultsDisplayProps {
   generationMode: GenerationMode;
   selectedPlatforms?: Platform[];
   onRegenerateImage?: (id: string) => void;
+  epsEnabled?: boolean;
+  onEpsEnabledChange?: (enabled: boolean) => void;
 }
 const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
   images,
@@ -22,7 +26,9 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
   onClearAll,
   generationMode,
   selectedPlatforms = ['AdobeStock'],
-  onRegenerateImage
+  onRegenerateImage,
+  epsEnabled = false,
+  onEpsEnabledChange
 }) => {
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [refreshKey, setRefreshKey] = useState<number>(0);
@@ -73,18 +79,18 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
     // Process videos if they exist
     if (videoImages.length > 0) {
       const isShutterstock = selectedPlatforms.length === 1 && selectedPlatforms[0] === 'Shutterstock';
-      const videoCsvContent = formatVideosAsCSV(videoImages, isShutterstock);
+      const videoCsvContent = formatVideosAsCSV(videoImages, isShutterstock, epsEnabled);
       downloadCSV(videoCsvContent, 'video-metadata.csv', 'videos' as Platform);  // Fixed type issue
-      toast.success('Video metadata CSV file downloaded');
+      toast.success(`Video metadata CSV file downloaded${epsEnabled ? ' with EPS conversion' : ''}`);
     }
 
     // Process regular images if they exist
     if (regularImages.length > 0) {
-      const csvContent = formatImagesAsCSV(regularImages, isFreepikOnly, isShutterstock, isAdobeStock, isVecteezy, isDepositphotos, is123RF, isAlamy);
+      const csvContent = formatImagesAsCSV(regularImages, isFreepikOnly, isShutterstock, isAdobeStock, isVecteezy, isDepositphotos, is123RF, isAlamy, epsEnabled);
       // Pass the platform name for custom folder naming
       const selectedPlatform = selectedPlatforms.length === 1 ? selectedPlatforms[0] : undefined;
       downloadCSV(csvContent, 'image-metadata.csv', selectedPlatform);
-      toast.success('Image metadata CSV file downloaded');
+      toast.success(`Image metadata CSV file downloaded${epsEnabled ? ' with EPS conversion' : ''}`);
     }
   };
   const downloadPromptText = (text: string, filename: string) => {
@@ -126,10 +132,33 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
   return <div className="w-full space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-medium">Generated Data</h2>
-        <div className="flex gap-2">
+        <div className="flex items-center gap-4">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="eps-mode"
+                    checked={epsEnabled}
+                    onCheckedChange={onEpsEnabledChange}
+                    className="data-[state=checked]:bg-green-500"
+                  />
+                  <label htmlFor="eps-mode" className="text-sm font-medium flex items-center gap-1 cursor-pointer">
+                    <FileIcon className={`h-4 w-4 ${epsEnabled ? 'text-green-500' : ''}`} />
+                    <span className={epsEnabled ? 'text-green-500 font-semibold' : ''}>EPS</span>
+                    {epsEnabled && <span className="text-xs text-green-500 ml-1">(active)</span>}
+                  </label>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent className="bg-gray-800 text-white border-gray-700">
+                <p>When enabled, automatically converts .jpg, .jpeg, .png, and .svg files to .eps format in the CSV output.</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          <div className="flex gap-2">
           {hasCompletedImages && generationMode === 'metadata' && <Button variant="outline" size="sm" onClick={handleDownloadCSV} className="flex items-center gap-1 bg-orange-600 hover:bg-orange-700 text-white border-none">
               <Download className="h-4 w-4" />
-              <span>Download All CSV</span>
+              <span>Download All CSV{epsEnabled ? ' (.eps)' : ''}</span>
             </Button>}
           {hasCompletedImages && generationMode === 'imageToPrompt' && completedImages.length > 1 && <Button variant="outline" size="sm" onClick={downloadAllPrompts} className="flex items-center gap-1 bg-orange-600 hover:bg-orange-700 text-white border-none">
               <Download className="h-4 w-4" />
@@ -142,6 +171,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
             <X className="h-4 w-4" />
             <span>Clear All</span>
           </Button>
+          </div>
         </div>
       </div>
 
