@@ -11,14 +11,15 @@ export const NoticePopup = ({
   const [canClose, setCanClose] = useState(false);
   
   // Default notice text
-  const defaultNotice = `ওয়ালাইকুম আসসালাম!
-Google এখন তাদের ফ্রি Gemini API-র লিমিট আগের তুলনায় অনেক কমিয়ে দিয়েছে। যার কারণে অনেক সময় মেটাডাটা ঠিকভাবে জেনারেট হচ্ছে না।
+  const defaultNotice = `আসসালামু আলাইকুম!
 
-এই সমস্যার সমাধান হিসেবে আমরা এখন একটি পেইড API কিনেছি। অর্থাৎ, এখন থেকে আর ম্যানুয়ালি API কী বসানোর দরকার হবে না, এবং বারবার API কী পরিবর্তনের ঝামেলাও থাকবে না।
+Google এখন তাদের ফ্রি Gemini API-র লিমিট আগের তুলনায় অনেক কমিয়ে দিয়েছে। যার ফলে অনেক সময় মেটাডাটা ঠিকভাবে জেনারেট হচ্ছে না।
 
-যেহেতু এই পেইড API ব্যবহারের জন্য আমাদের খরচ হচ্ছে, তাই আমাদের সাইটটি বেশি বেশি প্রমোট করুন — যেন আমরা মাসিক খরচ সব ব্যবহারকারীদের জন্য কম রাখতে পারি।
+এই সমস্যার স্থায়ী সমাধান হিসেবে আমরা এখন একটি পেইড API ব্যবহার করছি। ফলে এখন আর ম্যানুয়ালি API কী বসানো বা বারবার পরিবর্তনের কোনো ঝামেলা থাকবে না — সবকিছুই স্বয়ংক্রিয়ভাবে কাজ করবে।
 
-নতুন সাইটটি আপনি ৩ দিন সম্পূর্ণ ফ্রি-তে ব্যবহার করতে পারবেন।`;
+তবে যেহেতু এই পেইড API ব্যবহারে আমাদের খরচ বেড়েছে, তাই আমাদের সাইটটি বেশি বেশি প্রমোট করার অনুরোধ রইল — যেন আমরা সকল ব্যবহারকারীদের জন্য খরচ সর্বনিম্ন পর্যায়ে রাখতে পারি।
+
+নতুন সাইটটি আপনি ৩ দিন ফ্রি-তে ব্যবহার করে দেখতে পারবেন। (আনলিমিটেড )`;
   
   useEffect(() => {
     // Show notice on every page refresh
@@ -65,11 +66,33 @@ Google এখন তাদের ফ্রি Gemini API-র লিমিট আ
     );
   };
 
+  // Function to format the notice with red text for the specified part
+  const formatNoticeWithRedText = () => {
+    if (message) return message;
+    
+    const redTextPart = "📌 বিঃদ্রঃ এই বর্তমান সাইটটি ৩ দিনের জন্য বন্ধ থাকবে। এরপর আপনি নতুন সাইটে সাবস্ক্রিপশন নিতে পারবেন অথবা চাইলে এই সাইটেই থাকতে পারবেন।";
+    
+    const noticeWithRedText = (
+      <>
+        {defaultNotice.split("\n\n").map((paragraph, index) => (
+          <p key={index} className="mb-3">
+            {paragraph}
+          </p>
+        ))}
+        <p className="mb-3 text-red-600 font-medium">
+          {redTextPart}
+        </p>
+      </>
+    );
+    
+    return noticeWithRedText;
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
       <div className="relative max-w-md w-full mx-4 p-6 bg-white text-black rounded-lg shadow-lg">
-        <div className="mb-6 whitespace-pre-line">
-          {message || defaultNotice}
+        <div className="mb-6">
+          {formatNoticeWithRedText()}
         </div>
         
         <div className="flex justify-center gap-4">
