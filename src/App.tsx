@@ -24,11 +24,7 @@ const App = () => (
             <TooltipProvider>
               <Toaster />
               <Sonner />
-              <NoticePopup 
-                message="Recraft-এর পার্সোনাল অ্যাকাউন্টে (৫০০০ ক্রেডিট) এখন মাত্র ৪৯৯ টাকায়। ✨✅
-তাই, প্রতারণার হাত থেকে রক্ষা পেতে বিশ্বস্ত স্থান থেকেই সাবস্ক্রিপশন নিন।🌸
-যোগাযোগ করুন WhatsApp-এ। ☎️"
-              />
+              <NoticePopup />
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/auth" element={<Auth />} />
