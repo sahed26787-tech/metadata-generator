@@ -1,22 +1,21 @@
 import React, { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
-import { LogOut, Crown, Infinity, Clock, Key } from 'lucide-react';
-import { Progress } from '@/components/ui/progress';
+import { LogOut, Crown, Infinity, Clock, Key, Eye, EyeOff, Copy, Check } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import ApiKeyInput from '@/components/ApiKeyInput';
+import { Input } from '@/components/ui/input';
+import { useToast } from '@/hooks/use-toast';
 import { formatDistanceToNow } from 'date-fns';
 
 const UserProfile: React.FC = () => {
   const { user, profile, signOut, apiKey, updateApiKey } = useAuth();
-  
+  const { toast } = useToast();
+  const [showApiKey, setShowApiKey] = useState(false);
+  const [apiKeyValue, setApiKeyValue] = useState(apiKey || '');
+  const [isCopied, setIsCopied] = useState(false);
+
   if (!user || !profile) return null;
 
-  // Calculate remaining credits based on user type
-  const remainingCredits = profile.is_premium ? '∞' : `${Math.max(0, 15 - profile.credits_used)}`;
-
-  // Get user's profile picture from their metadata or user object
-  // For Google auth, the picture is typically in user.user_metadata.avatar_url
   const getProfilePicture = () => {
     if (user.user_metadata?.avatar_url) {
       return user.user_metadata.avatar_url;
@@ -24,13 +23,11 @@ const UserProfile: React.FC = () => {
     if (user.user_metadata?.picture) {
       return user.user_metadata.picture;
     }
-    // Fallback to first letter of email
     return null;
   };
 
   const profilePicture = getProfilePicture();
 
-  // Calculate time remaining if premium user
   const getTimeRemaining = () => {
     if (!profile.expiration_date) return null;
     const expirationDate = new Date(profile.expiration_date);
@@ -40,87 +37,131 @@ const UserProfile: React.FC = () => {
 
   const timeRemaining = getTimeRemaining();
 
+  const handleSaveApiKey = () => {
+    updateApiKey(apiKeyValue);
+    toast({
+      title: "API Key Saved",
+      description: "Your API key has been successfully updated.",
+    });
+  };
+
+  const handleClearApiKey = () => {
+    updateApiKey('');
+    setApiKeyValue('');
+    toast({
+      title: "API Key Cleared",
+      description: "Your API key has been removed.",
+    });
+  };
+
+  const handleCopyApiKey = () => {
+    if (apiKeyValue) {
+      navigator.clipboard.writeText(apiKeyValue);
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2000);
+      toast({
+        title: "API Key Copied",
+        description: "API key copied to clipboard.",
+      });
+    }
+  };
+
   return (
-    <div className="bg-gray-900 overflow-hidden shadow-lg w-full">
-      <div className="p-5">
-        <div className="flex items-center space-x-4">
-          <Avatar className="ring-2 ring-blue-500/50 h-12 w-12">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-black p-4 text-white font-sans">
+      <div className="max-w-md mx-auto bg-gray-800/70 backdrop-blur-sm rounded-xl shadow-xl overflow-hidden border border-gray-700">
+        {/* User Info Section */}
+        <div className="p-5 border-b border-gray-700 flex items-center space-x-3">
+          <Avatar className="h-12 w-12 ring-1 ring-purple-500/50">
             <AvatarImage src={profilePicture} alt={user.email} />
-            <AvatarFallback className="bg-blue-900 text-lg">
+            <AvatarFallback className="bg-purple-600 text-base font-medium">
               {user.email.charAt(0).toUpperCase()}
             </AvatarFallback>
           </Avatar>
-          <div className="flex-1 min-w-0">
-            <p className="font-medium text-white break-all">{user.email}</p>
-            <div className="flex items-center text-sm text-gray-400">
-              {profile.is_premium ? (
-                <div className="flex items-center text-amber-400">
-                  <Crown className="h-3 w-3 mr-1 bg-[#0d0e0d]" />
-                  <span className="text-[#01fa01]">Premium User</span>
-                  {timeRemaining && (
-                    <div className="flex items-center ml-2 text-orange-500">
-                      <Clock className="h-3 w-3 mr-1" />
-                      <span>{timeRemaining}</span>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div className="flex items-center">
-                  <span className="text-red-500">Free User</span>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-      
-      <div className="p-5 space-y-3 border-t border-gray-800">
-        <div className="flex items-center justify-between mb-1">
-          <span className="text-orange-500 text-xl font-medium">Credits remaining</span>
-          <div className="flex items-center font-medium text-amber-400">
+          <div className="flex-1">
+            <p className="text-base font-medium truncate">{user.email}</p>
             {profile.is_premium ? (
-              <div className="flex items-center">
-                <Infinity className="h-5 w-5 mr-1 rounded-xl" />
-                <span className="text-xl">Unlimited</span>
+              <div className="flex items-center text-xs text-purple-300 mt-1">
+                <Crown className="h-3 w-3 mr-1 text-yellow-400" />
+                <span>Premium User</span>
+                {timeRemaining && (
+                  <span className="ml-2 flex items-center text-purple-400">
+                    <Clock className="h-3 w-3 mr-1" />
+                    {timeRemaining}
+                  </span>
+                )}
               </div>
             ) : (
-              <span className="text-2xl">{Math.max(0, 15 - profile.credits_used)}/15</span>
+              <span className="text-xs text-gray-400 mt-1">Free User</span>
             )}
           </div>
         </div>
-      </div>
 
-      <div className="p-5 border-t border-gray-800">
-        <div className="mb-4">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center">
-              <Key className="h-4 w-4 mr-2 text-blue-400" />
-              <span className="text-white font-medium">API Key</span>
-            </div>
-            <span className="text-xs bg-blue-900/50 text-blue-300 px-2 py-1 rounded border border-blue-800">
-              {apiKey ? apiKey.substring(0, 10) + '...' : 'Not Set'}
-            </span>
-          </div>
-          
-          <div className="p-4 bg-gray-800/50 border border-gray-700 rounded">
-            <ApiKeyInput 
-              apiKey={apiKey} 
-              onApiKeyChange={(key) => {
-                updateApiKey(key); // Use the context function to update the key
-              }}
-              compact={true}
-            />
+        {/* Credits Remaining Section */}
+        <div className="p-5 border-b border-gray-700">
+          <h3 className="text-sm font-semibold text-gray-400 mb-2">Credits Remaining</h3>
+          <div className="flex items-center justify-between bg-gray-700/30 p-3 rounded-lg border border-gray-600">
+            <span className="text-lg font-bold text-green-400">Unlimited</span>
+            <Infinity className="h-5 w-5 text-green-400" />
           </div>
         </div>
-        
-        <Button 
-          variant="ghost" 
-          className="w-full justify-center text-gray-400 hover:text-white hover:bg-gray-800 py-6 text-base"
-          onClick={signOut}
-        >
-          <LogOut className="h-5 w-5 mr-3" />
-          Sign Out
-        </Button>
+
+        {/* API Key Management */}
+        <div className="p-5 space-y-4">
+          <h3 className="text-sm font-semibold text-gray-400">API Key Management</h3>
+          
+          {/* Existing API Key Input */}
+          <div className="relative flex items-center">
+            <Key className="absolute left-3 h-4 w-4 text-gray-400" />
+            <Input
+              type={showApiKey ? "text" : "password"}
+              value={apiKeyValue}
+              onChange={(e) => setApiKeyValue(e.target.value)}
+              placeholder="Enter your API Key"
+              className="w-full pl-10 pr-20 py-2 bg-gray-700 border border-gray-600 rounded-md focus:ring-1 focus:ring-purple-500 focus:border-transparent text-white text-sm"
+            />
+            <button
+              type="button"
+              onClick={() => setShowApiKey(!showApiKey)}
+              className="absolute right-10 text-gray-400 hover:text-white transition-colors"
+            >
+              {showApiKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </button>
+            <button
+              type="button"
+              onClick={handleCopyApiKey}
+              className="absolute right-3 text-gray-400 hover:text-white transition-colors"
+            >
+              {isCopied ? <Check className="h-4 w-4 text-green-400" /> : <Copy className="h-4 w-4" />}
+            </button>
+          </div>
+
+          <div className="flex space-x-2">
+            <Button onClick={handleSaveApiKey} className="flex-1 h-9 px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md shadow-sm transition-colors">
+              Save Key
+            </Button>
+            <Button onClick={handleClearApiKey} className="flex-1 h-9 px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-md shadow-sm transition-colors">
+              Clear
+            </Button>
+            <Button onClick={() => window.open('https://aistudio.google.com/apikey', '_blank')} className="flex-1 h-9 px-3 py-1 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-md shadow-sm transition-colors">
+              Get New Key
+            </Button>
+          </div>
+
+          {/* Add Another API Key (Placeholder for future implementation) */}
+          
+        </div>
+
+        {/* Logout Option */}
+        <div className="p-5 border-t border-gray-700 flex justify-center">
+          <Button 
+            variant="ghost" 
+            className="text-gray-400 hover:text-red-400 hover:bg-gray-700 px-4 py-2 text-sm transition-colors rounded-md"
+            onClick={signOut}
+          >
+            <LogOut className="h-4 w-4 mr-2" />
+            Sign Out
+          </Button>
+        </div>
       </div>
     </div>
   );
