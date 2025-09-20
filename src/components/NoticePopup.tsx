@@ -11,15 +11,11 @@ export const NoticePopup = ({
   const [canClose, setCanClose] = useState(false);
   
   // Default notice text
-  const defaultNotice = `আসসালামু আলাইকুম!
-
-Google এখন তাদের ফ্রি Gemini API-র লিমিট আগের তুলনায় অনেক কমিয়ে দিয়েছে। যার ফলে অনেক সময় মেটাডাটা ঠিকভাবে জেনারেট হচ্ছে না।
-
-এই সমস্যার স্থায়ী সমাধান হিসেবে আমরা এখন একটি পেইড API ব্যবহার করছি। ফলে এখন আর ম্যানুয়ালি API কী বসানো বা বারবার পরিবর্তনের কোনো ঝামেলা থাকবে না — সবকিছুই স্বয়ংক্রিয়ভাবে কাজ করবে।
-
-তবে যেহেতু এই পেইড API ব্যবহারে আমাদের খরচ বেড়েছে, তাই আমাদের সাইটটি বেশি বেশি প্রমোট করার অনুরোধ রইল — যেন আমরা সকল ব্যবহারকারীদের জন্য খরচ সর্বনিম্ন পর্যায়ে রাখতে পারি।
-
-নতুন সাইটটি আপনি ৩ দিন ফ্রি-তে ব্যবহার করে দেখতে পারবেন। (আনলিমিটেড )`;
+  const defaultNotice = `Recraft-এর পার্সোনাল অ্যাকাউন্টে (1250 ক্রেডিট) এখন 
+ মাত্র 230 টাকায়। ✅ 
+ তাই, প্রতারণার হাত থেকে রক্ষা পেতে বিশ্বস্ত স্থান থেকেই 
+ সাবস্ক্রিপশন নিন। 🌸 
+ যোগাযোগ করুন WhatsApp-এ। ☎️`;
   
   useEffect(() => {
     // Show notice on every page refresh
@@ -66,52 +62,55 @@ Google এখন তাদের ফ্রি Gemini API-র লিমিট আ
     );
   };
 
-  // Function to format the notice with red text for the specified part
-  const formatNoticeWithRedText = () => {
-    if (message) return message;
-    
-    const redTextPart = "📌 বিঃদ্রঃ এই বর্তমান সাইটটি ৩ দিনের জন্য বন্ধ থাকবে। এরপর আপনি নতুন সাইটে সাবস্ক্রিপশন নিতে পারবেন অথবা চাইলে এই সাইটেই থাকতে পারবেন।";
-    
-    const noticeWithRedText = (
+  // Function to format the notice content
+  const formatNoticeContent = () => {
+    const noticeText = message || defaultNotice;
+    const lines = noticeText.split('\n');
+
+    return (
       <>
-        {defaultNotice.split("\n\n").map((paragraph, index) => (
-          <p key={index} className="mb-3">
-            {paragraph}
-          </p>
-        ))}
-        <p className="mb-3 text-red-600 font-medium">
-          {redTextPart}
-        </p>
+        {lines.map((line, index) => {
+          // Check if the line contains "WhatsApp-এ।" and format it with a link
+          if (line.includes("WhatsApp-এ। ☎️")) {
+            const whatsappText = "WhatsApp-এ। ☎️";
+            const parts = line.split(whatsappText);
+            return (
+              <p key={index} className="mb-2 last:mb-0">
+                {parts[0]}
+                <a
+                  href="https://wa.me/message/O5LMYSSX2PHSI1"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-medium underline text-blue-700 hover:text-blue-800"
+                >
+                  WhatsApp-এ। ☎️
+                </a>
+                {parts[1]}
+              </p>
+            );
+          }
+          return <p key={index} className="mb-2 last:mb-0">{line}</p>;
+        })}
       </>
     );
-    
-    return noticeWithRedText;
   };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="relative max-w-md w-full mx-4 p-6 bg-white text-black rounded-lg shadow-lg">
-        <div className="mb-6">
-          {formatNoticeWithRedText()}
+      <div className="relative max-w-md w-full mx-4 p-6 bg-yellow-300 text-black rounded-lg shadow-lg">
+        <div className="mb-6 text-center">
+          {formatNoticeContent()}
         </div>
         
-        <div className="flex justify-center gap-4">
-          <a 
-            href="https://pixcraftai.com/" 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-md transition-colors animate-pulse hover:animate-none"
+        <div className="flex justify-center">
+          <button 
+            onClick={handleClose}
+            disabled={!canClose}
+            className={`px-6 py-2 bg-gray-800 text-white font-medium rounded-md transition-colors 
+              ${canClose ? "hover:bg-gray-700" : "opacity-50 cursor-not-allowed"}`}
           >
-            New site
-          </a>
-          <a 
-            href="https://wa.me/message/O5LMYSSX2PHSI1" 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white font-medium rounded-md transition-colors"
-          >
-            Support
-          </a>
+            Close
+          </button>
         </div>
       </div>
     </div>
