@@ -1,150 +1,174 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Check, X } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
+import { Check, X, Circle, Square, Triangle } from 'lucide-react';
 import AppHeader from '@/components/AppHeader';
+
+interface PricingItemProps {
+  text: string;
+  included: boolean;
+}
+
+const PricingItem: React.FC<PricingItemProps> = ({ text, included }) => {
+  return (
+    <li className="flex items-center space-x-3">
+      <div className="flex-shrink-0">
+        {included ? (
+          <Check className="w-4 h-4 text-green-400" />
+        ) : (
+          <X className="w-4 h-4 text-gray-500" />
+        )}
+      </div>
+      <span className={`text-sm ${included ? 'text-gray-300' : 'text-gray-500'}`}>
+        {text}
+      </span>
+    </li>
+  );
+};
 
 const PricingPage: React.FC = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#030712] text-white">
-      <AppHeader remainingCredits="0" apiKey="" onApiKeyChange={() => {}} />
+    <div className="min-h-screen bg-gray-950 text-white relative">
+      {/* Subtle Background */}
+      <div className="absolute inset-0 bg-gradient-to-b from-gray-950 via-gray-900 to-gray-950"></div>
       
-      <div className="flex-1 py-10 px-4">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-10">
-            <h1 className="text-4xl font-bold tracking-tight">Choose Your Plan</h1>
-          </div>
-          
-          <div className="grid md:grid-cols-3 gap-6 mt-8">
-            {/* Free Plan */}
-            <Card className="bg-[#1F2937] border border-gray-800 shadow-xl relative overflow-hidden">
-              <CardHeader className="pb-0">
-                <h2 className="text-2xl font-bold text-white">Free</h2>
-                <div className="flex items-baseline mt-2">
-                  <span className="text-5xl font-extrabold tracking-tight">0</span>
-                  <span className="ml-1 text-slate-50 text-4xl">Tk</span>
-                </div>
-                <p className="text-sm text-gray-400 mt-3">Limited features to get started</p>
-                <p className="text-xs text-red-400 mt-1">Free users limited to 15 credits for lifetime</p>
-              </CardHeader>
-              <CardContent className="pt-6">
-                <ul className="space-y-4">
-                  <PricingItem included text="15 Credits Lifetime Limit" />
-                  <PricingItem included text="Basic Image to Prompt Features" />
-                  <PricingItem included text="Limited Access to Metadata Customization" />
-                  <PricingItem notIncluded text="More Fast Processing" />
-                  <PricingItem notIncluded text="Fully Custom Support" />
-                  <PricingItem notIncluded text="All Future Features" />
-                </ul>
-              </CardContent>
-              <CardFooter>
-                <Button size="lg" onClick={() => navigate('/')} className="w-full bg-blue-600 hover:bg-blue-700">
-                  Current Plan
-                </Button>
-              </CardFooter>
-            </Card>
+      <div className="relative z-10">
+        <AppHeader remainingCredits="0" apiKey="" onApiKeyChange={() => {}} />
+        
+        <div className="py-20 px-4 sm:px-6 lg:px-8">
+          <div className="max-w-7xl mx-auto">
+            {/* Header Section */}
+            <div className="text-center mb-20">
+              <h1 className="text-4xl font-semibold text-white mb-4">
+                Choose Your Plan
+              </h1>
+            </div>
             
-            {/* Basic Plan */}
-            <Card className="bg-[#1F2937] border border-gray-800 shadow-xl relative overflow-hidden">
-              <CardHeader className="pb-0">
-                <h2 className="text-2xl font-bold text-white">Basic</h2>
-                <div className="flex items-baseline mt-2">
-                  <span className="text-5xl font-extrabold tracking-tight">200</span>
-                  <span className="ml-1 text-slate-50 text-xl">Tk/Month</span>
+            {/* Pricing Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+              {/* Free Plan */}
+              <div className="relative group">
+                <div className="bg-gray-900/50 border border-gray-800 rounded-xl p-8 h-full transition-all duration-200 hover:border-gray-700">
+                  <div className="flex items-center space-x-3 mb-6">
+                    <div className="w-8 h-8 rounded-lg bg-gray-800 flex items-center justify-center">
+                      <Circle className="w-4 h-4 text-gray-400" />
+                    </div>
+                    <h3 className="text-xl font-medium text-white">Free</h3>
+                  </div>
+                  
+                  <div className="mb-8">
+                    <div className="flex items-baseline mb-2">
+                      <span className="text-4xl font-bold text-white">0</span>
+                      <span className="text-lg text-gray-500 ml-1">Tk</span>
+                    </div>
+                    <p className="text-sm text-gray-500">Perfect for getting started</p>
+                    <div className="mt-4 px-3 py-1 bg-gray-800 rounded-full text-gray-400 text-xs inline-block">
+                      15 credits lifetime limit
+                    </div>
+                  </div>
+                  
+                  <ul className="space-y-3 mb-8">
+                    <PricingItem text="15 Credits Lifetime Limit" included={true} />
+                    <PricingItem text="Basic Image to Prompt Features" included={true} />
+                    <PricingItem text="Limited Metadata Customization" included={true} />
+                    <PricingItem text="Fast Processing" included={false} />
+                    <PricingItem text="Priority Support" included={false} />
+                    <PricingItem text="Future Features" included={false} />
+                  </ul>
+                  
+                  <button className="w-full bg-gray-800 hover:bg-gray-700 text-white font-medium py-3 rounded-lg transition-colors duration-200">
+                    Current Plan
+                  </button>
                 </div>
-                <p className="text-sm text-gray-400 mt-3">All features, monthly access</p>
-              </CardHeader>
-              <CardContent className="pt-6">
-                <ul className="space-y-4">
-                  <PricingItem included text="Unlimited Metadata Generation" />
-                  <PricingItem included text="Full Image to Prompt Features" />
-                  <PricingItem included text="Full Access to Metadata Customization" />
-                  <PricingItem notIncluded text="More Fast Processing" />
-                  <PricingItem notIncluded text="Fully Custom Support" />
-                  <PricingItem notIncluded text="All Future Features" />
-                </ul>
-              </CardContent>
-              <CardFooter>
-                <Button 
-                  size="lg" 
-                  className="w-full bg-amber-500 hover:bg-amber-600 text-black font-semibold"
-                  onClick={() => window.open('https://pixcraftai.paymently.io/paymentlink/pay/h7w3lr5WK9kO5cnYlIo9mYHTChODMOgABKxxRxRQ', '_blank')}
-                >
-                  Upgrade to Basic
-                </Button>
-              </CardFooter>
-            </Card>
-            
-            {/* Premium Plan */}
-            <Card className="bg-[#1F2937] border border-gray-800 shadow-xl relative overflow-hidden">
-              <div className="absolute top-0 right-0 bg-amber-500 text-black px-3 py-1 text-xs font-semibold">
-                POPULAR
               </div>
-              <CardHeader className="pb-0">
-                <h2 className="text-2xl font-bold text-white">Premium</h2>
-                <div className="flex items-baseline mt-2">
-                  <span className="text-5xl font-extrabold tracking-tight">700</span>
-                  <span className="ml-1 text-slate-50 text-xl">Tk/Yearly</span>
+              
+              {/* Basic Plan */}
+              <div className="relative group">
+                <div className="bg-gray-900/50 border border-slate-700 rounded-xl p-8 h-full transition-all duration-200 hover:border-slate-600">
+                  <div className="flex items-center space-x-3 mb-6">
+                    <div className="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center">
+                      <Square className="w-4 h-4 text-slate-400" />
+                    </div>
+                    <h3 className="text-xl font-medium text-white">Basic</h3>
+                  </div>
+                  
+                  <div className="mb-8">
+                    <div className="flex items-baseline mb-2">
+                      <span className="text-4xl font-bold text-white">6.66</span>
+                      <span className="text-lg text-gray-500 ml-1">Tk/Day</span>
+                    </div>
+                    <p className="text-xs text-slate-400 font-medium mb-1">Monthly!</p>
+                    <p className="text-sm text-gray-500">Essential features for professionals</p>
+                  </div>
+                  
+                  <ul className="space-y-3 mb-8">
+                    <PricingItem text="Unlimited Metadata Generation" included={true} />
+                    <PricingItem text="Full Image to Prompt Features" included={true} />
+                    <PricingItem text="Full Metadata Customization" included={true} />
+                    <PricingItem text="Priority Processing" included={false} />
+                    <PricingItem text="Premium Support" included={false} />
+                    <PricingItem text="Beta Features" included={false} />
+                  </ul>
+                  
+                  <button 
+                    className="w-full bg-slate-700 hover:bg-slate-600 text-white font-medium py-3 rounded-lg transition-colors duration-200"
+                    onClick={() => window.open('https://pixcraftai.paymently.io/paymentlink/pay/h7w3lr5WK9kO5cnYlIo9mYHTChODMOgABKxxRxRQ', '_blank')}
+                  >
+                    Upgrade to Basic
+                  </button>
                 </div>
-                <div className="mt-1">
-                  <span className="text-xs bg-amber-500/20 px-2 py-0.5 text-amber-500 font-medium rounded-md">
-                    Best Value!
-                  </span>
+              </div>
+              
+              {/* Premium Plan */}
+              <div className="relative group">
+                <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                  <div className="bg-amber-600 text-white px-3 py-1 rounded-full text-xs font-medium">
+                    MOST POPULAR
+                  </div>
                 </div>
-                <p className="text-sm text-gray-400 mt-3">All features, unlimited access</p>
-              </CardHeader>
-              <CardContent className="pt-6">
-                <ul className="space-y-4">
-                  <PricingItem included text="Unlimited Metadata Generation" />
-                  <PricingItem included text="Full Image to Prompt Features" />
-                  <PricingItem included text="Full Access to Metadata Customization" />
-                  <PricingItem included text="More Fast Processing" />
-                  <PricingItem included text="Fully Custom Support" />
-                  <PricingItem included text="All Future Features" />
-                </ul>
-              </CardContent>
-              <CardFooter>
-                <Button 
-                  size="lg"
-                  className="w-full bg-amber-500 hover:bg-amber-600 text-black font-semibold"
-                  onClick={() => window.open('https://pixcraftai.paymently.io/paymentlink/pay/QaGQrBCrlrnARy8ekwtNwibiCqOjKcNYhJmcVdYX', '_blank')}
-                >
-                  Upgrade to Premium
-                </Button>
-              </CardFooter>
-            </Card>
-          </div>
-          
-          <div className="text-center mt-12 text-sm text-gray-400">
-            <p>Process Unlimited images in a Single Action</p>
+                <div className="bg-gray-900/50 border border-amber-600/50 rounded-xl p-8 h-full transition-all duration-200 hover:border-amber-500/70 hover:shadow-lg hover:shadow-amber-500/10">
+                  <div className="flex items-center space-x-3 mb-6">
+                    <div className="w-8 h-8 rounded-lg bg-amber-600/20 flex items-center justify-center">
+                      <Triangle className="w-4 h-4 text-amber-400" />
+                    </div>
+                    <h3 className="text-xl font-medium text-white">Premium</h3>
+                  </div>
+                  
+                  <div className="mb-8">
+                    <div className="flex items-baseline mb-2">
+                      <span className="text-4xl font-bold text-white">1.97</span>
+                      <span className="text-lg text-gray-500 ml-1">Tk/Day</span>
+                    </div>
+                    <p className="text-xs text-amber-400 font-medium mb-1">Yearly!</p>
+                    <p className="text-sm text-gray-500">Everything you need to scale</p>
+                  </div>
+                  
+                  <ul className="space-y-3 mb-8">
+                    <PricingItem text="Unlimited Metadata Generation" included={true} />
+                    <PricingItem text="Full Image to Prompt Features" included={true} />
+                    <PricingItem text="Full Metadata Customization" included={true} />
+                    <PricingItem text="Priority Processing" included={true} />
+                    <PricingItem text="Premium Support" included={true} />
+                    <PricingItem text="All Future Features" included={true} />
+                  </ul>
+                  
+                  <button 
+                    className="w-full bg-amber-600 hover:bg-amber-500 text-white font-medium py-3 rounded-lg transition-colors duration-200"
+                    onClick={() => window.open('https://pixcraftai.paymently.io/paymentlink/pay/QaGQrBCrlrnARy8ekwtNwibiCqOjKcNYhJmcVdYX', '_blank')}
+                  >
+                    Upgrade to Premium
+                  </button>
+                </div>
+              </div>
+            </div>
+            
+
           </div>
         </div>
       </div>
     </div>
   );
 };
-
-// Helper component for pricing items
-const PricingItem = ({
-  included,
-  notIncluded,
-  text
-}: {
-  included?: boolean;
-  notIncluded?: boolean;
-  text: string;
-}) => (
-  <li className="flex items-center gap-3">
-    {included ? (
-      <Check className="h-5 w-5 text-green-500 flex-shrink-0" />
-    ) : (
-      <X className="h-5 w-5 text-red-500 flex-shrink-0" />
-    )}
-    <span className={included ? "text-gray-200" : "text-gray-500"}>{text}</span>
-  </li>
-);
 
 export default PricingPage;

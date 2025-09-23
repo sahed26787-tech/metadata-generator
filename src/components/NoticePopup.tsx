@@ -21,12 +21,8 @@ export const NoticePopup = ({
     // Show notice on every page refresh
     setIsVisible(true);
     
-    // Set timer to allow closing after exactly 5 seconds
-    const timer = setTimeout(() => {
-      setCanClose(true);
-    }, 5000); // Hardcoded to exactly 5 seconds
-    
-    return () => clearTimeout(timer);
+    // Make close button instantly available
+    setCanClose(true);
   }, []);
   
   const handleClose = () => {
