@@ -273,3 +273,26 @@ export const createUserProfileSafe = async (userId: string, email: string) => {
     return null;
   }
 };
+
+/**
+ * Deploy the corrected get_user_profile function to Supabase
+ * This fixes the schema mismatch issue
+ */
+export const deployGetUserProfileFunction = async () => {
+  try {
+    console.log('Deploying corrected get_user_profile function...');
+    
+    const { data, error } = await supabase.functions.invoke('deploy_get_user_profile');
+    
+    if (error) {
+      console.error('Error deploying get_user_profile function:', error);
+      return { success: false, error: error.message };
+    }
+    
+    console.log('get_user_profile function deployed successfully:', data);
+    return { success: true, data };
+  } catch (error) {
+    console.error('Error in deployGetUserProfileFunction:', error);
+    return { success: false, error: error.message };
+  }
+};
