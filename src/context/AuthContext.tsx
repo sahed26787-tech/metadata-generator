@@ -3,7 +3,7 @@ import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { checkActiveSession, setActiveSession, removeActiveSession } from '@/utils/supabaseUtils';
+import { checkActiveSession, setActiveSession, removeActiveSession, getSafeUserProfile, createUserProfileSafe } from '@/utils/supabaseUtils';
 import { UserProfile } from '@/types/supabase';
 
 interface AuthContextType {
@@ -110,20 +110,53 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const fetchUserProfile = async (userId: string) => {
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .single();
-
-      if (error) {
-        console.error('Error fetching user profile:', error);
+      console.log('Fetching profile for user:', userId);
+      
+      // Use the safe profile fetching utility function first
+      const profileData = await getSafeUserProfile(userId);
+      
+      if (profileData) {
+        console.log('Profile found via RPC function:', profileData);
+        setProfile(profileData as UserProfile);
         return;
       }
 
-      setProfile(data as UserProfile);
+      // If RPC function didn't work, try direct query
+      console.log('RPC function returned no profile, trying direct query...');
+      const { data: directData, error: directError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .limit(1);
+
+      if (!directError && directData && directData.length > 0) {
+        console.log('Profile found via direct query:', directData[0]);
+        setProfile(directData[0] as UserProfile);
+        return;
+      }
+
+      // If no profile found, try to create one
+      console.log('No profile found, attempting to create new profile for user:', userId);
+      const userEmail = user?.email || '';
+      
+      if (!userEmail) {
+        console.error('Cannot create profile: user email is missing');
+        return;
+      }
+
+      const newProfile = await createUserProfileSafe(userId, userEmail);
+      
+      if (newProfile) {
+        console.log('Successfully created and set new profile:', newProfile);
+        setProfile(newProfile as UserProfile);
+      } else {
+        console.error('Failed to create profile for user:', userId);
+        console.log('User authentication state:', { userId, userEmail, sessionExists: !!session });
+      }
+      
     } catch (error) {
       console.error('Error in fetchUserProfile:', error);
+      // Don't throw error to prevent session crash
     }
   };
 

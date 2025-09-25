@@ -146,3 +146,130 @@ export const setupActiveSessionsTable = async () => {
     return false;
   }
 };
+
+/**
+ * Setup function to initialize the profiles table with triggers and policies
+ * This fixes the authentication issues with profile creation and fetching
+ */
+export const setupProfilesTable = async () => {
+  try {
+    const { data, error } = await supabase.functions.invoke('setup_profiles');
+    
+    if (error) {
+      console.error('Error setting up profiles table:', error);
+      return false;
+    }
+    
+    console.log('Profiles table setup completed successfully');
+    return true;
+  } catch (error) {
+    console.error('Profiles Setup Error:', error);
+    return false;
+  }
+};
+
+/**
+ * Setup the profiles table with FIXED RLS policies that allow proper profile creation
+ */
+export const setupProfilesTableFixed = async () => {
+  try {
+    const { data, error } = await supabase.functions.invoke('setup_profiles_fixed');
+    
+    if (error) {
+      console.error('Error setting up profiles table with fixed policies:', error);
+      return { success: false, error };
+    }
+    
+    console.log('Profiles table setup with fixed policies completed:', data);
+    return { success: true, data };
+  } catch (error) {
+    console.error('Error in setupProfilesTableFixed:', error);
+    return { success: false, error };
+  }
+};
+
+/**
+ * Safe function to get user profile using the database function
+ * This prevents the .single() error that causes automatic logout
+ */
+export const getSafeUserProfile = async (userId: string) => {
+  try {
+    const { data, error } = await supabase.rpc('get_user_profile', { 
+      user_id: userId 
+    });
+    
+    if (error) {
+      console.error('Error fetching safe user profile:', error);
+      return null;
+    }
+    
+    return data && data.length > 0 ? data[0] : null;
+  } catch (error) {
+    console.error('Error in getSafeUserProfile:', error);
+    return null;
+  }
+};
+
+/**
+ * Create a user profile safely with duplicate handling and RLS compliance
+ */
+export const createUserProfileSafe = async (userId: string, email: string) => {
+  try {
+    // First, try to fetch existing profile
+    const { data: existingData, error: fetchError } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', userId)
+      .limit(1);
+
+    // If profile exists, return it
+    if (!fetchError && existingData && existingData.length > 0) {
+      console.log('Profile already exists for user:', userId);
+      return existingData[0];
+    }
+
+    // If no profile exists, create one
+    const { data, error } = await supabase
+      .from('profiles')
+      .insert({
+        id: userId,
+        email: email,
+        credits_used: 0,
+        is_premium: false,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error creating user profile:', error);
+      
+      // If duplicate constraint error, try to fetch again
+      if (error.code === '23505') {
+        console.log('Duplicate profile detected, fetching existing profile');
+        const { data: retryData } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', userId)
+          .limit(1);
+        
+        return retryData && retryData.length > 0 ? retryData[0] : null;
+      }
+      
+      // If RLS policy error, the user might not be authenticated properly
+      if (error.code === '42501' || error.message?.includes('policy')) {
+        console.error('RLS policy error - user may not be properly authenticated');
+        return null;
+      }
+      
+      return null;
+    }
+
+    console.log('Successfully created new profile for user:', userId);
+    return data;
+  } catch (error) {
+    console.error('Error in createUserProfileSafe:', error);
+    return null;
+  }
+};
