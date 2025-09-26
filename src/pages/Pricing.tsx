@@ -36,10 +36,10 @@ const PricingPage: React.FC = () => {
       <div className="relative z-10">
         <AppHeader remainingCredits="0" apiKey="" onApiKeyChange={() => {}} />
         
-        <div className="py-20 px-4 sm:px-6 lg:px-8">
+        <div className="py-10 px-4 sm:px-6 lg:px-8">
           <div className="max-w-7xl mx-auto">
             {/* Header Section */}
-            <div className="text-center mb-20">
+            <div className="text-center mb-10">
               <h1 className="text-4xl font-semibold text-white mb-4">
                 Choose Your Plan
               </h1>
@@ -83,43 +83,6 @@ const PricingPage: React.FC = () => {
                 </div>
               </div>
               
-              {/* Basic Plan */}
-              <div className="relative group">
-                <div className="bg-gray-900/50 border border-slate-700 rounded-xl p-8 h-full transition-all duration-200 hover:border-slate-600">
-                  <div className="flex items-center space-x-3 mb-6">
-                    <div className="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center">
-                      <Square className="w-4 h-4 text-slate-400" />
-                    </div>
-                    <h3 className="text-xl font-medium text-white">Basic</h3>
-                  </div>
-                  
-                  <div className="mb-8">
-                    <div className="flex items-baseline mb-2">
-                      <span className="text-4xl font-bold text-white">6.66</span>
-                      <span className="text-lg text-gray-500 ml-1">Tk/Day</span>
-                    </div>
-                    <p className="text-xs text-slate-400 font-medium mb-1">Monthly!</p>
-                    <p className="text-sm text-gray-500">Essential features for professionals</p>
-                  </div>
-                  
-                  <ul className="space-y-3 mb-8">
-                    <PricingItem text="Unlimited Metadata Generation" included={true} />
-                    <PricingItem text="Full Image to Prompt Features" included={true} />
-                    <PricingItem text="Full Metadata Customization" included={true} />
-                    <PricingItem text="Priority Processing" included={false} />
-                    <PricingItem text="Premium Support" included={false} />
-                    <PricingItem text="Beta Features" included={false} />
-                  </ul>
-                  
-                  <button 
-                    className="w-full bg-slate-700 hover:bg-slate-600 text-white font-medium py-3 rounded-lg transition-colors duration-200"
-                    onClick={() => window.open('https://pixcraftai.paymently.io/paymentlink/pay/h7w3lr5WK9kO5cnYlIo9mYHTChODMOgABKxxRxRQ', '_blank')}
-                  >
-                    Upgrade to Basic
-                  </button>
-                </div>
-              </div>
-              
               {/* Premium Plan */}
               <div className="relative group">
                 <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
@@ -140,7 +103,9 @@ const PricingPage: React.FC = () => {
                       <span className="text-4xl font-bold text-white">1.97</span>
                       <span className="text-lg text-gray-500 ml-1">Tk/Day</span>
                     </div>
-                    <p className="text-xs text-amber-400 font-medium mb-1">Yearly!</p>
+                    <p className="text-sm text-gray-400">
+                      <b className="text-yellow-400">700TK Yearly!</b>
+                    </p>
                     <p className="text-sm text-gray-500">Everything you need to scale</p>
                   </div>
                   
@@ -158,6 +123,43 @@ const PricingPage: React.FC = () => {
                     onClick={() => window.open('https://pixcraftai.paymently.io/paymentlink/pay/QaGQrBCrlrnARy8ekwtNwibiCqOjKcNYhJmcVdYX', '_blank')}
                   >
                     Upgrade to Premium
+                  </button>
+                </div>
+              </div>
+              
+              {/* Basic Plan */}
+              <div className="relative group">
+                <div className="bg-gray-900/50 border border-slate-700 rounded-xl p-8 h-full transition-all duration-200 hover:border-slate-600">
+                  <div className="flex items-center space-x-3 mb-6">
+                    <div className="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center">
+                      <Square className="w-4 h-4 text-slate-400" />
+                    </div>
+                    <h3 className="text-xl font-medium text-white">Basic</h3>
+                  </div>
+                  
+                  <div className="mb-8">
+                    <div className="flex items-baseline mb-2">
+                      <span className="text-4xl font-bold text-white">6.66</span>
+                      <span className="text-lg text-gray-500 ml-1">Tk/Day</span>
+                    </div>
+                    <p className="text-sm text-gray-400"><b className="text-yellow-400">200TK Monthly!</b></p>
+                    <p className="text-sm text-gray-500">Essential features for professionals</p>
+                  </div>
+                  
+                  <ul className="space-y-3 mb-8">
+                    <PricingItem text="Unlimited Metadata Generation" included={true} />
+                    <PricingItem text="Full Image to Prompt Features" included={true} />
+                    <PricingItem text="Full Metadata Customization" included={true} />
+                    <PricingItem text="Priority Processing" included={false} />
+                    <PricingItem text="Premium Support" included={false} />
+                    <PricingItem text="Beta Features" included={false} />
+                  </ul>
+                  
+                  <button 
+                    className="w-full bg-slate-700 hover:bg-slate-600 text-white font-medium py-3 rounded-lg transition-colors duration-200"
+                    onClick={() => window.open('https://pixcraftai.paymently.io/paymentlink/pay/h7w3lr5WK9kO5cnYlIo9mYHTChODMOgABKxxRxRQ', '_blank')}
+                  >
+                    Upgrade to Basic
                   </button>
                 </div>
               </div>

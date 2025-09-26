@@ -93,12 +93,21 @@ const AppHeader: React.FC<AppHeaderProps> = ({
     window.location.reload();
   };
   
-  return <header className="bg-[#1F2937] border-b border-gray-700 py-2 px-4">
+  return <header className="bg-[#1F2937] border-b border-gray-700">
+      <div className="w-screen bg-white text-black text-center py-0.5 text-sm font-medium flex items-center justify-center">
+        Image Generation (Commercial License), ChatGPT (আনলিমিটেড ব্যবহার), Metadata Generation (API সেটআপ ছাড়াই), Image Upscaler এবং Background Remover — সবকিছু একটি প্ল্যাটফর্মে প্রতিদিন ৮ টাকায়! 
+        <button 
+          onClick={() => window.open('https://pixcraftai.com', '_blank')}
+          className="ml-2 px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
+        >
+          Visit
+        </button>
+      </div>
       <div className="flex items-center justify-between">
         <div className="flex items-center">
           <h1 onClick={navigateToHome} className="text-xl font-bold flex items-center cursor-pointer hover:opacity-80 transition-opacity">
             <img src="/new-site-logo.png" alt="PixCraftAI" className="h-12 w-auto mr-3" />
-            <span className="text-[#F15A29] text-xl font-bold">PixCraftAI</span>
+            <span className="text-white text-xl font-bold">PixCraftAI</span>
           </h1>
           
           {/* Sidebar toggle button - Modified to only show the icon */}

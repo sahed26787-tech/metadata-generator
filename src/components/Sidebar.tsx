@@ -113,7 +113,7 @@ const Sidebar: React.FC<SidebarProps> = ({
       </div>
       
       <div className="p-4 border-b border-gray-700 py-[8px]">
-        <h3 className="text-sm font-medium mb-4 text-[#F15A29]">Metadata Customization</h3>
+        <h3 className="text-sm font-medium mb-4 text-white">Metadata Customization</h3>
         <CustomizationControls 
           minTitleWords={minTitleWords} 
           onMinTitleWordsChange={onMinTitleWordsChange} 

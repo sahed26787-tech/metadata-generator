@@ -11,11 +11,8 @@ export const NoticePopup = ({
   const [canClose, setCanClose] = useState(false);
   
   // Default notice text
-  const defaultNotice = `Recraft-এর পার্সোনাল অ্যাকাউন্টে (1250 ক্রেডিট) এখন 
- মাত্র 230 টাকায়। ✅ 
- তাই, প্রতারণার হাত থেকে রক্ষা পেতে বিশ্বস্ত স্থান থেকেই 
- সাবস্ক্রিপশন নিন। 🌸 
- যোগাযোগ করুন WhatsApp-এ। ☎️`;
+  const defaultNotice = `আপনার প্রয়োজন অনুযায়ী যেকোনো ধরনের ওয়েবসাইট তৈরির জন্য, 
+ যোগাযোগ করুন WhatsApp-এ।`;
   
   useEffect(() => {
     // Show notice on every page refresh
@@ -67,25 +64,25 @@ export const NoticePopup = ({
       <>
         {lines.map((line, index) => {
           // Check if the line contains "WhatsApp-এ।" and format it with a link
-          if (line.includes("WhatsApp-এ। ☎️")) {
-            const whatsappText = "WhatsApp-এ। ☎️";
+          if (line.includes("WhatsApp-এ।")) {
+            const whatsappText = "WhatsApp-এ।";
             const parts = line.split(whatsappText);
             return (
-              <p key={index} className="mb-2 last:mb-0">
+              <p key={index} className="mb-2 last:mb-0 text-gray-800">
                 {parts[0]}
                 <a
-                  href="https://wa.me/message/O5LMYSSX2PHSI1"
+                  href="https://wa.me/8801335556641"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="font-medium underline text-blue-700 hover:text-blue-800"
                 >
-                  WhatsApp-এ। ☎️
+                  WhatsApp-এ।
                 </a>
                 {parts[1]}
               </p>
             );
           }
-          return <p key={index} className="mb-2 last:mb-0">{line}</p>;
+          return <p key={index} className="mb-2 last:mb-0 text-gray-800">{line}</p>;
         })}
       </>
     );
@@ -93,8 +90,8 @@ export const NoticePopup = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="relative max-w-md w-full mx-4 p-6 bg-yellow-300 text-black rounded-lg shadow-lg">
-        <div className="mb-6 text-center">
+      <div className="relative max-w-md w-full mx-4 p-6 bg-white text-gray-800 rounded-lg shadow-md border border-gray-200">
+        <div className="mb-6 text-center text-gray-800">
           {formatNoticeContent()}
         </div>
         
@@ -102,8 +99,8 @@ export const NoticePopup = ({
           <button 
             onClick={handleClose}
             disabled={!canClose}
-            className={`px-6 py-2 bg-gray-800 text-white font-medium rounded-md transition-colors 
-              ${canClose ? "hover:bg-gray-700" : "opacity-50 cursor-not-allowed"}`}
+            className={`px-6 py-2 bg-black text-white font-medium rounded-md transition-colors 
+              ${canClose ? "hover:bg-gray-800" : "opacity-50 cursor-not-allowed"}`}
           >
             Close
           </button>

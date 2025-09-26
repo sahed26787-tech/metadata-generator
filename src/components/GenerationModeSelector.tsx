@@ -19,7 +19,7 @@ const GenerationModeSelector: React.FC<GenerationModeSelectorProps> = ({
 
   return <div className="space-y-2">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-medium text-[#FF6B00]">Mode Selection</h3>
+        <h3 className="text-sm font-medium text-white">Mode Selection</h3>
         <ChevronDown className="h-4 w-4 text-gray-400" />
       </div>
       <RadioGroup value={selectedMode} onValueChange={value => onModeChange(value as GenerationMode)} className="grid grid-cols-2 gap-2">

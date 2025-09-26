@@ -144,8 +144,8 @@ const CustomizationOptions: React.FC<CustomizationOptionsProps> = ({
       {/* Settings Header */}
       <div className="flex items-center justify-between p-2 rounded cursor-pointer hover:bg-gray-700/40 transition-colors" onClick={toggleSettings}>
         <div className="flex items-center space-x-2">
-          <Settings className="h-5 w-5 text-[#F15A29]" />
-          <h2 className="text-sm font-medium text-[#F15A29]">SETTINGS</h2>
+          <Settings className="h-5 w-5 text-white" />
+          <h2 className="text-sm font-medium text-white">SETTINGS</h2>
         </div>
         {settingsExpanded ? <ChevronDown className="h-4 w-4 text-gray-400" /> : <ChevronRight className="h-4 w-4 text-gray-400" />}
       </div>
