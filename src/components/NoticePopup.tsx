@@ -11,12 +11,12 @@ export const NoticePopup = ({
   const [canClose, setCanClose] = useState(false);
   
   // Default notice text
-  const defaultNotice = `আপনার প্রয়োজন অনুযায়ী যেকোনো ধরনের ওয়েবসাইট তৈরির জন্য, 
+  const defaultNotice = `আপরার প্রয়োজন অনুযায়ী যেকোনো ধরনের ওয়েবসাইট তৈরির জন্য, 
  যোগাযোগ করুন WhatsApp-এ।`;
   
   useEffect(() => {
     // Show notice on every page refresh
-    setIsVisible(true);
+    // setIsVisible(true);
     
     // Make close button instantly available
     setCanClose(true);
