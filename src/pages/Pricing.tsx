@@ -64,12 +64,12 @@ const PricingPage: React.FC = () => {
                     </div>
                     <p className="text-sm text-gray-500">Perfect for getting started</p>
                     <div className="mt-4 px-3 py-1 bg-gray-800 rounded-full text-gray-400 text-xs inline-block">
-                      15 credits lifetime limit
+                      5000 credits lifetime limit
                     </div>
                   </div>
                   
                   <ul className="space-y-3 mb-8">
-                    <PricingItem text="15 Credits Lifetime Limit" included={true} />
+                    <PricingItem text="5000 Credits Lifetime Limit" included={true} />
                     <PricingItem text="Basic Image to Prompt Features" included={true} />
                     <PricingItem text="Limited Metadata Customization" included={true} />
                     <PricingItem text="Fast Processing" included={false} />
@@ -139,10 +139,10 @@ const PricingPage: React.FC = () => {
                   
                   <div className="mb-8">
                     <div className="flex items-baseline mb-2">
-                      <span className="text-4xl font-bold text-white">6.66</span>
+                      <span className="text-4xl font-bold text-white">6.50</span>
                       <span className="text-lg text-gray-500 ml-1">Tk/Day</span>
                     </div>
-                    <p className="text-sm text-gray-400"><b className="text-yellow-400">200TK Monthly!</b></p>
+                    <p className="text-sm text-gray-400"><b className="text-yellow-400">190TK Monthly!</b></p>
                     <p className="text-sm text-gray-500">Essential features for professionals</p>
                   </div>
                   

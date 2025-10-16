@@ -100,8 +100,17 @@ const UserProfile: React.FC = () => {
         <div className="p-5 border-b border-gray-700">
           <h3 className="text-sm font-semibold text-gray-400 mb-2">Credits Remaining</h3>
           <div className="flex items-center justify-between bg-gray-700/30 p-3 rounded-lg border border-gray-600">
-            <span className="text-lg font-bold text-green-400">Unlimited</span>
-            <Infinity className="h-5 w-5 text-green-400" />
+            {profile.is_premium ? (
+              <>
+                <span className="text-lg font-bold text-green-400">Unlimited</span>
+                <Infinity className="h-5 w-5 text-green-400" />
+              </>
+            ) : (
+              <>
+                <span className="text-lg font-bold text-blue-400">{Math.max(0, 5000 - profile.credits_used)}</span>
+                <span className="text-sm text-gray-400">/ 5000</span>
+              </>
+            )}
           </div>
         </div>
 

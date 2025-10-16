@@ -609,7 +609,7 @@ const Index: React.FC = () => {
   const processingCount = images.filter(img => img.status === 'processing').length;
   const completedCount = images.filter(img => img.status === 'complete').length;
   const errorCount = images.filter(img => img.status === 'error').length;
-  const remainingCredits = profile?.is_premium ? '∞' : profile ? `${Math.max(0, 15 - profile.credits_used)}` : '0';
+  const remainingCredits = profile?.is_premium ? '∞' : profile ? `${Math.max(0, 5000 - profile.credits_used)}` : '0';
   
   return (
     <div className="bg-[#030712] flex flex-col min-h-screen">
@@ -670,13 +670,13 @@ const Index: React.FC = () => {
               </div>
               
               <div className="mt-6">
-                {user && profile && !profile.is_premium && profile.credits_used > 10 && (
+                {user && profile && !profile.is_premium && profile.credits_used > 4500 && (
                   <div className="bg-amber-900/30 border border-amber-700 text-amber-200 p-3 rounded-md mb-4">
                     <div className="flex items-center">
                       <div className="mr-3 text-amber-400">⚠️</div>
                       <div>
-                        <p className="font-medium">You have {Math.max(0, 15 - profile.credits_used)} credits remaining</p>
-                        <p className="text-sm">Free users are limited to 15 lifetime credits. <a href="/pricing" className="text-amber-400 underline">Upgrade to Premium</a> for unlimited processing.</p>
+                        <p className="font-medium">You have {Math.max(0, 5000 - profile.credits_used)} credits remaining</p>
+                        <p className="text-sm">Free users are limited to 5000 lifetime credits. <a href="/pricing" className="text-amber-400 underline">Upgrade to Premium</a> for unlimited processing.</p>
                       </div>
                     </div>
                   </div>
