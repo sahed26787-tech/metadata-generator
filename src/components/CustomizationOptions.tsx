@@ -181,6 +181,36 @@ const CustomizationOptions: React.FC<CustomizationOptionsProps> = ({
             onEnabledChange={handleCustomPromptEnabledChange} 
           />
           
+          {/* Custom Prompt Input Field - Shows when enabled */}
+          {enabled && (
+            <div className="ml-4 mt-2 space-y-2">
+              <div className="bg-gray-800/50 rounded-lg p-3 border border-gray-600">
+                <label className="block text-xs font-medium text-gray-300 mb-2">
+                  Custom Prompt
+                </label>
+                <textarea
+                  value={customPrompt}
+                  onChange={handleCustomPromptChange}
+                  placeholder="Enter your custom prompt here. This will override the default AI prompts while maintaining proper formatting..."
+                  className="w-full h-24 px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                />
+                <div className="flex justify-between items-center mt-2">
+                  <span className="text-xs text-gray-400">
+                    {customPrompt.length} characters
+                  </span>
+                  <Button
+                    onClick={handleResetToDefault}
+                    variant="outline"
+                    size="sm"
+                    className="text-xs h-7 px-2 bg-gray-700 border-gray-600 hover:bg-gray-600 text-gray-300"
+                  >
+                    Reset to Default
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+          
           {/* No tips when enabled, as per reference photo */}
           
           {/* Isolated on Transparent Background - Fourth in reference photo */}

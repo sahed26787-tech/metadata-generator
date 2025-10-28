@@ -155,6 +155,9 @@ export async function analyzeImageWithGemini(
     
     // Use custom prompt if enabled and provided
     if (customPromptEnabled && customPrompt.trim()) {
+      // Start with the base analysis instruction
+      prompt = `Analyze this image and generate metadata. ${customPrompt.trim()}`;
+      
       // Append the formatting instructions to the custom prompt
       let formattingPrompt = '';
       
@@ -210,7 +213,7 @@ export async function analyzeImageWithGemini(
         }
       }
       
-      prompt = `${customPrompt}${formattingPrompt}`;
+      prompt = `${prompt}${formattingPrompt}`;
     } else {
       // Process prohibited words for default prompts
       let prohibitedWordsInstructions = '';
