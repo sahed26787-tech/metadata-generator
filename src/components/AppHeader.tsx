@@ -171,6 +171,14 @@ const AppHeader: React.FC<AppHeaderProps> = ({
               <Button 
                 variant="outline" 
                 size="sm" 
+                className="bg-green-600 hover:bg-green-700 text-white font-medium border-green-600 px-4 py-1"
+                onClick={() => navigate('/automation-scripts')}
+              >
+                Automation Scripts
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm" 
                 className="bg-amber-500 hover:bg-amber-600 text-black font-medium border-amber-500 px-4 py-1"
                 onClick={() => navigate('/pricing')}
               >
@@ -190,6 +198,15 @@ const AppHeader: React.FC<AppHeaderProps> = ({
         
           {user && (
             <>
+              {/* Automation Scripts button left of pricing button */}
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="bg-green-600 hover:bg-green-700 text-white font-medium border-green-600 px-4 py-1"
+                onClick={() => navigate('/automation-scripts')}
+              >
+                Automation Scripts
+              </Button>
               {/* Pricing button left of profile icon */}
               <Button 
                 variant="outline" 
