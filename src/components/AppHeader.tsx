@@ -108,24 +108,6 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   };
   
   return <header className="bg-[#1F2937] border-b border-gray-700">
-      {notificationVisible && (
-        <div className="w-screen bg-white text-black text-center py-0.5 text-xs font-medium flex items-center justify-center relative">
-          সবকিছু একটি প্ল্যাটফর্মে প্রতিদিন ৫ টাকায়! — Image Generation (Commercial License), ChatGPT (আনলিমিটেড ব্যবহার), Metadata Generation (API সেটআপ ছাড়াই), Image Upscaler এবং Background Remover.(Daily FREE 50 Credits) 
-          <button 
-            onClick={() => window.open('https://pixcraftai.com', '_blank')}
-            className="ml-2 px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
-          >
-            Visit
-          </button>
-          <button
-            onClick={dismissNotification}
-            className="absolute right-4 top-1/2 transform -translate-y-1/2 p-2 hover:bg-gray-200 rounded-full transition-colors duration-200"
-            title="Close notification"
-          >
-            <X className="h-5 w-5 text-red-600 hover:text-red-800" />
-          </button>
-        </div>
-      )}
       <div className="flex items-center justify-between">
         <div className="flex items-center">
           <h1 onClick={navigateToHome} className="text-xl font-bold flex items-center cursor-pointer hover:opacity-80 transition-opacity">
