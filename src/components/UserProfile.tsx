@@ -107,8 +107,8 @@ const UserProfile: React.FC = () => {
               </>
             ) : (
               <>
-                <span className="text-lg font-bold text-blue-400">{Math.max(0, 5000 - profile.credits_used)}</span>
-                <span className="text-sm text-gray-400">/ 5000</span>
+                <span className="text-lg font-bold text-blue-400">{Math.max(0, 5 - profile.credits_used)}</span>
+                <span className="text-sm text-gray-400">/ 5</span>
               </>
             )}
           </div>

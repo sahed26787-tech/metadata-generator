@@ -1,0 +1,49 @@
+<svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle -->
+  <circle cx="40" cy="40" r="38" fill="url(#gradient1)" stroke="url(#gradient2)" stroke-width="2"/>
+  
+  <!-- AI Brain -->
+  <path d="M25 35 C25 28 30 22 40 22 C50 22 55 28 55 35 C55 40 52 44 48 46 C52 48 55 52 55 57 C55 62 50 66 40 66 C30 66 25 62 25 57 C25 52 28 48 32 46 C28 44 25 40 25 35 Z" fill="#ffffff" stroke="#e5e7eb" stroke-width="1.5"/>
+  
+  <!-- Neural network nodes -->
+  <circle cx="35" cy="32" r="2" fill="#6366f1"/>
+  <circle cx="45" cy="32" r="2" fill="#6366f1"/>
+  <circle cx="30" cy="40" r="2" fill="#8b5cf6"/>
+  <circle cx="40" cy="40" r="2" fill="#8b5cf6"/>
+  <circle cx="50" cy="40" r="2" fill="#8b5cf6"/>
+  <circle cx="35" cy="48" r="2" fill="#10b981"/>
+  <circle cx="45" cy="48" r="2" fill="#10b981"/>
+  
+  <!-- Neural connections -->
+  <line x1="35" y1="32" x2="30" y2="40" stroke="#6366f1" stroke-width="1" opacity="0.6"/>
+  <line x1="35" y1="32" x2="40" y2="40" stroke="#6366f1" stroke-width="1" opacity="0.6"/>
+  <line x1="45" y1="32" x2="40" y2="40" stroke="#6366f1" stroke-width="1" opacity="0.6"/>
+  <line x1="45" y1="32" x2="50" y2="40" stroke="#6366f1" stroke-width="1" opacity="0.6"/>
+  <line x1="30" y1="40" x2="35" y2="48" stroke="#8b5cf6" stroke-width="1" opacity="0.6"/>
+  <line x1="40" y1="40" x2="35" y2="48" stroke="#8b5cf6" stroke-width="1" opacity="0.6"/>
+  <line x1="40" y1="40" x2="45" y2="48" stroke="#8b5cf6" stroke-width="1" opacity="0.6"/>
+  <line x1="50" y1="40" x2="45" y2="48" stroke="#8b5cf6" stroke-width="1" opacity="0.6"/>
+  
+  <!-- Circuit patterns around -->
+  <path d="M15 25 L20 25 L22 27 L25 27" stroke="#10b981" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+  <path d="M55 27 L58 27 L60 25 L65 25" stroke="#10b981" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+  <path d="M15 55 L20 55 L22 53 L25 53" stroke="#f59e0b" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+  <path d="M55 53 L58 53 L60 55 L65 55" stroke="#f59e0b" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+  
+  <!-- AI symbols -->
+  <circle cx="18" cy="25" r="1.5" fill="#10b981"/>
+  <circle cx="62" cy="25" r="1.5" fill="#10b981"/>
+  <circle cx="18" cy="55" r="1.5" fill="#f59e0b"/>
+  <circle cx="62" cy="55" r="1.5" fill="#f59e0b"/>
+  
+  <defs>
+    <linearGradient id="gradient1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#6366f1;stop-opacity:0.1"/>
+      <stop offset="100%" style="stop-color:#10b981;stop-opacity:0.1"/>
+    </linearGradient>
+    <linearGradient id="gradient2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#6366f1;stop-opacity:0.3"/>
+      <stop offset="100%" style="stop-color:#10b981;stop-opacity:0.3"/>
+    </linearGradient>
+  </defs>
+</svg>
