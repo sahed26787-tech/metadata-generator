@@ -21,18 +21,18 @@ const AutomationScripts: React.FC = () => {
       <div className="container mx-auto px-4 py-12 flex-1">
         {/* Main Heading Section */}
         <div className="text-center mb-16">
-          <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-6">
-            <span className="text-orange-500">PixcraftAI-এর সার্ভিসসীমীর</span>
+          <h1 className="text-3xl md:text-4xl lg:text-4xl font-bold text-white mb-6 leading-tight">
+            <span className="text-white">PixcraftAI</span> <span className="text-orange-500">এর সেবাসমূহ</span>
           </h1>
-          <p className="text-xl md:text-2xl text-gray-300 max-w-4xl mx-auto leading-relaxed">
-            সৃজনশীলতা ও ডিজিটাল সমাধানের জন্য আপনার বিশ্বস্ত সহায়ক
+          <p className="text-lg md:text-xl text-gray-300 max-w-4xl mx-auto leading-relaxed">
+            AI-চালিত ডিজিটাল সমাধান আপনার সৃজনশীলতার জন্য
           </p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8 max-w-[1400px] mx-auto">
           
-          {/* First Box - Pixcraftai (previously 3rd) */}
-          <Card className="bg-gray-800 border-gray-700 hover:border-gray-600 transition-all duration-300 hover:shadow-xl flex flex-col h-[500px]">
+          {/* First Box - Pixcraftai */}
+          <Card className="bg-gray-800 border-gray-700 hover:border-gray-600 transition-all duration-300 hover:shadow-xl flex flex-col min-h-[520px]">
             <CardHeader className="text-center pb-4 px-6 pt-6">
               <div className="mx-auto mb-3 w-16 h-16 rounded-2xl flex items-center justify-center">
                 <img 
@@ -64,11 +64,10 @@ const AutomationScripts: React.FC = () => {
                  </div>
               </div>
               
-              <div className="pt-4 flex flex-row gap-3 mt-auto">
-                  {/* How It Works Button */}
+              <div className="pt-6 flex flex-row gap-3 mt-auto">
                   <Button 
-                    className="flex-1 text-white font-semibold py-2 text-sm rounded-lg transition-all duration-300 transform hover:scale-105"
-                    style={{ backgroundColor: '#FF4C4C' }}
+                    className="flex-1 text-white font-semibold py-2.5 text-sm rounded-lg transition-all duration-300 transform hover:scale-105 hover:shadow-lg"
+                    style={{ backgroundColor: '#ef4444' }}
                     onClick={() => window.open('https://youtu.be/BHR5tTtFG5E?si=qYDYFzUbGAZJM1ir', '_blank')}
                   >
                     <span className="flex items-center justify-center">
@@ -77,10 +76,9 @@ const AutomationScripts: React.FC = () => {
                     </span>
                   </Button>
                   
-                  {/* Buy Now Button */}
                   <Button 
-                    className="flex-1 text-white font-semibold py-2 text-sm rounded-lg transition-all duration-300 transform hover:scale-105"
-                    style={{ backgroundColor: '#4CAF50' }}
+                    className="flex-1 text-white font-semibold py-2.5 text-sm rounded-lg transition-all duration-300 transform hover:scale-105 hover:shadow-lg"
+                    style={{ backgroundColor: '#10b981' }}
                     onClick={() => window.open('https://pixcraftai.com/', '_blank')}
                   >
                     Buy Now
@@ -89,8 +87,8 @@ const AutomationScripts: React.FC = () => {
             </CardContent>
           </Card>
 
-          {/* Second Box - Website Builder (previously 4th) */}
-          <Card className="bg-gray-800 border-gray-700 hover:border-gray-600 transition-all duration-300 hover:shadow-xl flex flex-col h-[500px]">
+          {/* Second Box - Website Builder */}
+          <Card className="bg-gray-800 border-gray-700 hover:border-gray-600 transition-all duration-300 hover:shadow-xl flex flex-col min-h-[520px]">
             <CardHeader className="text-center pb-4 px-6 pt-6">
               <div className="mx-auto mb-3 w-16 h-16 rounded-2xl flex items-center justify-center">
                 <img 
@@ -126,20 +124,21 @@ const AutomationScripts: React.FC = () => {
                  </div>
                </div>
               
-              <div className="pt-4 flex flex-row gap-3 mt-auto">
-                {/* Portfolio Button */}
+              <div className="pt-6 flex flex-row gap-3 mt-auto">
                 <Button 
-                  className="flex-1 text-white font-semibold py-2 text-sm rounded-lg transition-all duration-300 transform hover:scale-105"
-                  style={{ backgroundColor: '#FF4C4C' }}
+                  className="flex-1 text-white font-semibold py-2.5 text-sm rounded-lg transition-all duration-300 transform hover:scale-105 hover:shadow-lg"
+                  style={{ backgroundColor: '#ef4444' }}
                   onClick={() => window.open('https://pixcraftai.com/', '_blank')}
                 >
-                  Portfolio
+                  <span className="flex items-center justify-center">
+                    <Play className="w-3 h-3 mr-1" />
+                    Watch Now
+                  </span>
                 </Button>
                 
-                {/* Order Now Button */}
                 <Button 
-                  className="flex-1 text-white font-semibold py-2 text-sm rounded-lg transition-all duration-300 transform hover:scale-105"
-                  style={{ backgroundColor: '#4CAF50' }}
+                  className="flex-1 text-white font-semibold py-2.5 text-sm rounded-lg transition-all duration-300 transform hover:scale-105 hover:shadow-lg"
+                  style={{ backgroundColor: '#10b981' }}
                   onClick={() => window.open('https://wa.me/8801335556641', '_blank')}
                 >
                   Order Now
@@ -148,8 +147,8 @@ const AutomationScripts: React.FC = () => {
             </CardContent>
           </Card>
 
-          {/* Third Box - Auto PSD & EPS Scripts (previously 1st) */}
-          <Card className="bg-gray-800 border-gray-700 hover:border-gray-600 transition-all duration-300 hover:shadow-xl flex flex-col h-[500px]">
+          {/* Third Box - Auto PSD & EPS Scripts */}
+          <Card className="bg-gray-800 border-gray-700 hover:border-gray-600 transition-all duration-300 hover:shadow-xl flex flex-col min-h-[520px]">
             <CardHeader className="text-center pb-4 px-6 pt-6">
               <div className="mx-auto mb-3 w-16 h-16 rounded-2xl flex items-center justify-center">
                 <img 
@@ -177,11 +176,10 @@ const AutomationScripts: React.FC = () => {
                 </div>
               </div>
               
-              <div className="pt-4 flex flex-row gap-3 mt-auto">
-                 {/* How It Works Button */}
+              <div className="pt-6 flex flex-row gap-3 mt-auto">
                  <Button 
-                   className="flex-1 text-white font-semibold py-2 text-sm rounded-lg transition-all duration-300 transform hover:scale-105"
-                   style={{ backgroundColor: '#FF4C4C' }}
+                   className="flex-1 text-white font-semibold py-2.5 text-sm rounded-lg transition-all duration-300 transform hover:scale-105 hover:shadow-lg"
+                   style={{ backgroundColor: '#ef4444' }}
                    onClick={() => window.open('https://youtu.be/IgxtKon5brg?si=APB-CO4p80mUcGSK', '_blank')}
                  >
                    <span className="flex items-center justify-center">
@@ -190,10 +188,9 @@ const AutomationScripts: React.FC = () => {
                    </span>
                  </Button>
                  
-                 {/* Buy Now Button */}
                  <Button 
-                   className="flex-1 text-white font-semibold py-2 text-sm rounded-lg transition-all duration-300 transform hover:scale-105"
-                   style={{ backgroundColor: '#4CAF50' }}
+                   className="flex-1 text-white font-semibold py-2.5 text-sm rounded-lg transition-all duration-300 transform hover:scale-105 hover:shadow-lg"
+                   style={{ backgroundColor: '#10b981' }}
                    onClick={() => window.open('https://pixcraftai.paymently.io/paymentlink/pay/7IRKlEWtpLMoGUkV4CmqG2hLH16yNhH1acUsJC72', '_blank')}
                  >
                    Buy Now
@@ -202,8 +199,8 @@ const AutomationScripts: React.FC = () => {
             </CardContent>
           </Card>
 
-          {/* Fourth Box - Auto EPS Bundle & Coloring Maker Script (previously 2nd) */}
-          <Card className="bg-gray-800 border-gray-700 hover:border-gray-600 transition-all duration-300 hover:shadow-xl flex flex-col h-[500px]">
+          {/* Fourth Box - Auto EPS Bundle & Coloring Maker Script */}
+          <Card className="bg-gray-800 border-gray-700 hover:border-gray-600 transition-all duration-300 hover:shadow-xl flex flex-col min-h-[520px]">
             <CardHeader className="text-center pb-4 px-6 pt-6">
               <div className="mx-auto mb-3 w-16 h-16 rounded-2xl flex items-center justify-center">
                 <img 
@@ -231,17 +228,20 @@ const AutomationScripts: React.FC = () => {
                 </div>
               </div>
               
-              <div className="pt-4 flex flex-row gap-3 mt-auto">
+              <div className="pt-6 flex flex-row gap-3 mt-auto">
                 <Button 
-                  className="flex-1 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 hover:opacity-90"
-                  style={{ backgroundColor: '#FF4C4C' }}
+                  className="flex-1 text-white font-semibold py-2.5 text-sm rounded-lg transition-all duration-300 transform hover:scale-105 hover:shadow-lg"
+                  style={{ backgroundColor: '#ef4444' }}
                   onClick={() => window.open('https://youtu.be/IgxtKon5brg?si=APB-CO4p80mUcGSK', '_blank')}
                 >
-                  ▶ Watch Now
+                  <span className="flex items-center justify-center">
+                    <Play className="w-3 h-3 mr-1" />
+                    Watch Now
+                  </span>
                 </Button>
                 <Button 
-                  className="flex-1 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 hover:opacity-90"
-                  style={{ backgroundColor: '#4CAF50' }}
+                  className="flex-1 text-white font-semibold py-2.5 text-sm rounded-lg transition-all duration-300 transform hover:scale-105 hover:shadow-lg"
+                  style={{ backgroundColor: '#10b981' }}
                   onClick={() => window.open('https://pixcraftai.paymently.io/paymentlink/pay/7IRKlEWtpLMoGUkV4CmqG2hLH16yNhH1acUsJC72', '_blank')}
                 >
                   Buy Now
@@ -251,7 +251,7 @@ const AutomationScripts: React.FC = () => {
           </Card>
 
           {/* Fifth Box - Video Editing & Poster Design */}
-          <Card className="bg-gray-800 border-gray-700 hover:border-gray-600 transition-all duration-300 hover:shadow-xl flex flex-col h-[500px]">
+          <Card className="bg-gray-800 border-gray-700 hover:border-gray-600 transition-all duration-300 hover:shadow-xl flex flex-col min-h-[520px]">
             <CardHeader className="text-center pb-4 px-6 pt-6">
               <div className="mx-auto mb-3 w-16 h-16 bg-purple-600 rounded-2xl flex items-center justify-center">
                 <Video className="w-8 h-8 text-white" />
@@ -283,20 +283,21 @@ const AutomationScripts: React.FC = () => {
                 </div>
               </div>
               
-              <div className="pt-4 flex flex-row gap-3 mt-auto">
-                {/* Portfolio Button */}
+              <div className="pt-6 flex flex-row gap-3 mt-auto">
                 <Button 
-                  className="flex-1 text-white font-semibold py-2 text-sm rounded-lg transition-all duration-300 transform hover:scale-105"
-                  style={{ backgroundColor: '#FF4C4C' }}
+                  className="flex-1 text-white font-semibold py-2.5 text-sm rounded-lg transition-all duration-300 transform hover:scale-105 hover:shadow-lg"
+                  style={{ backgroundColor: '#ef4444' }}
                   onClick={() => window.open('https://www.behance.net/pixcraftai', '_blank')}
                 >
-                  Portfolio
+                  <span className="flex items-center justify-center">
+                    <Play className="w-3 h-3 mr-1" />
+                    Watch Now
+                  </span>
                 </Button>
                 
-                {/* Order Now Button */}
                 <Button 
-                  className="flex-1 text-white font-semibold py-2 text-sm rounded-lg transition-all duration-300 transform hover:scale-105"
-                  style={{ backgroundColor: '#4CAF50' }}
+                  className="flex-1 text-white font-semibold py-2.5 text-sm rounded-lg transition-all duration-300 transform hover:scale-105 hover:shadow-lg"
+                  style={{ backgroundColor: '#10b981' }}
                   onClick={() => window.open('https://pixcraftai.paymently.io/paymentlink/pay/7IRKlEWtpLMoGUkV4CmqG2hLH16yNhH1acUsJC72', '_blank')}
                 >
                   Order Now
@@ -306,7 +307,7 @@ const AutomationScripts: React.FC = () => {
           </Card>
 
           {/* Sixth Box - Messenger Chat Automation */}
-          <Card className="bg-gray-800 border-gray-700 hover:border-gray-600 transition-all duration-300 hover:shadow-xl flex flex-col h-[500px]">
+          <Card className="bg-gray-800 border-gray-700 hover:border-gray-600 transition-all duration-300 hover:shadow-xl flex flex-col min-h-[520px]">
             <CardHeader className="text-center pb-4 px-6 pt-6">
               <div className="mx-auto mb-3 w-16 h-16 bg-green-600 rounded-2xl flex items-center justify-center">
                 <MessageCircle className="w-8 h-8 text-white" />
@@ -338,20 +339,21 @@ const AutomationScripts: React.FC = () => {
                 </div>
               </div>
               
-              <div className="pt-4 flex flex-row gap-3 mt-auto">
-                {/* Check Button */}
+              <div className="pt-6 flex flex-row gap-3 mt-auto">
                 <Button 
-                  className="flex-1 text-white font-semibold py-2 text-sm rounded-lg transition-all duration-300 transform hover:scale-105"
-                  style={{ backgroundColor: '#FF4C4C' }}
+                  className="flex-1 text-white font-semibold py-2.5 text-sm rounded-lg transition-all duration-300 transform hover:scale-105 hover:shadow-lg"
+                  style={{ backgroundColor: '#ef4444' }}
                   onClick={() => window.open('https://m.me/pixcraftai1', '_blank')}
                 >
-                  Check
+                  <span className="flex items-center justify-center">
+                    <Play className="w-3 h-3 mr-1" />
+                    Watch Now
+                  </span>
                 </Button>
                 
-                {/* Order Now Button */}
                 <Button 
-                  className="flex-1 text-white font-semibold py-2 text-sm rounded-lg transition-all duration-300 transform hover:scale-105"
-                  style={{ backgroundColor: '#4CAF50' }}
+                  className="flex-1 text-white font-semibold py-2.5 text-sm rounded-lg transition-all duration-300 transform hover:scale-105 hover:shadow-lg"
+                  style={{ backgroundColor: '#10b981' }}
                   onClick={() => window.open('https://pixcraftai.paymently.io/paymentlink/pay/7IRKlEWtpLMoGUkV4CmqG2hLH16yNhH1acUsJC72', '_blank')}
                 >
                   Order Now
