@@ -10,6 +10,7 @@ import AuthCallback from "./pages/AuthCallback";
 import NotFound from "./pages/NotFound";
 import Pricing from "./pages/Pricing";
 import AutomationScripts from "./pages/AutomationScripts";
+import Documents from "./pages/Documents";
 import { AuthProvider } from "./context/AuthContext";
 import { LanguageProvider } from "./context/LanguageContext";
 import NoticePopup from "./components/NoticePopup";
@@ -32,6 +33,7 @@ const App = () => (
                 <Route path="/auth/callback" element={<AuthCallback />} />
                 <Route path="/pricing" element={<Pricing />} />
                 <Route path="/automation-scripts" element={<AutomationScripts />} />
+                <Route path="/documents" element={<Documents />} />
                 <Route path="/terms" element={<Navigate to="/terms-of-service.html" />} />
                 <Route path="/privacy" element={<Navigate to="/privacy-policy.html" />} />
                 <Route path="*" element={<NotFound />} />
