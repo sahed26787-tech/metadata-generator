@@ -5,6 +5,7 @@ import CustomizationOptions from '@/components/CustomizationOptions';
 import UserProfile from '@/components/UserProfile';
 import { Platform } from './PlatformSelector';
 import { useText } from '@/hooks/useText';
+import { ChevronDown, ChevronRight } from 'lucide-react';
 
 interface SidebarProps {
   selectedMode: GenerationMode;
@@ -81,6 +82,7 @@ const Sidebar: React.FC<SidebarProps> = ({
 }) => {
   const t = useText();
   const [isVisible, setIsVisible] = useState(true);
+  const [metadataExpanded, setMetadataExpanded] = useState(true);
   
   // Load sidebar visibility state from localStorage
   useEffect(() => {
@@ -102,56 +104,71 @@ const Sidebar: React.FC<SidebarProps> = ({
       window.removeEventListener('toggle-sidebar', handleToggleSidebar as EventListener);
     };
   }, []);
+
+  const toggleMetadata = () => {
+    setMetadataExpanded(!metadataExpanded);
+  };
   
   if (!isVisible) {
     return null;
   }
   
-  return <aside className="w-80 bg-[#1F2937] border-r border-gray-700 flex flex-col h-screen overflow-auto">
-      <div className="p-4 border-b border-gray-700">
-        <GenerationModeSelector selectedMode={selectedMode} onModeChange={onModeChange} />
-      </div>
-      
-      <div className="p-4 border-b border-gray-700 py-[8px]">
-        <h3 className="text-sm font-medium mb-4 text-white">Metadata Customization</h3>
-        <CustomizationControls 
-          minTitleWords={minTitleWords} 
-          onMinTitleWordsChange={onMinTitleWordsChange} 
-          maxTitleWords={maxTitleWords} 
-          onMaxTitleWordsChange={onMaxTitleWordsChange} 
-          minKeywords={minKeywords} 
-          onMinKeywordsChange={onMinKeywordsChange} 
-          maxKeywords={maxKeywords} 
-          onMaxKeywordsChange={onMaxKeywordsChange} 
-          minDescriptionWords={minDescriptionWords} 
-          onMinDescriptionWordsChange={onMinDescriptionWordsChange} 
-          maxDescriptionWords={maxDescriptionWords} 
-          onMaxDescriptionWordsChange={onMaxDescriptionWordsChange} 
-          selectedPlatforms={selectedPlatforms} 
-        />
-      </div>
-      
-      <div className="p-4 border-b border-gray-700 flex-1 overflow-auto py-[8px]">
-        <CustomizationOptions 
-          enabled={customPromptEnabled} 
-          onEnabledChange={onCustomPromptEnabledChange} 
-          customPrompt={customPrompt} 
-          onCustomPromptChange={onCustomPromptChange} 
-          prohibitedWords={prohibitedWords} 
-          onProhibitedWordsChange={onProhibitedWordsChange} 
-          prohibitedWordsEnabled={prohibitedWordsEnabled} 
-          onProhibitedWordsEnabledChange={onProhibitedWordsEnabledChange} 
-          transparentBgEnabled={transparentBgEnabled} 
-          onTransparentBgEnabledChange={onTransparentBgEnabledChange} 
-          isolatedOnTransparentBgEnabled={isolatedOnTransparentBgEnabled} 
-          onIsolatedOnTransparentBgEnabledChange={onIsolatedOnTransparentBgEnabledChange} 
-          silhouetteEnabled={silhouetteEnabled} 
-          onSilhouetteEnabledChange={onSilhouetteEnabledChange} 
-          singleWordKeywordsEnabled={singleWordKeywordsEnabled}
-          onSingleWordKeywordsEnabledChange={onSingleWordKeywordsEnabledChange}
-          apiKey={apiKey}
-          onApiKeyChange={onApiKeyChange}
-        />
+  return <aside className="w-80 bg-[#1F2937] border-r border-gray-700 flex flex-col h-screen">
+      <div className="flex-1 overflow-auto">
+        <div className="p-4 border-b border-gray-700">
+          <GenerationModeSelector selectedMode={selectedMode} onModeChange={onModeChange} />
+        </div>
+        
+        <div className="p-4 border-b border-gray-700 py-[8px]">
+          <div className="flex items-center justify-between cursor-pointer mb-4" onClick={toggleMetadata}>
+            <h3 className="text-sm font-medium text-white">Metadata Customization</h3>
+            {metadataExpanded ? (
+              <ChevronDown className="h-4 w-4 text-gray-400 transition-transform" />
+            ) : (
+              <ChevronRight className="h-4 w-4 text-gray-400 transition-transform" />
+            )}
+          </div>
+          {metadataExpanded && (
+            <CustomizationControls 
+              minTitleWords={minTitleWords} 
+              onMinTitleWordsChange={onMinTitleWordsChange} 
+              maxTitleWords={maxTitleWords} 
+              onMaxTitleWordsChange={onMaxTitleWordsChange} 
+              minKeywords={minKeywords} 
+              onMinKeywordsChange={onMinKeywordsChange} 
+              maxKeywords={maxKeywords} 
+              onMaxKeywordsChange={onMaxKeywordsChange} 
+              minDescriptionWords={minDescriptionWords} 
+              onMinDescriptionWordsChange={onMinDescriptionWordsChange} 
+              maxDescriptionWords={maxDescriptionWords} 
+              onMaxDescriptionWordsChange={onMaxDescriptionWordsChange} 
+              selectedPlatforms={selectedPlatforms} 
+            />
+          )}
+        </div>
+        
+        <div className="p-4 border-b border-gray-700 py-[8px]">
+          <CustomizationOptions 
+            enabled={customPromptEnabled} 
+            onEnabledChange={onCustomPromptEnabledChange} 
+            customPrompt={customPrompt} 
+            onCustomPromptChange={onCustomPromptChange} 
+            prohibitedWords={prohibitedWords} 
+            onProhibitedWordsChange={onProhibitedWordsChange} 
+            prohibitedWordsEnabled={prohibitedWordsEnabled} 
+            onProhibitedWordsEnabledChange={onProhibitedWordsEnabledChange} 
+            transparentBgEnabled={transparentBgEnabled} 
+            onTransparentBgEnabledChange={onTransparentBgEnabledChange} 
+            isolatedOnTransparentBgEnabled={isolatedOnTransparentBgEnabled} 
+            onIsolatedOnTransparentBgEnabledChange={onIsolatedOnTransparentBgEnabledChange} 
+            silhouetteEnabled={silhouetteEnabled} 
+            onSilhouetteEnabledChange={onSilhouetteEnabledChange} 
+            singleWordKeywordsEnabled={singleWordKeywordsEnabled}
+            onSingleWordKeywordsEnabledChange={onSingleWordKeywordsEnabledChange}
+            apiKey={apiKey}
+            onApiKeyChange={onApiKeyChange}
+          />
+        </div>
       </div>
     </aside>;
 };

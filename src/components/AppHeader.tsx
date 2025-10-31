@@ -28,6 +28,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   const navigate = useNavigate();
   const {
     user,
+    profile,
     apiKey: authApiKey
   } = useAuth();
   
@@ -109,7 +110,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   
   return <header className="bg-[#1F2937] border-b border-gray-700">
       <div className="flex items-center justify-between">
-        <div className="flex items-center">
+        <div className="flex items-center ml-4">
           <h1 onClick={navigateToHome} className="text-xl font-bold flex items-center cursor-pointer hover:opacity-80 transition-opacity">
             <img src="/new-site-logo.png" alt="PixCraftAI" className="h-12 w-auto mr-3" />
             <span className="text-white text-xl font-bold">PixCraftAI</span>
@@ -146,14 +147,14 @@ const AppHeader: React.FC<AppHeaderProps> = ({
         {/* Empty center area */}
         <div className="flex-1"></div>
         
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-4 mr-4">
           {/* Show the pricing and login buttons for non-authenticated users */}
           {!user && (
             <>
               <Button 
                 variant="outline" 
                 size="sm" 
-                className="bg-green-600 hover:bg-green-700 text-white font-medium border-green-600 px-4 py-1"
+                className="bg-blue-500 hover:bg-blue-600 text-white font-medium border-blue-500 px-4 py-1"
                 onClick={() => navigate('/automation-scripts')}
               >
                 Products
@@ -184,7 +185,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
               <Button 
                 variant="outline" 
                 size="sm" 
-                className="bg-green-600 hover:bg-green-700 text-white font-medium border-green-600 px-4 py-1"
+                className="bg-blue-500 hover:bg-blue-600 text-white font-medium border-blue-500 px-4 py-1"
                 onClick={() => navigate('/automation-scripts')}
               >
                 Products
@@ -198,6 +199,14 @@ const AppHeader: React.FC<AppHeaderProps> = ({
               >
                 Pricing
               </Button>
+              
+              {/* PRO Badge for Premium Users */}
+              {profile?.is_premium && (
+                <div className="bg-white text-black px-3 py-1 rounded-full text-xs font-bold shadow-lg border border-gray-300">
+                  PRO
+                </div>
+              )}
+              
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <div className="h-8 w-8 rounded-full flex items-center justify-center cursor-pointer overflow-hidden">

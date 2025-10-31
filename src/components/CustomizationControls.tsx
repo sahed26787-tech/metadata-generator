@@ -1,8 +1,6 @@
 
 import React from 'react';
 import { Slider } from '@/components/ui/slider';
-import { Info } from 'lucide-react';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useText } from '@/hooks/useText';
 
 interface CustomizationControlsProps {
@@ -42,19 +40,9 @@ const SettingRow: React.FC<SettingRowProps> = ({
 }) => {
   return <div className="mb-4">
       <div className="flex justify-between items-center mb-1">
-        <div className="text-xs text-gray-300 flex items-center">
-          {label}
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Info className="h-3 w-3 text-gray-400 ml-1 cursor-pointer" />
-              </TooltipTrigger>
-              <TooltipContent className="bg-gray-800 text-gray-200 border-gray-700">
-                <p className="max-w-xs text-xs">{tooltip}</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        </div>
+        {/* Label section - now takes more space without info icon */}
+        <span className="text-xs text-gray-300">{label}</span>
+        {/* Right-aligned value */}
         <span className="text-xs font-medium text-white bg-gray-800 px-2 py-0.5 rounded">{currentValue}</span>
       </div>
       <div className="flex items-center">

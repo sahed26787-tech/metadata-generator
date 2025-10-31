@@ -144,14 +144,13 @@ const CustomizationOptions: React.FC<CustomizationOptionsProps> = ({
       {/* Settings Header */}
       <div className="flex items-center justify-between p-2 rounded cursor-pointer hover:bg-gray-700/40 transition-colors" onClick={toggleSettings}>
         <div className="flex items-center space-x-2">
-          <Settings className="h-5 w-5 text-white" />
           <h2 className="text-sm font-medium text-white">SETTINGS</h2>
         </div>
         {settingsExpanded ? <ChevronDown className="h-4 w-4 text-gray-400" /> : <ChevronRight className="h-4 w-4 text-gray-400" />}
       </div>
 
       {settingsExpanded && <div className="space-y-2 ml-2">
-          {/* Single Word Keywords - First in reference photo */}
+          {/* 1st: Single Word Keywords */}
           <FeatureToggle 
             title="SINGLE WORD KEYWORDS" 
             description="When enabled, generated keywords will be single words only."
@@ -161,7 +160,18 @@ const CustomizationOptions: React.FC<CustomizationOptionsProps> = ({
             footer="Helpful for platforms that prefer single-word keywords instead of phrases." 
           />
           
-          {/* Silhouette - Second in reference photo */}
+          {/* 2nd: Transparent Background */}
+          <FeatureToggle 
+            title="TRANSPARENT BACKGROUND" 
+            description={t('features.silhouetteDesc')} 
+            bullets={["Add \"isolated on transparent background\" to the end of the title", "Include \"transparent background\" as a keyword", "Mention transparent background in the description"]} 
+            tooltipText="Optimize metadata for isolated objects on transparent background to improve their discoverability in search results." 
+            enabled={isolatedOnTransparentBgEnabled} 
+            onEnabledChange={onIsolatedOnTransparentBgEnabledChange} 
+            footer="Use this for isolated objects on transparent background to improve their discoverability." 
+          />
+          
+          {/* 3rd: Silhouette */}
           <FeatureToggle 
             title={t('features.silhouette')} 
             description={t('features.silhouetteDesc')} 
@@ -172,7 +182,7 @@ const CustomizationOptions: React.FC<CustomizationOptionsProps> = ({
             footer="Use this for silhouette-style images to improve their discoverability in marketplaces." 
           />
           
-          {/* Custom Prompt - Third in reference photo */}
+          {/* 4th: Custom Prompt */}
           <FeatureToggle 
             title={t('features.customPrompt')} 
             description={t('features.customPromptDesc')} 
@@ -191,7 +201,7 @@ const CustomizationOptions: React.FC<CustomizationOptionsProps> = ({
                 <textarea
                   value={customPrompt}
                   onChange={handleCustomPromptChange}
-                  placeholder="Enter your custom prompt here. This will override the default AI prompts while maintaining proper formatting..."
+                  placeholder="Enter your custom prompt here..."
                   className="w-full h-24 px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
                 />
                 <div className="flex justify-between items-center mt-2">
@@ -211,20 +221,7 @@ const CustomizationOptions: React.FC<CustomizationOptionsProps> = ({
             </div>
           )}
           
-          {/* No tips when enabled, as per reference photo */}
-          
-          {/* Isolated on Transparent Background - Fourth in reference photo */}
-          <FeatureToggle 
-            title="TRANSPARENT BACKGROUND" 
-            description={t('features.silhouetteDesc')} 
-            bullets={["Add \"isolated on transparent background\" to the end of the title", "Include \"transparent background\" as a keyword", "Mention transparent background in the description"]} 
-            tooltipText="Optimize metadata for isolated objects on transparent background to improve their discoverability in search results." 
-            enabled={isolatedOnTransparentBgEnabled} 
-            onEnabledChange={onIsolatedOnTransparentBgEnabledChange} 
-            footer="Use this for isolated objects on transparent background to improve their discoverability." 
-          />
-          
-          {/* Prohibited Words - Fifth in reference photo */}
+          {/* 5th: Prohibited Words */}
           <FeatureToggle 
             title={t('features.prohibitedWords')} 
             description="Words that should be avoided in the generated metadata." 
@@ -232,6 +229,29 @@ const CustomizationOptions: React.FC<CustomizationOptionsProps> = ({
             enabled={prohibitedWordsEnabled} 
             onEnabledChange={onProhibitedWordsEnabledChange} 
           />
+          
+          {/* Prohibited Words Input Field - Shows when enabled */}
+          {prohibitedWordsEnabled && (
+            <div className="ml-4 mt-2 space-y-2">
+              <div className="bg-gray-800/50 rounded-lg p-3 border border-gray-600">
+                <label className="block text-xs font-medium text-gray-300 mb-2">
+                  Prohibited Words
+                </label>
+                <input
+                  type="text"
+                  value={prohibitedWords}
+                  onChange={handleProhibitedWordsChange}
+                  placeholder="Enter words to avoid, separated by commas (e.g., word1, word2, word3)"
+                  className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+                <div className="mt-2">
+                  <span className="text-xs text-gray-400">
+                    {prohibitedWords.split(',').filter(word => word.trim()).length} words
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
         </div>}
 
 

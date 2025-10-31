@@ -273,7 +273,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     
     // For free users, check if they've reached the 5 credits limit
     if (profile.credits_used >= 5) {
-      toast.error('You have reached your 5 credits lifetime limit. Please upgrade to continue processing images.');
+      toast.error('You have reached your 5 credits lifetime limit. Please upgrade to process UNLIMITED images.');
       return false;
     }
     

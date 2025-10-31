@@ -16,145 +16,115 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
   isProcessing
 }) => {
   const [isDragging, setIsDragging] = useState(false);
-  const [activeTab, setActiveTab] = useState<'images' | 'videos' | 'vectors'>('vectors');
+  const [activeTab, setActiveTab] = useState<'JPG' | 'PNG' | 'webp'>('JPG');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(true);
-  }, []);
-
-  const handleDragEnter = useCallback((e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(true);
-  }, []);
-
-  const handleDragLeave = useCallback((e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(false);
-  }, []);
-
   const processFiles = useCallback(async (files: FileList) => {
+    const fileArray = Array.from(files);
     const processedImages: ProcessedImage[] = [];
-    const promises: Promise<ProcessedImage>[] = [];
-    const filesToProcess = Array.from(files);
-    let videoCount = 0;
-    let imageCount = 0;
-    let epsCount = 0;
-    for (const file of filesToProcess) {
-      const promise = (async () => {
-        // Validate file is an image or video
-        if (!isValidImageType(file)) {
-          toast.error(`${file.name} is not a valid file. Supported formats: JPEG, PNG, SVG, EPS, MP4, MOV, and other image/video formats.`);
-          return null;
-        }
-
-        // Validate file size
+    
+    for (const file of fileArray) {
+      try {
         if (!isValidFileSize(file)) {
-          toast.error(`${file.name} exceeds the 10GB size limit.`);
-          return null;
+          toast.error(`File ${file.name} is too large. Maximum size is 50MB.`);
+          continue;
         }
 
-        // Track file type
+        let processedImage: ProcessedImage;
+
         if (isVideoFile(file)) {
-          videoCount++;
-        } else if (isEpsFile(file)) {
-          epsCount++;
-        } else {
-          imageCount++;
-        }
-        
-        try {
-          // Create preview from original file for high quality display
-          const previewUrl = await createImagePreview(file);
-          
-          // Create a reduced version of the file for API processing, but don't use it for preview
-          let reducedFile = file;
-          if (!isVideoFile(file) && !isEpsFile(file) && file.type.startsWith('image/')) {
-            try {
-              reducedFile = await reduceImageSize(file);
-              console.log(`Image optimized for API: ${file.name} - Size reduced by ${Math.round((1 - (reducedFile.size / file.size)) * 100)}%`);
-            } catch (reductionError) {
-              console.warn(`Image reduction failed for ${file.name}, using original:`, reductionError);
-              // Continue with original file if reduction fails
-              reducedFile = file;
-            }
-          }
-          
-          return {
+          processedImage = {
             id: generateId(),
-            file: file, // Keep original file for UI display
-            reducedFile: reducedFile, // Store reduced file for API processing
-            previewUrl,
-            status: 'pending' as const
+            file,
+            name: file.name,
+            size: file.size,
+            type: 'video',
+            url: URL.createObjectURL(file),
+            metadata: null
           };
-        } catch (error) {
-          console.error(`Error processing ${file.name}:`, error);
-          toast.error(`Failed to process ${file.name}`);
-          return null;
+        } else if (isEpsFile(file)) {
+          processedImage = {
+            id: generateId(),
+            file,
+            name: file.name,
+            size: file.size,
+            type: 'eps',
+            url: URL.createObjectURL(file),
+            metadata: null
+          };
+        } else if (isValidImageType(file)) {
+          const reducedFile = await reduceImageSize(file);
+          const previewUrl = await createImagePreview(reducedFile);
+          processedImage = {
+            id: generateId(),
+            file,
+            reducedFile,
+            previewUrl,
+            status: 'pending'
+          };
+        } else {
+          toast.error(`File ${file.name} is not a supported format.`);
+          continue;
         }
-      })();
-      promises.push(promise as Promise<ProcessedImage>);
+
+        processedImages.push(processedImage);
+      } catch (error) {
+        console.error('Error processing file:', file.name, error);
+        toast.error(`Error processing ${file.name}`);
+      }
     }
-    const results = await Promise.all(promises);
 
-    // Filter out any null results from failed processing
-    const validResults = results.filter(Boolean) as ProcessedImage[];
-    if (validResults.length > 0) {
-      onImagesSelected(validResults);
-
-      // Create a more specific success message
-      let successMsg = '';
-      const typesAdded = [];
-      if (imageCount > 0) {
-        typesAdded.push(`${imageCount} image${imageCount !== 1 ? 's' : ''}`);
-      }
-      if (videoCount > 0) {
-        typesAdded.push(`${videoCount} video${videoCount !== 1 ? 's' : ''}`);
-      }
-      if (epsCount > 0) {
-        typesAdded.push(`${epsCount} EPS file${epsCount !== 1 ? 's' : ''}`);
-      }
-      if (typesAdded.length > 1) {
-        const lastType = typesAdded.pop();
-        successMsg = `Added ${typesAdded.join(', ')} and ${lastType}`;
-      } else if (typesAdded.length === 1) {
-        successMsg = `Added ${typesAdded[0]}`;
-      } else {
-        successMsg = `${validResults.length} file${validResults.length !== 1 ? 's' : ''} added`;
-      }
-      
-      // Add note about image optimization
-      if (imageCount > 0) {
-        toast.success(successMsg + " (Images will be optimized for API processing)");
-      } else {
-        toast.success(successMsg);
-      }
-    } else if (files.length > 0) {
-      toast.error('No valid files were found to process.');
+    if (processedImages.length > 0) {
+      onImagesSelected(processedImages);
+      toast.success(`Successfully processed ${processedImages.length} file(s)`);
     }
   }, [onImagesSelected]);
 
-  const handleDrop = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  }, []);
+
+  const handleDragEnter = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    // Only set dragging to false if we're leaving the dropzone entirely
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX;
+    const y = e.clientY;
+    
+    if (x < rect.left || x >= rect.right || y < rect.top || y >= rect.bottom) {
+      setIsDragging(false);
+    }
+  }, []);
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setIsDragging(false);
-    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      processFiles(e.dataTransfer.files);
+
+    if (isProcessing) return;
+
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+      processFiles(files);
     }
-  }, [processFiles]);
+  }, [isProcessing, processFiles]);
 
   const handleFileInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      processFiles(e.target.files);
-      // Reset the file input so the same file can be selected again if needed
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
+    const files = e.target.files;
+    if (files && files.length > 0) {
+      processFiles(files);
     }
+    // Reset the input value so the same file can be selected again
+    e.target.value = '';
   }, [processFiles]);
 
   const handleBrowseClick = useCallback(() => {
@@ -163,71 +133,92 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
     }
   }, [isProcessing]);
 
-  const handleTabClick = useCallback((tab: 'images' | 'videos' | 'vectors', e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevent the dropzone click
+  const handleTabClick = useCallback((tab: 'JPG' | 'PNG' | 'webp', e: React.MouseEvent) => {
+    e.stopPropagation();
     setActiveTab(tab);
-    
-    // Also open the file manager when tabs are clicked
-    if (!isProcessing && fileInputRef.current) {
-      fileInputRef.current.click();
-    }
-  }, [isProcessing]);
+  }, []);
 
   return (
-    <div className="dropzone-container bg-[#171A1F] border border-solid border-blue-900 rounded-xl overflow-hidden shadow-lg max-w-3xl mx-auto">      
+    <div className="max-w-[650px] mx-auto">
       <div 
-        className={`drop-zone flex flex-col items-center justify-center p-12 transition-all duration-300 cursor-pointer bg-[#171A1F] ${isDragging ? 'dropzone-active bg-blue-900/10 border-blue-400' : ''}`} 
-        onDragOver={handleDragOver} 
-        onDragEnter={handleDragEnter} 
-        onDragLeave={handleDragLeave} 
-        onDrop={handleDrop} 
+        className={`rgb-corners ${isDragging ? 'active' : ''} relative overflow-hidden rounded-xl border border-gray-800 shadow-[0_4px_20px_rgba(0,0,0,0.25)] transition-all duration-300 cursor-pointer ${
+          isDragging 
+            ? 'transform scale-[1.01] shadow-[0_0_30px_rgba(59,130,246,0.5)]' 
+            : 'hover:bg-gray-800/30'
+        }`}
+        style={{
+          background: 'linear-gradient(135deg, #212121 0%, #1f1f1f 100%)'
+        }}
+        onDragOver={handleDragOver}
+        onDragEnter={handleDragEnter}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
         onClick={handleBrowseClick}
         data-testid="drop-zone"
       >
-        <div className="bg-gray-600/50 p-4 rounded-full mb-6 cursor-pointer hover:bg-gray-600/70 transition-colors">
-          <Upload className="h-8 w-8 text-white" />
+        <div className="flex flex-col items-center justify-center p-12">
+          {/* Upload Icon */}
+          <div className="bg-gray-500/50 p-4 rounded-full mb-6 cursor-pointer hover:bg-gray-600/50 transition-colors">
+            <Upload className="h-8 w-8 text-white" />
+          </div>
+          
+          {/* Main Heading */}
+          <h3 className="text-2xl font-bold text-white mb-5 font-inter">Choose Files</h3>
+          
+          {/* File Type Tabs */}
+          <div className="flex gap-2 mb-6">
+            <button 
+              className={`px-6 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
+                activeTab === 'JPG' 
+                  ? 'bg-blue-600 text-white' 
+                  : 'bg-blue-600/20 text-blue-300 hover:bg-blue-600/30'
+              }`}
+              onClick={(e) => handleTabClick('JPG', e)}
+            >
+              JPG
+            </button>
+            <button 
+              className={`px-6 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
+                activeTab === 'PNG' 
+                  ? 'bg-purple-600 text-white' 
+                  : 'bg-purple-600/20 text-purple-300 hover:bg-purple-600/30'
+              }`}
+              onClick={(e) => handleTabClick('PNG', e)}
+            >
+              PNG
+            </button>
+            <button 
+              className={`px-6 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
+                activeTab === 'webp' 
+                  ? 'bg-red-600 text-white' 
+                  : 'bg-red-600/20 text-red-300 hover:bg-red-600/30'
+              }`}
+              onClick={(e) => handleTabClick('webp', e)}
+            >
+              webp
+            </button>
+          </div>
+          
+          {/* Privacy Section */}
+          <div className="flex items-center justify-center mb-2">
+            <Lock className="h-4 w-4 text-gray-400 mr-2" />
+            <span className="text-gray-400 text-sm">Privacy Statement</span>
+          </div>
+          
+          {/* Privacy Description */}
+          <p className="text-gray-400 text-sm text-center mb-4 max-w-md">
+            We process your files directly on your device. All data is automatically removed after metadata extraction.
+          </p>
+          
+          {/* Bottom Text */}
+          <p className="text-gray-300 text-sm font-medium">Process Unlimited images in a Single Action</p>
         </div>
-        
-        <h3 className="text-2xl font-bold text-white mb-6">Choose Files</h3>
-        
-        <div className="file-type-tabs flex gap-2 mb-6">
-          <button 
-            className="px-6 py-2 rounded-full text-white font-medium text-sm bg-blue-600 hover:bg-blue-700 transition-colors" 
-            onClick={(e) => handleTabClick('images', e)}
-          >
-            Images
-          </button>
-          <button 
-            className="px-6 py-2 rounded-full text-white font-medium text-sm bg-purple-600 hover:bg-purple-700 transition-colors" 
-            onClick={(e) => handleTabClick('vectors', e)}
-          >
-            Vectors
-          </button>
-          <button 
-            className="px-6 py-2 rounded-full text-white font-medium text-sm bg-red-600 hover:bg-red-700 transition-colors" 
-            onClick={(e) => handleTabClick('videos', e)}
-          >
-            Videos
-          </button>
-        </div>
-        
-        <div className="privacy-notice flex items-center justify-center mb-2">
-          <Lock className="h-4 w-4 text-gray-400 mr-2" />
-          <span className="text-gray-400 text-sm">Privacy Statement</span>
-        </div>
-        
-        <p className="text-gray-400 text-sm text-center mb-4 max-w-md">
-          We process your files directly on your device. All data is
-          automatically removed after metadata extraction.
-        </p>
-        
-        <p className="text-gray-200 text-sm font-medium mt-2">Process Unlimited images in a Single Action</p>
         
         <input 
           type="file" 
           ref={fileInputRef} 
           onChange={handleFileInputChange} 
-          accept="image/jpeg,image/png,image/jpg,image/svg+xml,application/postscript,application/eps,image/eps,application/illustrator,video/mp4,video/quicktime,video/webm,video/ogg,video/x-msvideo,video/x-ms-wmv" 
+          accept="image/*,video/*,.eps,.svg,.ai,.webp" 
           multiple 
           className="hidden" 
           disabled={isProcessing} 

@@ -141,12 +141,12 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                     id="eps-mode"
                     checked={epsEnabled}
                     onCheckedChange={onEpsEnabledChange}
-                    className="data-[state=checked]:bg-green-500"
+                    className="data-[state=checked]:bg-blue-500"
                   />
                   <label htmlFor="eps-mode" className="text-sm font-medium flex items-center gap-1 cursor-pointer">
-                    <FileIcon className={`h-4 w-4 ${epsEnabled ? 'text-green-500' : ''}`} />
-                    <span className={epsEnabled ? 'text-green-500 font-semibold' : ''}>EPS</span>
-                    {epsEnabled && <span className="text-xs text-green-500 ml-1">(active)</span>}
+                    <FileIcon className={`h-4 w-4 ${epsEnabled ? 'text-blue-500' : ''}`} />
+                    <span className={epsEnabled ? 'text-blue-500 font-semibold' : ''}>EPS</span>
+                    {epsEnabled && <span className="text-xs text-blue-500 ml-1">(active)</span>}
                   </label>
                 </div>
               </TooltipTrigger>
@@ -156,11 +156,11 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
             </Tooltip>
           </TooltipProvider>
           <div className="flex gap-2">
-          {hasCompletedImages && generationMode === 'metadata' && <Button variant="outline" size="sm" onClick={handleDownloadCSV} className="flex items-center gap-1 bg-orange-600 hover:bg-orange-700 text-white border-none">
+          {hasCompletedImages && generationMode === 'metadata' && <Button variant="outline" size="sm" onClick={handleDownloadCSV} className="flex items-center gap-1 bg-blue-600 hover:bg-blue-700 text-white border-none">
               <Download className="h-4 w-4" />
               <span>Download All CSV{epsEnabled ? ' (.eps)' : ''}</span>
             </Button>}
-          {hasCompletedImages && generationMode === 'imageToPrompt' && completedImages.length > 1 && <Button variant="outline" size="sm" onClick={downloadAllPrompts} className="flex items-center gap-1 bg-orange-600 hover:bg-orange-700 text-white border-none">
+          {hasCompletedImages && generationMode === 'imageToPrompt' && completedImages.length > 1 && <Button variant="outline" size="sm" onClick={downloadAllPrompts} className="flex items-center gap-1 bg-blue-600 hover:bg-blue-700 text-white border-none">
               <Download className="h-4 w-4" />
               <span>Download All</span>
             </Button>}
@@ -192,7 +192,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                       </div> : image.result?.isEps ? <div className="flex items-center justify-center bg-gray-900 h-[200px] rounded-lg">
                         <FileType className="h-16 w-16 text-amber-400" />
                         <span className="ml-2 text-gray-400">EPS Design File</span>
-                      </div> : <img src={image.previewUrl} alt={image.file.name} className="w-full object-cover max-h-[400px]" />}
+                      </div> : <img src={image.previewUrl} alt={image.file?.name || 'Image'} className="w-full object-cover max-h-[400px]" />}
                   </div>
                   
                 </div>
@@ -213,7 +213,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                           <span>Copy</span>
                         </>}
                     </Button>
-                    <Button variant="outline" size="sm" onClick={() => downloadPromptText(image.result?.description || '', image.file.name)} className="flex items-center gap-1">
+                    <Button variant="outline" size="sm" onClick={() => downloadPromptText(image.result?.description || '', image.file?.name || 'image')} className="flex items-center gap-1">
                       <Download className="h-4 w-4" />
                       <span>Download</span>
                     </Button>
@@ -242,7 +242,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                         </div> : image.result?.isEps ? <div className="flex items-center justify-center bg-gray-900 h-[200px] rounded-lg">
                           <FileType className="h-16 w-16 text-amber-400" />
                           <span className="ml-2 text-gray-400">EPS Design File</span>
-                        </div> : <img src={image.previewUrl} alt={image.file.name} className="w-full object-cover max-h-[400px]" />}
+                        </div> : <img src={image.previewUrl} alt={image.file?.name || 'Image'} className="w-full object-cover max-h-[400px]" />}
                     </div>
                     
                   </div>
@@ -250,7 +250,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                   <div className="p-6">
                     <div className="flex justify-between items-center mb-4">
                       <h3 className="text-amber-500 text-lg">Generated Metadata</h3>
-                      <Button variant="outline" size="sm" onClick={handleDownloadCSV} className="flex items-center gap-1 bg-orange-600 hover:bg-orange-700 text-white border-none">
+                      <Button variant="outline" size="sm" onClick={handleDownloadCSV} className="flex items-center gap-1 bg-blue-600 hover:bg-blue-700 text-white border-none">
                         <Download className="h-4 w-4" />
                         <span>Download CSV</span>
                       </Button>
@@ -263,13 +263,13 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                           <Button 
                             variant="ghost" 
                             size="sm" 
-                            onClick={() => handleCopyToClipboard(image.file.name, `filename-${image.id}`)} 
+                            onClick={() => handleCopyToClipboard(image.file?.name || '', `filename-${image.id}`)} 
                             className="h-6 px-2 flex items-center text-gray-400 hover:text-white"
                           >
                             {copiedId === `filename-${image.id}` ? <CheckCircle className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                           </Button>
                         </div>
-                        <p className="text-white">{image.file.name}</p>
+                        <p className="text-white">{image.file?.name || 'Unknown file'}</p>
                       </div>
                       
                       {/* Show title for all platforms except Shutterstock */}
@@ -480,14 +480,14 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
                     <div className="relative h-10 w-10 overflow-hidden rounded border bg-gray-700">
-                      <img src={image.previewUrl} alt={image.file.name} className="h-full w-full object-cover" />
+                      <img src={image.previewUrl} alt={image.file?.name || 'Image'} className="h-full w-full object-cover" />
                     </div>
                     <div className="overflow-hidden">
-                      <h3 className="font-medium text-xs truncate max-w-[140px]" title={image.file.name}>
-                        {image.file.name}
+                      <h3 className="font-medium text-xs truncate max-w-[140px]" title={image.file?.name || 'Unknown file'}>
+                        {image.file?.name || 'Unknown file'}
                       </h3>
                       <p className="text-xs text-gray-400">
-                        {formatFileSize(image.file.size)}
+                        {formatFileSize(image.file?.size || 0)}
                       </p>
                     </div>
                   </div>
