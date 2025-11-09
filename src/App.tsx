@@ -11,6 +11,8 @@ import NotFound from "./pages/NotFound";
 import Pricing from "./pages/Pricing";
 import AutomationScripts from "./pages/AutomationScripts";
 import Documents from "./pages/Documents";
+import TermsOfService from "./pages/TermsOfService";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
 import { AuthProvider } from "./context/AuthContext";
 import { LanguageProvider } from "./context/LanguageContext";
 import NoticePopup from "./components/NoticePopup";
@@ -34,8 +36,11 @@ const App = () => (
                 <Route path="/pricing" element={<Pricing />} />
                 <Route path="/automation-scripts" element={<AutomationScripts />} />
                 <Route path="/documents" element={<Documents />} />
-                <Route path="/terms" element={<Navigate to="/terms-of-service.html" />} />
-                <Route path="/privacy" element={<Navigate to="/privacy-policy.html" />} />
+                <Route path="/terms" element={<TermsOfService />} />
+                <Route path="/privacy" element={<PrivacyPolicy />} />
+                {/* Direct HTML paths also routed to React pages for SPA navigation */}
+                <Route path="/terms-of-service.html" element={<TermsOfService />} />
+                <Route path="/privacy-policy.html" element={<PrivacyPolicy />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </TooltipProvider>

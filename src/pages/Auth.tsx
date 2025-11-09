@@ -44,7 +44,7 @@ const Auth: React.FC = () => {
           {/* Logo */}
           <div className="flex justify-center mb-8">
             <div className="flex items-center">
-              <span className="text-5xl font-bold text-[#F15A29] flex items-center">
+              <span className="text-3xl md:text-4xl font-bold text-white flex items-center">
                 PixcraftAI
               </span>
             </div>
@@ -52,12 +52,9 @@ const Auth: React.FC = () => {
           
           {/* Login Form */}
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8">
-            <h2 className="text-2xl font-semibold text-center mb-2">
-              Log in
+            <h2 className="text-lg md:text-xl font-semibold text-center mb-6">
+              Log In Or Sign Up to PixcraftAI
             </h2>
-            <h3 className="text-gray-500 dark:text-gray-400 text-center mb-8">
-              Welcome back!
-            </h3>
             
             <div className="space-y-5">
               <GoogleLoginButton onError={handleGoogleError} />

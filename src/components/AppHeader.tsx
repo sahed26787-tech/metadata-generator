@@ -108,7 +108,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
     sessionStorage.setItem('notification-dismissed', 'true');
   };
   
-  return <header className="bg-[#1F2937] border-b border-gray-700">
+  return <header className="bg-[#1F1F1F] border-b border-gray-700">
       <div className="flex items-center justify-between">
         <div className="flex items-center ml-4">
           <h1 onClick={navigateToHome} className="text-xl font-bold flex items-center cursor-pointer hover:opacity-80 transition-opacity">
@@ -154,15 +154,15 @@ const AppHeader: React.FC<AppHeaderProps> = ({
               <Button 
                 variant="outline" 
                 size="sm" 
-                className="bg-blue-500 hover:bg-blue-600 text-white font-medium border-blue-500 px-4 py-1"
+                className="bg-[#1F71DC] hover:bg-[#1F71DC] text-white font-medium border-[#1F71DC] px-4 py-1 transform transition-transform duration-200 ease-out hover:scale-105 active:scale-95 hover:shadow-lg"
                 onClick={() => navigate('/automation-scripts')}
               >
-                Products
+                Services
               </Button>
               <Button 
                 variant="outline" 
                 size="sm" 
-                className="bg-amber-500 hover:bg-amber-600 text-black font-medium border-amber-500 px-4 py-1"
+                className="bg-white hover:bg-gray-100 text-black hover:text-black focus:text-black active:text-black font-medium border-white px-4 py-1 transform transition-transform duration-200 ease-out hover:scale-105 active:scale-95 hover:shadow-lg"
                 onClick={() => navigate('/pricing')}
               >
                 Pricing
@@ -181,24 +181,26 @@ const AppHeader: React.FC<AppHeaderProps> = ({
         
           {user && (
             <>
-              {/* Products button left of pricing button */}
+              {/* Services button left of pricing button */}
               <Button 
                 variant="outline" 
                 size="sm" 
-                className="bg-blue-500 hover:bg-blue-600 text-white font-medium border-blue-500 px-4 py-1"
+                className="bg-[#1F71DC] hover:bg-[#1F71DC] text-white font-medium border-[#1F71DC] px-4 py-1 transform transition-transform duration-200 ease-out hover:scale-105 active:scale-95 hover:shadow-lg"
                 onClick={() => navigate('/automation-scripts')}
               >
-                Products
+                Services
               </Button>
-              {/* Pricing button left of profile icon */}
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="bg-amber-500 hover:bg-amber-600 text-black font-medium border-amber-500 px-4 py-1"
-                onClick={() => navigate('/pricing')}
-              >
-                Pricing
-              </Button>
+              {/* Pricing button left of profile icon (hidden for premium users) */}
+              {!profile?.is_premium && (
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="bg-white hover:bg-gray-100 text-black hover:text-black focus:text-black active:text-black font-medium border-white px-4 py-1 transform transition-transform duration-200 ease-out hover:scale-105 active:scale-95 hover:shadow-lg"
+                  onClick={() => navigate('/pricing')}
+                >
+                  Pricing
+                </Button>
+              )}
               
               {/* PRO Badge for Premium Users */}
               {profile?.is_premium && (
