@@ -34,7 +34,7 @@ const App = () => (
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/auth/callback" element={<AuthCallback />} />
                 <Route path="/pricing" element={<Pricing />} />
-                <Route path="/automation-scripts" element={<AutomationScripts />} />
+                <Route path="/Services" element={<AutomationScripts />} />
                 <Route path="/documents" element={<Documents />} />
                 <Route path="/terms" element={<TermsOfService />} />
                 <Route path="/privacy" element={<PrivacyPolicy />} />

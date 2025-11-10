@@ -155,7 +155,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
                 variant="outline" 
                 size="sm" 
                 className="bg-[#1F71DC] hover:bg-[#1F71DC] text-white font-medium border-[#1F71DC] px-4 py-1 transform transition-transform duration-200 ease-out hover:scale-105 active:scale-95 hover:shadow-lg"
-                onClick={() => navigate('/automation-scripts')}
+                onClick={() => navigate('/Services')}
               >
                 Services
               </Button>
@@ -186,7 +186,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
                 variant="outline" 
                 size="sm" 
                 className="bg-[#1F71DC] hover:bg-[#1F71DC] text-white font-medium border-[#1F71DC] px-4 py-1 transform transition-transform duration-200 ease-out hover:scale-105 active:scale-95 hover:shadow-lg"
-                onClick={() => navigate('/automation-scripts')}
+                onClick={() => navigate('/Services')}
               >
                 Services
               </Button>
