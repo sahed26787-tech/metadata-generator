@@ -102,8 +102,8 @@ const UserProfile: React.FC = () => {
           <div className="flex items-center justify-between bg-gray-700/30 p-3 rounded-lg border border-gray-600">
             {profile.is_premium ? (
               <>
-                <span className="text-lg font-bold text-green-400">Unlimited</span>
-                <Infinity className="h-5 w-5 text-green-400" />
+                <span className="text-lg font-bold text-white">Unlimited</span>
+                <Infinity className="h-5 w-5 text-white" />
               </>
             ) : (
               <>
@@ -145,13 +145,13 @@ const UserProfile: React.FC = () => {
           </div>
 
           <div className="flex space-x-2">
-            <Button onClick={handleSaveApiKey} className="flex-1 h-9 px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium rounded-md shadow-sm transition-colors">
+            <Button onClick={handleSaveApiKey} className="flex-1 h-9 px-3 py-1 bg-white hover:bg-gray-100 text-black text-sm font-medium rounded-md shadow-sm transition-colors">
               Save Key
             </Button>
             <Button onClick={handleClearApiKey} className="flex-1 h-9 px-3 py-1 bg-transparent border border-slate-500 text-slate-400 hover:bg-slate-500 hover:text-white text-sm font-medium rounded-md shadow-sm transition-colors">
               Clear
             </Button>
-            <Button onClick={() => window.open('https://aistudio.google.com/apikey', '_blank')} className="flex-1 h-9 px-3 py-1 bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-medium rounded-md shadow-sm transition-colors">
+            <Button onClick={() => window.open('https://aistudio.google.com/apikey', '_blank')} className="flex-1 h-9 px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium rounded-md shadow-sm transition-colors">
               Get New Key
             </Button>
           </div>
