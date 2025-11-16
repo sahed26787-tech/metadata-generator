@@ -62,30 +62,30 @@ const PricingPage: React.FC = () => {
       <div className="relative z-10">
         <AppHeader remainingCredits="0" apiKey="" onApiKeyChange={() => {}} />
         
-        <div className="py-10 px-4 sm:px-6 lg:px-8">
+        <div className="py-4 px-4 sm:px-6 lg:px-8">
           <div className="max-w-7xl mx-auto">
             {/* Header Section */}
-            <div className="text-center mb-10">
+            <div className="text-center mb-4">
               <h1 className="text-4xl font-semibold text-white mb-4">
                 Choose Your Plan
               </h1>
             </div>
             
             {/* Pricing Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
               {/* Free Plan */}
               <div className="relative group">
-                <div className="bg-[#212121] border border-[#2A2A2A] rounded-xl p-8 h-full transition-all duration-200 hover:border-[#3A3A3A]">
+                <div className="bg-[#212121] border border-[#2A2A2A] rounded-xl p-6 h-full transition-all duration-200 hover:border-[#3A3A3A]">
                   <div className="flex items-center space-x-3 mb-6">
-                    <div className="w-8 h-8 rounded-lg bg-[#2A2A2A] flex items-center justify-center">
+                    <div className="w-7 h-7 rounded-lg bg-[#2A2A2A] flex items-center justify-center">
                       <Circle className="w-4 h-4 text-gray-400" />
                     </div>
-                    <h3 className="text-xl font-medium text-white">Free</h3>
+                    <h3 className="text-lg font-medium text-white">Free</h3>
                   </div>
                   
-                  <div className="mb-8">
+                  <div className="mb-6">
                     <div className="flex items-baseline mb-2">
-                      <span className="text-4xl font-bold text-white">0</span>
+                      <span className="text-3xl font-bold text-white">0</span>
                       <span className="text-lg text-gray-500 ml-1">Tk</span>
                     </div>
                     <p className="text-sm text-gray-500">Perfect for getting started</p>
@@ -94,7 +94,7 @@ const PricingPage: React.FC = () => {
                     </div>
                   </div>
                   
-                  <ul className="space-y-3 mb-8">
+                  <ul className="space-y-2.5 mb-6">
                     <PricingItem text="5 Credits Lifetime Limit" included={true} />
                     <PricingItem text="Basic Image to Prompt Features" included={true} />
                     <PricingItem text="Limited Metadata Customization" included={true} />
@@ -103,7 +103,7 @@ const PricingPage: React.FC = () => {
                     <PricingItem text="Future Features" included={false} />
                   </ul>
                   
-                  <button className="w-full bg-white hover:bg-gray-100 text-black font-medium py-3 rounded-lg transition-colors duration-200">
+                  <button className="w-full bg-white hover:bg-gray-100 text-black font-medium py-2.5 rounded-lg transition-colors duration-200">
                     Current Plan
                   </button>
                 </div>
@@ -116,26 +116,26 @@ const PricingPage: React.FC = () => {
                     MOST POPULAR
                   </div>
                 </div>
-                <div className="bg-[#212121] border border-[#1F71DC] rounded-xl p-8 h-full transition-all duration-200 hover:border-[#1F71DC] hover:shadow-lg">
+                <div className="bg-[#212121] border border-[#1F71DC] rounded-xl p-6 h-full transition-all duration-200 hover:border-[#1F71DC] hover:shadow-lg">
                   <div className="flex items-center space-x-3 mb-6">
-                    <div className="w-8 h-8 rounded-lg bg-[#1F71DC]/20 flex items-center justify-center">
+                    <div className="w-7 h-7 rounded-lg bg-[#1F71DC]/20 flex items-center justify-center">
                       <Triangle className="w-4 h-4 text-[#1F71DC]" />
                     </div>
-                    <h3 className="text-xl font-medium text-white">Premium</h3>
+                    <h3 className="text-lg font-medium text-white">Premium</h3>
                   </div>
                   
-                  <div className="mb-8">
+                  <div className="mb-6">
                     <div className="flex items-baseline mb-2">
-                      <span className="text-4xl font-bold text-white">2.7</span>
+                      <span className="text-3xl font-bold text-white">2.7</span>
                       <span className="text-lg text-gray-500 ml-1">Tk/Day</span>
                     </div>
                     <p className="text-sm text-gray-400">
-                      <b className="text-yellow-400">6Tk Yearly!</b>
+                      <b className="text-yellow-400">1000Tk Yearly!</b>
                     </p>
                     <p className="text-sm text-gray-500">Everything you need to scale</p>
                   </div>
                   
-                  <ul className="space-y-3 mb-8">
+                  <ul className="space-y-2.5 mb-6">
                     <PricingItem text="Unlimited Metadata Generation" included={true} highlight={true} />
                     <PricingItem text="Full Image to Prompt Features" included={true} />
                     <PricingItem text="Full Metadata Customization" included={true} />
@@ -145,8 +145,8 @@ const PricingPage: React.FC = () => {
                   </ul>
                   
                   <button 
-                    className="w-full bg-white hover:bg-gray-100 text-black font-medium py-3 rounded-lg transition-colors duration-200"
-                    onClick={() => initiatePayment(6, 'premium')}
+                    className="w-full bg-white hover:bg-gray-100 text-black font-medium py-2.5 rounded-lg transition-colors duration-200"
+                    onClick={() => initiatePayment(1000, 'premium')}
                   >
                     Upgrade to Premium
                   </button>
@@ -155,24 +155,24 @@ const PricingPage: React.FC = () => {
               
               {/* Basic Plan */}
               <div className="relative group">
-                <div className="bg-[#212121] border border-[#2A2A2A] rounded-xl p-8 h-full transition-all duration-200 hover:border-[#3A3A3A]">
+                <div className="bg-[#212121] border border-[#2A2A2A] rounded-xl p-6 h-full transition-all duration-200 hover:border-[#3A3A3A]">
                   <div className="flex items-center space-x-3 mb-6">
-                    <div className="w-8 h-8 rounded-lg bg-[#2A2A2A] flex items-center justify-center">
+                    <div className="w-7 h-7 rounded-lg bg-[#2A2A2A] flex items-center justify-center">
                       <Square className="w-4 h-4 text-slate-400" />
                     </div>
-                    <h3 className="text-xl font-medium text-white">Basic</h3>
+                    <h3 className="text-lg font-medium text-white">Basic</h3>
                   </div>
                   
-                  <div className="mb-8">
+                  <div className="mb-6">
                     <div className="flex items-baseline mb-2">
-                      <span className="text-4xl font-bold text-white">5</span>
+                      <span className="text-3xl font-bold text-white">5</span>
                       <span className="text-lg text-gray-500 ml-1">Tk/Day</span>
                     </div>
-                    <p className="text-sm text-gray-400"><b className="text-yellow-400">5Tk Monthly!</b></p>
+                    <p className="text-sm text-gray-400"><b className="text-yellow-400">150Tk Monthly!</b></p>
                     <p className="text-sm text-gray-500">Essential features for professionals</p>
                   </div>
                   
-                  <ul className="space-y-3 mb-8">
+                  <ul className="space-y-2.5 mb-6">
                     <PricingItem text="Unlimited Metadata Generation" included={true} highlight={true} />
                     <PricingItem text="Full Image to Prompt Features" included={true} />
                     <PricingItem text="Full Metadata Customization" included={true} />
@@ -182,13 +182,20 @@ const PricingPage: React.FC = () => {
                   </ul>
                   
                   <button 
-                    className="w-full bg-white hover:bg-gray-100 text-black font-medium py-3 rounded-lg transition-colors duration-200"
-                    onClick={() => initiatePayment(5, 'basic')}
+                    className="w-full bg-white hover:bg-gray-100 text-black font-medium py-2.5 rounded-lg transition-colors duration-200"
+                    onClick={() => initiatePayment(150, 'basic')}
                   >
                     Upgrade to Basic
                   </button>
                 </div>
               </div>
+            </div>
+            <div className="max-w-5xl mx-auto mt-6 mb-8">
+              <img
+                src="/pricing-footer.png"
+                alt="Payment methods"
+                className="w-full h-24 object-contain rounded-lg"
+              />
             </div>
             
 

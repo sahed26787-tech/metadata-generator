@@ -24,7 +24,6 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   onApiKeyChange
 }) => {
   const [sidebarVisible, setSidebarVisible] = useState(true);
-  const [notificationVisible, setNotificationVisible] = useState(true);
   const navigate = useNavigate();
   const {
     user,
@@ -32,6 +31,9 @@ const AppHeader: React.FC<AppHeaderProps> = ({
     apiKey: authApiKey
   } = useAuth();
   
+  const [saleEndAt, setSaleEndAt] = useState<number | null>(null);
+  const [remaining, setRemaining] = useState<string>("");
+
   // Load sidebar state from localStorage
   useEffect(() => {
     const savedState = localStorage.getItem('sidebar-visible');
@@ -43,13 +45,31 @@ const AppHeader: React.FC<AppHeaderProps> = ({
     document.body.classList.toggle('sidebar-hidden', !sidebarVisible);
   }, []);
 
-  // Load notification state from sessionStorage (resets on page refresh)
   useEffect(() => {
-    const savedNotificationState = sessionStorage.getItem('notification-dismissed');
-    if (savedNotificationState === 'true') {
-      setNotificationVisible(false);
+    const stored = localStorage.getItem('year_end_sale_end_at');
+    let endAt: number;
+    if (stored) {
+      endAt = Number(stored);
+    } else {
+      endAt = Date.now() + 24 * 60 * 60 * 1000;
+      localStorage.setItem('year_end_sale_end_at', String(endAt));
     }
+    setSaleEndAt(endAt);
   }, []);
+
+  useEffect(() => {
+    if (!saleEndAt) return;
+    const update = () => {
+      const diff = Math.max(0, saleEndAt - Date.now());
+      const h = Math.floor(diff / (60 * 60 * 1000));
+      const m = Math.floor((diff % (60 * 60 * 1000)) / (60 * 1000));
+      const s = Math.floor((diff % (60 * 1000)) / 1000);
+      setRemaining(`${h}h ${m}m ${s}s remaining`);
+    };
+    update();
+    const id = setInterval(update, 1000);
+    return () => clearInterval(id);
+  }, [saleEndAt]);
 
   // Update when authApiKey changes (e.g., when a user logs in)
   useEffect(() => {
@@ -103,12 +123,24 @@ const AppHeader: React.FC<AppHeaderProps> = ({
     window.location.reload();
   };
 
-  const dismissNotification = () => {
-    setNotificationVisible(false);
-    sessionStorage.setItem('notification-dismissed', 'true');
-  };
+  
   
   return <header className="bg-[#1F1F1F] border-b border-gray-700">
+      {(!profile?.is_premium) && (
+        <div className="bg-white text-black border-b border-gray-200">
+          <div className="max-w-7xl mx-auto px-4 py-1 flex items-center justify-center gap-2">
+            <span className="text-xs font-semibold">⏳ YEAR-END SALE: 75% OFF — From 0.01$/month | {remaining} —</span>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="bg-[#1F71DC] hover:bg-[#1F71DC] text-white border-[#1F71DC] px-3 py-0.5"
+              onClick={() => navigate('/pricing')}
+            >
+              Get Offer!
+            </Button>
+          </div>
+        </div>
+      )}
       <div className="flex items-center justify-between">
         <div className="flex items-center ml-4">
           <h1 onClick={navigateToHome} className="text-xl font-bold flex items-center cursor-pointer hover:opacity-80 transition-opacity">
