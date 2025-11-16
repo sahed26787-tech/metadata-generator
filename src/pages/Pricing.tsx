@@ -130,7 +130,7 @@ const PricingPage: React.FC = () => {
                       <span className="text-lg text-gray-500 ml-1">Tk/Day</span>
                     </div>
                     <p className="text-sm text-gray-400">
-                      <b className="text-yellow-400">1000Tk Yearly!</b>
+                      <b className="text-yellow-400">6Tk Yearly!</b>
                     </p>
                     <p className="text-sm text-gray-500">Everything you need to scale</p>
                   </div>
@@ -146,7 +146,7 @@ const PricingPage: React.FC = () => {
                   
                   <button 
                     className="w-full bg-white hover:bg-gray-100 text-black font-medium py-3 rounded-lg transition-colors duration-200"
-                    onClick={() => initiatePayment(1000, 'premium')}
+                    onClick={() => initiatePayment(6, 'premium')}
                   >
                     Upgrade to Premium
                   </button>

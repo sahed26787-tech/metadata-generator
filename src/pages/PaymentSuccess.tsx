@@ -15,6 +15,9 @@ export default function PaymentSuccess() {
       const params = new URLSearchParams(window.location.search)
       const status = (params.get('Status') || params.get('status') || '').toLowerCase()
       const referenceId = params.get('referenceId') || ''
+      const plan = referenceId.split('-')[0]
+      const days = plan === 'premium' ? 365 : 30
+      const expiration = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString()
 
       if (!user) {
         setStatusText('Please sign in to apply your plan')
@@ -33,7 +36,7 @@ export default function PaymentSuccess() {
       try {
         const { error } = await supabase
           .from('profiles')
-          .update({ is_premium: true, updated_at: new Date().toISOString() })
+          .update({ is_premium: true, expiration_date: expiration, updated_at: new Date().toISOString() })
           .eq('id', user.id)
 
         if (error) {
