@@ -13,6 +13,7 @@ import AutomationScripts from "./pages/AutomationScripts";
 import Documents from "./pages/Documents";
 import TermsOfService from "./pages/TermsOfService";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
+import PaymentSuccess from "./pages/PaymentSuccess";
 import { AuthProvider } from "./context/AuthContext";
 import { LanguageProvider } from "./context/LanguageContext";
 import NoticePopup from "./components/NoticePopup";
@@ -38,6 +39,7 @@ const App = () => (
                 <Route path="/documents" element={<Documents />} />
                 <Route path="/terms" element={<TermsOfService />} />
                 <Route path="/privacy" element={<PrivacyPolicy />} />
+                <Route path="/payment-success" element={<PaymentSuccess />} />
                 {/* Direct HTML paths also routed to React pages for SPA navigation */}
                 <Route path="/terms-of-service.html" element={<TermsOfService />} />
                 <Route path="/privacy-policy.html" element={<PrivacyPolicy />} />

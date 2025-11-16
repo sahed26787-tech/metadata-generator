@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Check, X, Circle, Square, Triangle } from 'lucide-react';
 import AppHeader from '@/components/AppHeader';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 interface PricingItemProps {
   text: string;
@@ -28,6 +30,29 @@ const PricingItem: React.FC<PricingItemProps> = ({ text, included, highlight }) 
 
 const PricingPage: React.FC = () => {
   const navigate = useNavigate();
+
+  const initiatePayment = useCallback(async (amount: number, plan: string) => {
+    try {
+      const referenceId = `${plan}-${Date.now()}`
+      const description = `Upgrade to ${plan}`
+      const { data, error } = await supabase.functions.invoke('eps_init_order', {
+        body: { amount, referenceId, description }
+      })
+      if (error) {
+        toast.error('Payment init failed')
+        return
+      }
+      const payload = data as { paymentUrl?: string }
+      const url = payload?.paymentUrl
+      if (url) {
+        window.open(url, '_blank')
+      } else {
+        toast.error('Invalid gateway response')
+      }
+    } catch (e) {
+      toast.error('Payment error')
+    }
+  }, [])
 
   return (
     <div className="min-h-screen bg-[#171717] text-white relative">
@@ -121,7 +146,7 @@ const PricingPage: React.FC = () => {
                   
                   <button 
                     className="w-full bg-white hover:bg-gray-100 text-black font-medium py-3 rounded-lg transition-colors duration-200"
-                    onClick={() => window.open('https://pixcraftai.paymently.io/paymentlink/pay/QaGQrBCrlrnARy8ekwtNwibiCqOjKcNYhJmcVdYX', '_blank')}
+                    onClick={() => initiatePayment(1000, 'premium')}
                   >
                     Upgrade to Premium
                   </button>
@@ -143,7 +168,7 @@ const PricingPage: React.FC = () => {
                       <span className="text-4xl font-bold text-white">5</span>
                       <span className="text-lg text-gray-500 ml-1">Tk/Day</span>
                     </div>
-                    <p className="text-sm text-gray-400"><b className="text-yellow-400">150Tk Monthly!</b></p>
+                    <p className="text-sm text-gray-400"><b className="text-yellow-400">5Tk Monthly!</b></p>
                     <p className="text-sm text-gray-500">Essential features for professionals</p>
                   </div>
                   
@@ -158,7 +183,7 @@ const PricingPage: React.FC = () => {
                   
                   <button 
                     className="w-full bg-white hover:bg-gray-100 text-black font-medium py-3 rounded-lg transition-colors duration-200"
-                    onClick={() => window.open('https://pixcraftai.paymently.io/paymentlink/pay/h7w3lr5WK9kO5cnYlIo9mYHTChODMOgABKxxRxRQ', '_blank')}
+                    onClick={() => initiatePayment(5, 'basic')}
                   >
                     Upgrade to Basic
                   </button>

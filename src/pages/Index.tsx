@@ -21,9 +21,29 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AppHeader from '@/components/AppHeader';
 import Sidebar from '@/components/Sidebar';
 import { setupVideoDebug, testVideoSupport, testSpecificVideo } from '@/utils/videoDebug';
+import { supabase } from '@/integrations/supabase/client';
 
-// Updated payment gateway link
-const PAYMENT_GATEWAY_URL = "https://secure-pay.nagorikpay.com/api/execute/9c7e8b9c01fea1eabdf4d4a37b685e0a";
+const initiateEpsPayment = async () => {
+  try {
+    const referenceId = `upgrade-${Date.now()}`
+    const { data, error } = await supabase.functions.invoke('eps_init_order', {
+      body: { amount: 1000, referenceId, description: 'Upgrade to premium' }
+    })
+    if (error) {
+      toast.error('Payment init failed')
+      return
+    }
+    const payload = data as { paymentUrl?: string }
+    const url = payload?.paymentUrl
+    if (url) {
+      window.location.href = url
+    } else {
+      toast.error('Invalid gateway response')
+    }
+  } catch (e) {
+    toast.error('Payment error')
+  }
+}
 
 const Index: React.FC = () => {
   const {
@@ -299,7 +319,7 @@ const Index: React.FC = () => {
   };
   
   const handleUpgradePlan = () => {
-    window.location.href = PAYMENT_GATEWAY_URL;
+    initiateEpsPayment();
   };
   
   // Process a single batch of images
