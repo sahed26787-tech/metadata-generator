@@ -377,78 +377,89 @@ Generate appropriate metadata for this design file:
     
     // Make API request with retry logic for rate limiting
     const MAX_RETRIES = 5;
-    let retryCount = 0;
+    const candidates = [
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1/models/gemini-2.0-flash-lite:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+    ];
     let response;
-    
-    while (retryCount <= MAX_RETRIES) {
-      try {
-        // Use Gemini 2.0 Flash-Lite model
-        response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${apiKey}`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            contents: [
-              {
-                parts: [
-                  { text: prompt },
-                  // For EPS files, send the metadata as text without inline_data
-                  ...(originalIsEps 
-                    ? [{ text: base64Image }] 
-                    : [{
-                        inline_data: {
-                          mime_type: fileToProcess.type,
-                          data: base64Image.split(',')[1],
-                        },
-                      }]
-                  ),
-                ],
-              },
-            ],
-            generationConfig: {
-              temperature: 0.4,
-              topK: 32,
-              topP: 0.95,
-              maxOutputTokens: 1024,
+    let lastErrorMessage = '';
+    for (let c = 0; c < candidates.length; c++) {
+      let retryCount = 0;
+      while (retryCount <= MAX_RETRIES) {
+        try {
+          response = await fetch(candidates[c], {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
             },
-          }),
-        });
-        
-        // Check for rate limiting responses
-        if (response.status === 429 || response.status === 503) {
-          retryCount++;
-          if (retryCount <= MAX_RETRIES) {
-            // Apply exponential backoff
-            const delay = Math.min(2000 * Math.pow(2, retryCount), 60000);
-            console.log(`Rate limit hit. Backing off for ${delay/1000} seconds before retry #${retryCount}`);
-            await new Promise(resolve => setTimeout(resolve, delay));
-            continue; // Try again
+            body: JSON.stringify({
+              contents: [
+                {
+                  parts: [
+                    { text: prompt },
+                    ...(originalIsEps 
+                      ? [{ text: base64Image }] 
+                      : [{
+                          inline_data: {
+                            mime_type: fileToProcess.type,
+                            data: base64Image.split(',')[1],
+                          },
+                        }]
+                    ),
+                  ],
+                },
+              ],
+              generationConfig: {
+                temperature: 0.4,
+                topK: 32,
+                topP: 0.95,
+                maxOutputTokens: 1024,
+              },
+            }),
+          });
+          if (response.status === 429 || response.status === 503) {
+            retryCount++;
+            if (retryCount <= MAX_RETRIES) {
+              const delay = Math.min(2000 * Math.pow(2, retryCount), 60000);
+              console.log(`Rate limit hit. Backing off for ${delay/1000} seconds before retry #${retryCount}`);
+              await new Promise(resolve => setTimeout(resolve, delay));
+              continue;
+            }
           }
+          if (!response.ok) {
+            let msg = '';
+            try {
+              const errorData = await response.json();
+              msg = errorData?.error?.message || '';
+            } catch {}
+            lastErrorMessage = msg;
+            if (response.status === 404 || /not found|not supported/i.test(msg)) {
+              break;
+            }
+          }
+          break;
+        } catch (error) {
+          retryCount++;
+          if (retryCount <= MAX_RETRIES && error instanceof Error && 
+              (error.message.includes('429') || error.message.includes('Too Many Requests'))) {
+            const delay = Math.min(2000 * Math.pow(2, retryCount), 60000);
+            console.log(`Network error (possible rate limit). Backing off for ${delay/1000} seconds before retry #${retryCount}`);
+            await new Promise(resolve => setTimeout(resolve, delay));
+            continue;
+          }
+          lastErrorMessage = error instanceof Error ? error.message : 'Request failed';
+          break;
         }
-        
-        // Break the loop if we got a response
+      }
+      if (response && response.ok) {
         break;
-      } catch (error) {
-        retryCount++;
-        if (retryCount <= MAX_RETRIES && error instanceof Error && 
-            (error.message.includes('429') || error.message.includes('Too Many Requests'))) {
-          // Apply exponential backoff for network errors that might be rate limiting
-          const delay = Math.min(2000 * Math.pow(2, retryCount), 60000);
-          console.log(`Network error (possible rate limit). Backing off for ${delay/1000} seconds before retry #${retryCount}`);
-          await new Promise(resolve => setTimeout(resolve, delay));
-          continue; // Try again
-        }
-        
-        // For other errors or if max retries reached, rethrow
-        throw error;
       }
     }
     
     if (!response || !response.ok) {
-      const errorData = await response.json();
-      console.error('API error:', errorData);
-      throw new Error(errorData?.error?.message || 'Failed to analyze image');
+      throw new Error(lastErrorMessage || 'Failed to analyze image');
     }
 
     const data = await response.json();
