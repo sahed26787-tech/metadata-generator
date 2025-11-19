@@ -33,6 +33,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   
   const [saleEndAt, setSaleEndAt] = useState<number | null>(null);
   const [remaining, setRemaining] = useState<string>("");
+  const SALE_DURATION_MS = 24 * 60 * 60 * 1000;
 
   // Load sidebar state from localStorage
   useEffect(() => {
@@ -46,12 +47,11 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   }, []);
 
   useEffect(() => {
+    const now = Date.now();
     const stored = localStorage.getItem('year_end_sale_end_at');
-    let endAt: number;
-    if (stored) {
-      endAt = Number(stored);
-    } else {
-      endAt = Date.now() + 24 * 60 * 60 * 1000;
+    let endAt = stored ? Number(stored) : now + SALE_DURATION_MS;
+    if (!stored || endAt <= now) {
+      endAt = now + SALE_DURATION_MS;
       localStorage.setItem('year_end_sale_end_at', String(endAt));
     }
     setSaleEndAt(endAt);
@@ -60,11 +60,19 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   useEffect(() => {
     if (!saleEndAt) return;
     const update = () => {
-      const diff = Math.max(0, saleEndAt - Date.now());
-      const h = Math.floor(diff / (60 * 60 * 1000));
+      const now = Date.now();
+      let diff = saleEndAt - now;
+      if (diff <= 0) {
+        const nextEnd = now + SALE_DURATION_MS;
+        localStorage.setItem('year_end_sale_end_at', String(nextEnd));
+        setSaleEndAt(nextEnd);
+        diff = nextEnd - now;
+      }
+      const d = Math.floor(diff / (24 * 60 * 60 * 1000));
+      const h = Math.floor((diff % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000));
       const m = Math.floor((diff % (60 * 60 * 1000)) / (60 * 1000));
       const s = Math.floor((diff % (60 * 1000)) / 1000);
-      setRemaining(`${h}h ${m}m ${s}s remaining`);
+      setRemaining(`${d}d ${h}h ${m}m ${s}s remaining`);
     };
     update();
     const id = setInterval(update, 1000);

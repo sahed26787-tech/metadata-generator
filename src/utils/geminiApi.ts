@@ -382,8 +382,8 @@ Generate appropriate metadata for this design file:
     
     while (retryCount <= MAX_RETRIES) {
       try {
-        // Updated to use the newer Gemini 2.5 Flash-Lite Preview 06-17model
-        response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite-preview-06-17:generateContent?key=${apiKey}`, {
+        // Use Gemini 2.0 Flash-Lite model
+        response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${apiKey}`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
