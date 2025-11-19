@@ -281,7 +281,7 @@
       // Service Worker registration for caching (if available)
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js').catch(() => {
+          navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' }).catch(() => {
             // Service worker not available, continue without it
           });
         });

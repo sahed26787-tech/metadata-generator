@@ -1,5 +1,5 @@
 // Service Worker for PixCraftAI - Performance Optimization
-const CACHE_NAME = 'pixcraftai-v1';
+const CACHE_NAME = 'pixcraftai-v3';
 const STATIC_ASSETS = [
   '/',
   '/favicon-512x512.png',
@@ -51,31 +51,34 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // Network-first for navigations/documents to avoid stale index.html
+  if (event.request.mode === 'navigate' || event.request.destination === 'document') {
+    event.respondWith(
+      fetch(event.request)
+        .then((networkResponse) => {
+          const responseClone = networkResponse.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseClone));
+          return networkResponse;
+        })
+        .catch(() => caches.match(event.request).then((cached) => cached || caches.match('/')))
+    );
+    return;
+  }
+
+  // Cache-first for static assets with background update
   event.respondWith(
     caches.match(event.request)
-      .then((response) => {
-        // Return cached version or fetch from network
-        return response || fetch(event.request)
-          .then((fetchResponse) => {
-            // Cache successful responses for static assets
-            if (fetchResponse.status === 200) {
-              const responseClone = fetchResponse.clone();
-              caches.open(CACHE_NAME)
-                .then((cache) => {
-                  // Only cache static assets and images
-                  if (event.request.url.match(/\.(png|jpg|jpeg|svg|ico|css|js|woff|woff2)$/)) {
-                    cache.put(event.request, responseClone);
-                  }
-                });
+      .then((cached) => {
+        const fetchPromise = fetch(event.request)
+          .then((networkResponse) => {
+            if (networkResponse && networkResponse.status === 200) {
+              const responseClone = networkResponse.clone();
+              caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseClone));
             }
-            return fetchResponse;
+            return networkResponse;
           })
-          .catch(() => {
-            // Return offline fallback if available
-            if (event.request.destination === 'document') {
-              return caches.match('/');
-            }
-          });
+          .catch(() => cached);
+        return cached || fetchPromise;
       })
   );
 });
