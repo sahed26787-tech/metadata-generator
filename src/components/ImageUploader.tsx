@@ -33,24 +33,28 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
         let processedImage: ProcessedImage;
 
         if (isVideoFile(file)) {
+          const objectUrl = URL.createObjectURL(file);
           processedImage = {
             id: generateId(),
             file,
             name: file.name,
             size: file.size,
             type: 'video',
-            url: URL.createObjectURL(file),
-            metadata: null
+            url: objectUrl,
+            previewUrl: objectUrl,
+            status: 'pending'
           };
         } else if (isEpsFile(file)) {
+          const objectUrl = URL.createObjectURL(file);
           processedImage = {
             id: generateId(),
             file,
             name: file.name,
             size: file.size,
             type: 'eps',
-            url: URL.createObjectURL(file),
-            metadata: null
+            url: objectUrl,
+            previewUrl: objectUrl,
+            status: 'pending'
           };
         } else if (isValidImageType(file)) {
           const reducedFile = await reduceImageSize(file);
