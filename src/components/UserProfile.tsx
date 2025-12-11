@@ -11,7 +11,9 @@ const UserProfile: React.FC = () => {
   const { user, profile, signOut, apiKey, updateApiKey } = useAuth();
   const { toast } = useToast();
   const [showApiKey, setShowApiKey] = useState(false);
-  const [apiKeyValue, setApiKeyValue] = useState(apiKey || '');
+  const [apiKeyValue, setApiKeyValue] = useState(
+    (typeof window !== 'undefined' && localStorage.getItem('groq-api-key')) || apiKey || ''
+  );
   const [isCopied, setIsCopied] = useState(false);
 
   if (!user || !profile) return null;
@@ -38,19 +40,38 @@ const UserProfile: React.FC = () => {
   const timeRemaining = getTimeRemaining();
 
   const handleSaveApiKey = () => {
+    try {
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('groq-api-key', apiKeyValue);
+        const listRaw = localStorage.getItem('groq-api-keys');
+        let list: string[] = [];
+        if (listRaw) {
+          try { list = JSON.parse(listRaw) || []; } catch { list = []; }
+        }
+        if (!list.includes(apiKeyValue) && apiKeyValue.trim().length > 0) {
+          list.push(apiKeyValue);
+          localStorage.setItem('groq-api-keys', JSON.stringify(list));
+        }
+      }
+    } catch {}
     updateApiKey(apiKeyValue);
     toast({
-      title: "API Key Saved",
-      description: "Your API key has been successfully updated.",
+      title: "Groq API Key Saved",
+      description: "Your Groq API key has been successfully updated.",
     });
   };
 
   const handleClearApiKey = () => {
+    try {
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('groq-api-key');
+      }
+    } catch {}
     updateApiKey('');
     setApiKeyValue('');
     toast({
-      title: "API Key Cleared",
-      description: "Your API key has been removed.",
+      title: "Groq API Key Cleared",
+      description: "Your Groq API key has been removed.",
     });
   };
 
@@ -116,7 +137,7 @@ const UserProfile: React.FC = () => {
 
         {/* API Key Management */}
         <div className="p-5 space-y-4">
-          <h3 className="text-sm font-semibold text-gray-400">API Key Management</h3>
+          <h3 className="text-sm font-semibold text-gray-400">API Key Management (Groq)</h3>
           
           {/* Existing API Key Input */}
           <div className="relative flex items-center">
@@ -125,7 +146,7 @@ const UserProfile: React.FC = () => {
               type={showApiKey ? "text" : "password"}
               value={apiKeyValue}
               onChange={(e) => setApiKeyValue(e.target.value)}
-              placeholder="Enter your API Key"
+              placeholder="Enter your Groq API Key"
               className="w-full pl-10 pr-20 py-2 bg-gray-700 border border-gray-600 rounded-md focus:ring-1 focus:ring-purple-500 focus:border-transparent text-white text-sm"
             />
             <button
@@ -151,8 +172,8 @@ const UserProfile: React.FC = () => {
             <Button onClick={handleClearApiKey} className="flex-1 h-9 px-3 py-1 bg-transparent border border-slate-500 text-slate-400 hover:bg-slate-500 hover:text-white text-sm font-medium rounded-md shadow-sm transition-colors">
               Clear
             </Button>
-            <Button onClick={() => window.open('https://aistudio.google.com/apikey', '_blank')} className="flex-1 h-9 px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium rounded-md shadow-sm transition-colors">
-              Get New Key
+            <Button onClick={() => window.open('https://console.groq.com/keys', '_blank')} className="flex-1 h-9 px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium rounded-md shadow-sm transition-colors">
+              Get Groq Key
             </Button>
           </div>
 

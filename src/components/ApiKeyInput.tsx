@@ -15,25 +15,29 @@ interface ApiKeyInputProps {
   apiKey: string;
   onApiKeyChange: (key: string) => void;
   compact?: boolean;
+  provider?: 'Gemini' | 'Groq';
 }
 
-const ApiKeyInput: React.FC<ApiKeyInputProps> = ({ apiKey, onApiKeyChange, compact = false }) => {
+const ApiKeyInput: React.FC<ApiKeyInputProps> = ({ apiKey, onApiKeyChange, compact = false, provider = 'Gemini' }) => {
   const [showApiKey, setShowApiKey] = useState(false);
   const [inputKey, setInputKey] = useState(apiKey);
   const { apiKey: authApiKey } = useAuth();
   const [apiKeys, setApiKeys] = useState<string[]>([]);
   const [activeKeyIndex, setActiveKeyIndex] = useState(0);
 
+  const storageKey = provider === 'Gemini' ? 'gemini-api-key' : 'groq-api-key';
+  const storageKeys = provider === 'Gemini' ? 'gemini-api-keys' : 'groq-api-keys';
+
   // Initialize from localStorage only when component mounts - no auto API key
   useEffect(() => {
-    const savedKey = localStorage.getItem('gemini-api-key');
+    const savedKey = localStorage.getItem(storageKey);
     if (savedKey) {
       setInputKey(savedKey);
       onApiKeyChange(savedKey);
     }
     
     // Load multiple API keys if available
-    const savedKeys = localStorage.getItem('gemini-api-keys');
+    const savedKeys = localStorage.getItem(storageKeys);
     if (savedKeys) {
       try {
         const parsedKeys = JSON.parse(savedKeys);
@@ -49,7 +53,7 @@ const ApiKeyInput: React.FC<ApiKeyInputProps> = ({ apiKey, onApiKeyChange, compa
         console.error('Failed to parse saved API keys', error);
       }
     }
-  }, [onApiKeyChange]);
+  }, [onApiKeyChange, storageKey, storageKeys]);
 
   // Update when apiKey prop changes
   useEffect(() => {
@@ -69,14 +73,14 @@ const ApiKeyInput: React.FC<ApiKeyInputProps> = ({ apiKey, onApiKeyChange, compa
     }
     
     // Save current key
-    localStorage.setItem('gemini-api-key', inputKey);
+    localStorage.setItem(storageKey, inputKey);
     onApiKeyChange(inputKey);
     
     // Update keys list if this is a new key
     if (!apiKeys.includes(inputKey)) {
       const updatedKeys = [...apiKeys, inputKey];
       setApiKeys(updatedKeys);
-      localStorage.setItem('gemini-api-keys', JSON.stringify(updatedKeys));
+      localStorage.setItem(storageKeys, JSON.stringify(updatedKeys));
       setActiveKeyIndex(updatedKeys.length - 1);
       toast.success('New API key added and saved');
     } else {
@@ -87,8 +91,8 @@ const ApiKeyInput: React.FC<ApiKeyInputProps> = ({ apiKey, onApiKeyChange, compa
   const handleClearKey = () => {
     if (apiKeys.length <= 1) {
       // If this is the last key, clear everything
-      localStorage.removeItem('gemini-api-key');
-      localStorage.removeItem('gemini-api-keys');
+      localStorage.removeItem(storageKey);
+      localStorage.removeItem(storageKeys);
       setInputKey('');
       setApiKeys([]);
       onApiKeyChange('');
@@ -97,11 +101,11 @@ const ApiKeyInput: React.FC<ApiKeyInputProps> = ({ apiKey, onApiKeyChange, compa
       // Remove current key from the list
       const updatedKeys = apiKeys.filter(key => key !== inputKey);
       setApiKeys(updatedKeys);
-      localStorage.setItem('gemini-api-keys', JSON.stringify(updatedKeys));
+      localStorage.setItem(storageKeys, JSON.stringify(updatedKeys));
       
       // Set active key to first in list
       setInputKey(updatedKeys[0]);
-      localStorage.setItem('gemini-api-key', updatedKeys[0]);
+      localStorage.setItem(storageKey, updatedKeys[0]);
       onApiKeyChange(updatedKeys[0]);
       setActiveKeyIndex(0);
       toast.success('API key removed');
@@ -116,7 +120,7 @@ const ApiKeyInput: React.FC<ApiKeyInputProps> = ({ apiKey, onApiKeyChange, compa
   const selectKey = (index: number) => {
     const selectedKey = apiKeys[index];
     setInputKey(selectedKey);
-    localStorage.setItem('gemini-api-key', selectedKey);
+    localStorage.setItem(storageKey, selectedKey);
     onApiKeyChange(selectedKey);
     setActiveKeyIndex(index);
     toast.success('Switched to different API key');
@@ -129,18 +133,18 @@ const ApiKeyInput: React.FC<ApiKeyInputProps> = ({ apiKey, onApiKeyChange, compa
     const updatedKeys = apiKeys.filter((_, i) => i !== index);
     
     setApiKeys(updatedKeys);
-    localStorage.setItem('gemini-api-keys', JSON.stringify(updatedKeys));
+    localStorage.setItem(storageKeys, JSON.stringify(updatedKeys));
     
     if (updatedKeys.length === 0) {
       // If no keys remain
-      localStorage.removeItem('gemini-api-key');
+      localStorage.removeItem(storageKey);
       setInputKey('');
       onApiKeyChange('');
       setActiveKeyIndex(-1);
     } else if (keyToRemove === inputKey) {
       // If the active key was removed, switch to the first available key
       setInputKey(updatedKeys[0]);
-      localStorage.setItem('gemini-api-key', updatedKeys[0]);
+      localStorage.setItem(storageKey, updatedKeys[0]);
       onApiKeyChange(updatedKeys[0]);
       setActiveKeyIndex(0);
     } else {
@@ -160,7 +164,7 @@ const ApiKeyInput: React.FC<ApiKeyInputProps> = ({ apiKey, onApiKeyChange, compa
           <div className="relative flex-1">
             <Input
               type={showApiKey ? "text" : "password"}
-              placeholder="Enter your Gemini API key"
+              placeholder={`Enter your ${provider} API key`}
               value={inputKey}
               onChange={(e) => setInputKey(e.target.value)}
               className="bg-gray-800 border-gray-700 text-gray-200 focus:ring-blue-500/30 pr-10 h-9"
@@ -236,7 +240,7 @@ const ApiKeyInput: React.FC<ApiKeyInputProps> = ({ apiKey, onApiKeyChange, compa
         {/* GET KEY button */}
         <div className="mt-3">
           <Button 
-            onClick={() => window.open("https://aistudio.google.com/app/apikey", "_blank")}
+            onClick={() => window.open(provider === 'Gemini' ? "https://aistudio.google.com/app/apikey" : "https://console.groq.com/keys", "_blank")}
             className="bg-green-600 hover:bg-green-700 text-white border-none font-medium h-9 w-full rounded-md"
           >
             GET KEY
@@ -263,7 +267,7 @@ const ApiKeyInput: React.FC<ApiKeyInputProps> = ({ apiKey, onApiKeyChange, compa
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent className="max-w-sm bg-gray-800 text-gray-200 border-gray-700">
-                  <p>Your API keys are stored only in your browser and never sent to our servers. Add multiple keys to bypass Gemini's rate limits.</p>
+                  <p>Your API keys are stored only in your browser and never sent to our servers. Add multiple keys to bypass the provider's rate limits.</p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
@@ -277,7 +281,7 @@ const ApiKeyInput: React.FC<ApiKeyInputProps> = ({ apiKey, onApiKeyChange, compa
           <div className="relative flex-1">
             <Input
               type={showApiKey ? "text" : "password"}
-              placeholder="Enter your Gemini API key"
+              placeholder={`Enter your ${provider} API key`}
               value={inputKey}
               onChange={(e) => setInputKey(e.target.value)}
               className="bg-gray-800 border-gray-700 text-gray-200 focus:ring-amber-500/30 pr-10"

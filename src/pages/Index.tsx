@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
-import ApiKeyInput from '@/components/ApiKeyInput';
 import ImageUploader from '@/components/ImageUploader';
 import ResultsDisplay from '@/components/ResultsDisplay';
 import ThemeToggle from '@/components/ThemeToggle';
@@ -10,6 +9,7 @@ import { isVideoFile } from '@/utils/videoProcessor';
 import { isSvgFile } from '@/utils/svgToPng';
 import { isEpsFile } from '@/utils/epsMetadataExtractor';
 import { analyzeImageWithGemini, analyzeImagesInBatch } from '@/utils/geminiApi';
+import { analyzeImageWithGroq, analyzeImagesInBatchWithGroq } from '@/utils/grokApi';
 import { toast } from 'sonner';
 import { Sparkles, Loader2, ShieldAlert, Image, Info, Film, LogIn, Clock, Play, ArrowRight, Check, X } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
@@ -17,7 +17,7 @@ import { Platform } from '@/components/PlatformSelector';
 import PlatformSelector from '@/components/PlatformSelector';
 import GenerationModeSelector, { GenerationMode } from '@/components/GenerationModeSelector';
 import { Separator } from '@/components/ui/separator';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+// removed provider selection tabs
 import AppHeader from '@/components/AppHeader';
 import Sidebar from '@/components/Sidebar';
 import { setupVideoDebug, testVideoSupport, testSpecificVideo } from '@/utils/videoDebug';
@@ -77,6 +77,7 @@ const Index: React.FC = () => {
   const [platforms, setPlatforms] = useState<Platform[]>(['AdobeStock']);
   
   const [generationMode, setGenerationMode] = useState<GenerationMode>('metadata');
+  const [aiProvider, setAiProvider] = useState<'Gemini' | 'Groq'>('Groq');
   const [selectedTab, setSelectedTab] = useState('image');
   const [shouldRedirect, setShouldRedirect] = useState(false);
   const navigate = useNavigate();
@@ -145,11 +146,14 @@ const Index: React.FC = () => {
     };
   }, []);
   
-  // Get API key from localStorage only - no fallback to auth context
+  // Get API key from localStorage based on provider
   useEffect(() => {
-    const savedKey = localStorage.getItem('gemini-api-key');
+    const keyName = aiProvider === 'Gemini' ? 'gemini-api-key' : 'groq-api-key';
+    const savedKey = localStorage.getItem(keyName);
     if (savedKey) {
       setApiKey(savedKey);
+    } else {
+      setApiKey('');
     }
     
     // Load custom prompt settings from localStorage
@@ -174,17 +178,17 @@ const Index: React.FC = () => {
     if (savedEpsEnabled) {
       setEpsEnabled(savedEpsEnabled === 'true');
     }
-  }, []);
+  }, [aiProvider]);
   
   // Remind users to set API key if not present
   useEffect(() => {
     if (!apiKey && !isLoading) {
-      toast.info('Please set your Gemini API key to use the application', {
+      toast.info(`Please set your ${aiProvider} API key to use the application`, {
         duration: 5000,
         id: 'api-key-reminder'
       });
     }
-  }, [apiKey, isLoading]);
+  }, [apiKey, isLoading, aiProvider]);
   
   if (isLoading) {
     return <div className="flex min-h-screen items-center justify-center">
@@ -358,7 +362,7 @@ const Index: React.FC = () => {
     }
     
     if (!apiKey) {
-      toast.error('Please enter your Gemini API key first');
+      toast.error(`Please enter your ${aiProvider} API key first`);
       setIsBatchProcessing(false);
       setIsProcessing(false);
       return;
@@ -426,8 +430,9 @@ const Index: React.FC = () => {
       console.log(`Processing ${pendingFiles.length} files in batch ${batchIndex + 1} of ${batches.length}`);
       
       try {
-        // Try batch processing first
-        const batchResults = await analyzeImagesInBatch(pendingFiles, apiKey, options);
+        const batchResults = aiProvider === 'Gemini'
+          ? await analyzeImagesInBatch(pendingFiles, apiKey, options)
+          : await analyzeImagesInBatchWithGroq(pendingFiles, apiKey, options);
         console.log('Batch processing results:', batchResults);
         
         // Match results with original images by both filename and index
@@ -516,9 +521,11 @@ const Index: React.FC = () => {
               await new Promise(resolve => setTimeout(resolve, delayTime));
             }
             
-            // Process the image/video with Gemini API
+            // Process the image/video with selected provider
             const fileToProcess = image.reducedFile || image.file; // Use reducedFile if available, otherwise fall back to original
-            const result = await analyzeImageWithGemini(fileToProcess, apiKey, options);
+            const result = aiProvider === 'Gemini'
+              ? await analyzeImageWithGemini(fileToProcess, apiKey, options)
+              : await analyzeImageWithGroq(fileToProcess, apiKey, options);
             
             setImages(prev => prev.map(img => img.id === image.id ? {
               ...img,
@@ -687,6 +694,7 @@ const Index: React.FC = () => {
                     onPlatformChange={handlePlatformChange}
                   />
                 </div>
+                
               </div>
               
               <div className="mt-6">
