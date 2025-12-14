@@ -61,7 +61,7 @@ const AutomationScripts: React.FC = () => {
                  </div>
                  <div className="flex items-start space-x-3">
                    <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                   <span className="text-gray-300 text-xs md:text-sm leading-relaxed mt-1">ChatGPT, Gemini ইত্যাদি মডেল আনলিমিটেড ব্যবহার করতে পারবেন</span>
+                   <span className="text-gray-300 text-xs md:text-sm leading-relaxed mt-1">API key সেটআপ না করেই metadata তৈরি করতে পারবেন</span>
                  </div>
                  <div className="flex items-start space-x-3">
                    <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
@@ -75,7 +75,7 @@ const AutomationScripts: React.FC = () => {
               
               <div className="pt-0 -mt-2">
                 <div className="text-center">
-                  <span className="text-white font-semibold text-lg">250Tk/Month</span>
+                  <span className="text-white font-semibold text-lg">300Tk/Month</span>
                 </div>
                 <div className="flex flex-row gap-3 mt-1">
                   <Button 

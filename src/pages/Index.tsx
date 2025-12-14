@@ -11,13 +11,12 @@ import { isEpsFile } from '@/utils/epsMetadataExtractor';
 import { analyzeImageWithGemini, analyzeImagesInBatch } from '@/utils/geminiApi';
 import { analyzeImageWithGroq, analyzeImagesInBatchWithGroq } from '@/utils/grokApi';
 import { toast } from 'sonner';
-import { Sparkles, Loader2, ShieldAlert, Image, Info, Film, LogIn, Clock, Play, ArrowRight, Check, X, Youtube } from 'lucide-react';
+import { Sparkles, Loader2, ShieldAlert, Image, Info, Film, LogIn, Clock, Play, ArrowRight, Check, X } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { Platform } from '@/components/PlatformSelector';
 import PlatformSelector from '@/components/PlatformSelector';
 import GenerationModeSelector, { GenerationMode } from '@/components/GenerationModeSelector';
 import { Separator } from '@/components/ui/separator';
-// removed provider selection tabs
 import AppHeader from '@/components/AppHeader';
 import Sidebar from '@/components/Sidebar';
 import { setupVideoDebug, testVideoSupport, testSpecificVideo } from '@/utils/videoDebug';
@@ -81,7 +80,6 @@ const Index: React.FC = () => {
   const [selectedTab, setSelectedTab] = useState('image');
   const [shouldRedirect, setShouldRedirect] = useState(false);
   const navigate = useNavigate();
-  const [showSetupNotice, setShowSetupNotice] = useState(true);
 
   // Updated default values for metadata customization to match reference photo
   const [minTitleWords, setMinTitleWords] = useState(8);
@@ -646,28 +644,6 @@ const Index: React.FC = () => {
         apiKey={apiKey}
         onApiKeyChange={handleApiKeyChange}
       />
-      {showSetupNotice && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
-          <div className="relative bg-white text-black rounded-lg shadow-lg w-[90%] max-w-md p-5">
-            <button
-              onClick={() => setShowSetupNotice(false)}
-              className="absolute top-2 right-2 text-black hover:text-gray-700"
-            >
-              <X className="h-5 w-5" />
-            </button>
-            <p className="text-center text-base font-medium">API key সেটআপ করার জন্য নিচের ভিডিওটি দেখুন।</p>
-            <div className="mt-4 flex justify-center">
-              <Button
-                onClick={() => window.open('https://youtu.be/6d8IibltT6k?si=KccwXUMNdc-TiCTc', '_blank')}
-                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md flex items-center gap-2"
-              >
-                <Youtube className="h-4 w-4" />
-                <span>ভিডিও দেখুন</span>
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
       
       <div className="flex flex-1">
         <Sidebar 
