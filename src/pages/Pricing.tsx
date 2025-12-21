@@ -1,9 +1,10 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Check, X, Circle, Square, Triangle } from 'lucide-react';
+import { Check, X, Circle, Square, Triangle, Loader2 } from 'lucide-react';
 import AppHeader from '@/components/AppHeader';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useAuth } from '@/context/AuthContext';
 
 interface PricingItemProps {
   text: string;
@@ -30,29 +31,36 @@ const PricingItem: React.FC<PricingItemProps> = ({ text, included, highlight }) 
 
 const PricingPage: React.FC = () => {
   const navigate = useNavigate();
+  const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
+  const { user } = useAuth();
 
   const initiatePayment = useCallback(async (amount: number, plan: string) => {
     try {
+      setLoadingPlan(plan)
       const referenceId = `${plan}-${Date.now()}`
       const description = `Upgrade to ${plan}`
+      const customerEmail = user?.email || undefined
       const { data, error } = await supabase.functions.invoke('eps_init_order', {
-        body: { amount, referenceId, description }
+        body: { amount, referenceId, description, customerEmail }
       })
       if (error) {
         toast.error('Payment init failed')
+        setLoadingPlan(null)
         return
       }
       const payload = data as { paymentUrl?: string }
       const url = payload?.paymentUrl
       if (url) {
-        window.open(url, '_blank')
+        window.location.href = url
       } else {
         toast.error('Invalid gateway response')
+        setLoadingPlan(null)
       }
     } catch (e) {
       toast.error('Payment error')
+      setLoadingPlan(null)
     }
-  }, [])
+  }, [user])
 
   return (
     <div className="min-h-screen bg-[#171717] text-white relative">
@@ -145,10 +153,18 @@ const PricingPage: React.FC = () => {
                   </ul>
                   
                   <button 
-                    className="w-full bg-white hover:bg-gray-100 text-black font-medium py-2.5 rounded-lg transition-colors duration-200"
+                    className="w-full bg-white hover:bg-gray-100 text-black font-medium py-2.5 rounded-lg transition-colors duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
                     onClick={() => initiatePayment(1000, 'premium')}
+                    disabled={loadingPlan === 'premium'}
                   >
-                    Upgrade to Premium
+                    {loadingPlan === 'premium' ? (
+                      <span className="flex items-center justify-center space-x-2">
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <span>Continuing...</span>
+                      </span>
+                    ) : (
+                      'Upgrade to Premium'
+                    )}
                   </button>
                 </div>
               </div>
@@ -182,10 +198,18 @@ const PricingPage: React.FC = () => {
                   </ul>
                   
                   <button 
-                    className="w-full bg-white hover:bg-gray-100 text-black font-medium py-2.5 rounded-lg transition-colors duration-200"
-                    onClick={() => initiatePayment(150, 'basic')}
+                    className="w-full bg-white hover:bg-gray-100 text-black font-medium py-2.5 rounded-lg transition-colors duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
+                    onClick={() => initiatePayment(5, 'basic')}
+                    disabled={loadingPlan === 'basic'}
                   >
-                    Upgrade to Basic
+                    {loadingPlan === 'basic' ? (
+                      <span className="flex items-center justify-center space-x-2">
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <span>Continuing...</span>
+                      </span>
+                    ) : (
+                      'Upgrade to Basic'
+                    )}
                   </button>
                 </div>
               </div>
