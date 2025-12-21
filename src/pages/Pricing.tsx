@@ -36,6 +36,11 @@ const PricingPage: React.FC = () => {
 
   const initiatePayment = useCallback(async (amount: number, plan: string) => {
     try {
+      if (!user) {
+        toast.error('Please sign in to upgrade')
+        navigate('/auth')
+        return
+      }
       setLoadingPlan(plan)
       const referenceId = `${plan}-${Date.now()}`
       const description = `Upgrade to ${plan}`
@@ -199,7 +204,7 @@ const PricingPage: React.FC = () => {
                   
                   <button 
                     className="w-full bg-white hover:bg-gray-100 text-black font-medium py-2.5 rounded-lg transition-colors duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
-                    onClick={() => initiatePayment(5, 'basic')}
+                    onClick={() => initiatePayment(150, 'basic')}
                     disabled={loadingPlan === 'basic'}
                   >
                     {loadingPlan === 'basic' ? (
