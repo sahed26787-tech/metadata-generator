@@ -75,7 +75,7 @@ const AutomationScripts: React.FC = () => {
               
               <div className="pt-0 -mt-2">
                 <div className="text-center">
-                  <span className="text-white font-semibold text-lg">300Tk/Month</span>
+                  <span className="text-white font-semibold text-lg">360Tk/Month</span>
                 </div>
                 <div className="flex flex-row gap-3 mt-1">
                   <Button 

@@ -139,11 +139,11 @@ const PricingPage: React.FC = () => {
                   
                   <div className="mb-6">
                     <div className="flex items-baseline mb-2">
-                      <span className="text-3xl font-bold text-white">2.7</span>
+                      <span className="text-3xl font-bold text-white">8.8</span>
                       <span className="text-lg text-gray-500 ml-1">Tk/Day</span>
                     </div>
                     <p className="text-sm text-gray-400">
-                      <b className="text-yellow-400">1000Tk Yearly!</b>
+                      <b className="text-yellow-400">3200Tk Yearly!</b>
                     </p>
                     <p className="text-sm text-gray-500">Everything you need to scale</p>
                   </div>
@@ -159,7 +159,7 @@ const PricingPage: React.FC = () => {
                   
                   <button 
                     className="w-full bg-white hover:bg-gray-100 text-black font-medium py-2.5 rounded-lg transition-colors duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
-                    onClick={() => initiatePayment(1000, 'premium')}
+                    onClick={() => initiatePayment(3200, 'premium')}
                     disabled={loadingPlan === 'premium'}
                   >
                     {loadingPlan === 'premium' ? (
@@ -186,10 +186,10 @@ const PricingPage: React.FC = () => {
                   
                   <div className="mb-6">
                     <div className="flex items-baseline mb-2">
-                      <span className="text-3xl font-bold text-white">5</span>
+                      <span className="text-3xl font-bold text-white">10</span>
                       <span className="text-lg text-gray-500 ml-1">Tk/Day</span>
                     </div>
-                    <p className="text-sm text-gray-400"><b className="text-yellow-400">150Tk Monthly!</b></p>
+                    <p className="text-sm text-gray-400"><b className="text-yellow-400">300Tk Monthly!</b></p>
                     <p className="text-sm text-gray-500">Essential features for professionals</p>
                   </div>
                   
@@ -204,7 +204,7 @@ const PricingPage: React.FC = () => {
                   
                   <button 
                     className="w-full bg-white hover:bg-gray-100 text-black font-medium py-2.5 rounded-lg transition-colors duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
-                    onClick={() => initiatePayment(150, 'basic')}
+                    onClick={() => initiatePayment(300, 'basic')}
                     disabled={loadingPlan === 'basic'}
                   >
                     {loadingPlan === 'basic' ? (

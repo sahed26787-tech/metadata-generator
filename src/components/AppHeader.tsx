@@ -134,21 +134,19 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   
   
   return <header className="bg-[#1F1F1F] border-b border-gray-700">
-      {(!profile?.is_premium) && (
         <div className="bg-white text-black border-b border-gray-200">
           <div className="max-w-7xl mx-auto px-4 py-1 flex items-center justify-center gap-2">
-            <span className="text-xs font-semibold">⏳ YEAR-END SALE: 75% OFF — From 0.01$/month | {remaining} —</span>
+            <span className="text-base font-bold text-black">NO API KEY Requied And Also Process EPS/AI Format support with File Embed System!</span>
             <Button 
               variant="outline" 
               size="sm" 
               className="bg-[#1F71DC] hover:bg-[#1F71DC] text-white border-[#1F71DC] px-3 py-0.5"
-              onClick={() => navigate('/pricing')}
+              onClick={() => window.location.href = 'https://www.pixcraftai.com/metadata'}
             >
-              Get Offer!
+              Go to site
             </Button>
           </div>
         </div>
-      )}
       <div className="flex items-center justify-between">
         <div className="flex items-center ml-4">
           <h1 onClick={navigateToHome} className="text-xl font-bold flex items-center cursor-pointer hover:opacity-80 transition-opacity">
