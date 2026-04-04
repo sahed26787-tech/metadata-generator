@@ -51,7 +51,8 @@ const Index: React.FC = () => {
     canGenerateMetadata,
     incrementCreditsUsed,
     profile,
-    apiKey: authApiKey
+    apiKey: authApiKey,
+    getRandomApiKey
   } = useAuth();
 
   const [apiKey, setApiKey] = useState('');
@@ -142,6 +143,23 @@ const Index: React.FC = () => {
       if (timerIntervalRef.current !== null) {
         window.clearInterval(timerIntervalRef.current);
       }
+    };
+  }, []);
+  
+  useEffect(() => {
+    const saved = localStorage.getItem('ai-provider');
+    if (saved === 'Gemini' || saved === 'Groq') {
+      setAiProvider(saved as 'Gemini' | 'Groq');
+    }
+    const handler = () => {
+      const p = localStorage.getItem('ai-provider');
+      if (p === 'Gemini' || p === 'Groq') {
+        setAiProvider(p as 'Gemini' | 'Groq');
+      }
+    };
+    window.addEventListener('ai-provider-changed', handler as unknown as EventListener);
+    return () => {
+      window.removeEventListener('ai-provider-changed', handler as unknown as EventListener);
     };
   }, []);
   
@@ -429,9 +447,23 @@ const Index: React.FC = () => {
       console.log(`Processing ${pendingFiles.length} files in batch ${batchIndex + 1} of ${batches.length}`);
       
       try {
-        const batchResults = aiProvider === 'Gemini'
+        let batchResults = aiProvider === 'Gemini'
           ? await analyzeImagesInBatch(pendingFiles, apiKey, options)
           : await analyzeImagesInBatchWithGroq(pendingFiles, apiKey, options);
+        
+        if (aiProvider === 'Groq') {
+          const allError = !batchResults || batchResults.length === 0 || batchResults.every(r => (r as any)?.error);
+          if (allError) {
+            const fallbackKey =
+              localStorage.getItem('gemini-api-key') ||
+              authApiKey ||
+              (typeof getRandomApiKey === 'function' ? getRandomApiKey() : '');
+            if (fallbackKey) {
+              toast.info('Groq failed. Falling back to Gemini automatically.');
+              batchResults = await analyzeImagesInBatch(pendingFiles, fallbackKey, options);
+            }
+          }
+        }
         console.log('Batch processing results:', batchResults);
         
         // Match results with original images by both filename and index
@@ -522,9 +554,20 @@ const Index: React.FC = () => {
             
             // Process the image/video with selected provider
             const fileToProcess = image.reducedFile || image.file; // Use reducedFile if available, otherwise fall back to original
-            const result = aiProvider === 'Gemini'
+            let result = aiProvider === 'Gemini'
               ? await analyzeImageWithGemini(fileToProcess, apiKey, options)
               : await analyzeImageWithGroq(fileToProcess, apiKey, options);
+            
+            if (aiProvider === 'Groq' && result?.error) {
+              const fallbackKey =
+                localStorage.getItem('gemini-api-key') ||
+                authApiKey ||
+                (typeof getRandomApiKey === 'function' ? getRandomApiKey() : '');
+              if (fallbackKey) {
+                toast.info('Groq failed for an item. Retrying with Gemini.');
+                result = await analyzeImageWithGemini(fileToProcess, fallbackKey, options);
+              }
+            }
             
             setImages(prev => prev.map(img => img.id === image.id ? {
               ...img,

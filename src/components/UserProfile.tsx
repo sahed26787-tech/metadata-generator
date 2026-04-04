@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { LogOut, Crown, Infinity, Clock, Key, Eye, EyeOff, Copy, Check } from 'lucide-react';
@@ -11,12 +11,24 @@ const UserProfile: React.FC = () => {
   const { user, profile, signOut, apiKey, updateApiKey } = useAuth();
   const { toast } = useToast();
   const [showApiKey, setShowApiKey] = useState(false);
-  const [apiKeyValue, setApiKeyValue] = useState(
-    (typeof window !== 'undefined' && localStorage.getItem('groq-api-key')) || apiKey || ''
+  const [provider, setProvider] = useState<'Groq' | 'Gemini'>(
+    (typeof window !== 'undefined' && (localStorage.getItem('ai-provider') as 'Groq' | 'Gemini')) || 'Groq'
   );
+  const [groqKey, setGroqKey] = useState(
+    (typeof window !== 'undefined' && localStorage.getItem('groq-api-key')) || ''
+  );
+  const [geminiKey, setGeminiKey] = useState(
+    (typeof window !== 'undefined' && localStorage.getItem('gemini-api-key')) || apiKey || ''
+  );
+  const [apiKeyValue, setApiKeyValue] = useState('');
   const [isCopied, setIsCopied] = useState(false);
 
   if (!user || !profile) return null;
+
+  useEffect(() => {
+    const value = provider === 'Groq' ? groqKey : geminiKey;
+    setApiKeyValue(value || '');
+  }, [provider, groqKey, geminiKey]);
 
   const getProfilePicture = () => {
     if (user.user_metadata?.avatar_url) {
@@ -42,36 +54,44 @@ const UserProfile: React.FC = () => {
   const handleSaveApiKey = () => {
     try {
       if (typeof window !== 'undefined') {
-        localStorage.setItem('groq-api-key', apiKeyValue);
-        const listRaw = localStorage.getItem('groq-api-keys');
+        const storageKey = provider === 'Groq' ? 'groq-api-key' : 'gemini-api-key';
+        const storageKeys = provider === 'Groq' ? 'groq-api-keys' : 'gemini-api-keys';
+        localStorage.setItem(storageKey, apiKeyValue);
+        const listRaw = localStorage.getItem(storageKeys);
         let list: string[] = [];
         if (listRaw) {
           try { list = JSON.parse(listRaw) || []; } catch { list = []; }
         }
         if (!list.includes(apiKeyValue) && apiKeyValue.trim().length > 0) {
           list.push(apiKeyValue);
-          localStorage.setItem('groq-api-keys', JSON.stringify(list));
+          localStorage.setItem(storageKeys, JSON.stringify(list));
         }
       }
     } catch {}
-    updateApiKey(apiKeyValue);
+    updateApiKey(apiKeyValue, provider === 'Groq' ? 'Groq' : 'Gemini');
     toast({
-      title: "Groq API Key Saved",
-      description: "Your Groq API key has been successfully updated.",
+      title: `${provider} API Key Saved`,
+      description: `Your ${provider} API key has been successfully updated.`,
     });
   };
 
   const handleClearApiKey = () => {
     try {
       if (typeof window !== 'undefined') {
-        localStorage.removeItem('groq-api-key');
+        const storageKey = provider === 'Groq' ? 'groq-api-key' : 'gemini-api-key';
+        localStorage.removeItem(storageKey);
       }
     } catch {}
-    updateApiKey('');
+    updateApiKey('', provider === 'Groq' ? 'Groq' : 'Gemini');
+    if (provider === 'Groq') {
+      setGroqKey('');
+    } else {
+      setGeminiKey('');
+    }
     setApiKeyValue('');
     toast({
-      title: "Groq API Key Cleared",
-      description: "Your Groq API key has been removed.",
+      title: `${provider} API Key Cleared`,
+      description: `Your ${provider} API key has been removed.`,
     });
   };
 
@@ -137,7 +157,36 @@ const UserProfile: React.FC = () => {
 
         {/* API Key Management */}
         <div className="p-5 space-y-4">
-          <h3 className="text-sm font-semibold text-gray-400">API Key Management (Groq)</h3>
+          <h3 className="text-sm font-semibold text-gray-400">API Provider</h3>
+          <div className="flex items-center gap-2">
+            <Button
+              variant={provider === 'Groq' ? 'default' : 'outline'}
+              className={provider === 'Groq' ? 'bg-white text-black' : 'bg-transparent border border-gray-600 text-gray-300'}
+              onClick={() => {
+                setProvider('Groq');
+                if (typeof window !== 'undefined') {
+                  localStorage.setItem('ai-provider', 'Groq');
+                  window.dispatchEvent(new Event('ai-provider-changed'));
+                }
+              }}
+            >
+              Groq
+            </Button>
+            <Button
+              variant={provider === 'Gemini' ? 'default' : 'outline'}
+              className={provider === 'Gemini' ? 'bg-white text-black' : 'bg-transparent border border-gray-600 text-gray-300'}
+              onClick={() => {
+                setProvider('Gemini');
+                if (typeof window !== 'undefined') {
+                  localStorage.setItem('ai-provider', 'Gemini');
+                  window.dispatchEvent(new Event('ai-provider-changed'));
+                }
+              }}
+            >
+              Gemini
+            </Button>
+          </div>
+          <h3 className="text-sm font-semibold text-gray-400">API Key Management ({provider})</h3>
           
           {/* Existing API Key Input */}
           <div className="relative flex items-center">
@@ -145,8 +194,15 @@ const UserProfile: React.FC = () => {
             <Input
               type={showApiKey ? "text" : "password"}
               value={apiKeyValue}
-              onChange={(e) => setApiKeyValue(e.target.value)}
-              placeholder="Enter your Groq API Key"
+              onChange={(e) => {
+                setApiKeyValue(e.target.value);
+                if (provider === 'Groq') {
+                  setGroqKey(e.target.value);
+                } else {
+                  setGeminiKey(e.target.value);
+                }
+              }}
+              placeholder={provider === 'Groq' ? "Enter your Groq API Key" : "Enter your Gemini API Key"}
               className="w-full pl-10 pr-20 py-2 bg-gray-700 border border-gray-600 rounded-md focus:ring-1 focus:ring-purple-500 focus:border-transparent text-white text-sm"
             />
             <button
@@ -172,8 +228,11 @@ const UserProfile: React.FC = () => {
             <Button onClick={handleClearApiKey} className="flex-1 h-9 px-3 py-1 bg-transparent border border-slate-500 text-slate-400 hover:bg-slate-500 hover:text-white text-sm font-medium rounded-md shadow-sm transition-colors">
               Clear
             </Button>
-            <Button onClick={() => window.open('https://console.groq.com/keys', '_blank')} className="flex-1 h-9 px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium rounded-md shadow-sm transition-colors">
-              Get Groq Key
+            <Button
+              onClick={() => window.open(provider === 'Groq' ? 'https://console.groq.com/keys' : 'https://aistudio.google.com/app/apikey', '_blank')}
+              className="flex-1 h-9 px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium rounded-md shadow-sm transition-colors"
+            >
+              {provider === 'Groq' ? 'Get Groq Key' : 'Get Gemini Key'}
             </Button>
           </div>
 

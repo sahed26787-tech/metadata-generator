@@ -19,7 +19,7 @@ interface AuthContextType {
   forceSignOut: (email: string) => Promise<void>;
   getRandomApiKey: () => string;
   apiKey: string;
-  updateApiKey: (key: string) => void;
+  updateApiKey: (key: string, provider?: 'Gemini' | 'Groq') => void;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -336,9 +336,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [user]);
 
   // Function to update API key without page reload
-  const updateApiKey = (key: string) => {
+  const updateApiKey = (key: string, provider: 'Gemini' | 'Groq' = 'Gemini') => {
     setApiKey(key);
-    localStorage.setItem('gemini-api-key', key);
+    const storageKey = provider === 'Gemini' ? 'gemini-api-key' : 'groq-api-key';
+    localStorage.setItem(storageKey, key);
   };
 
   const value = {
