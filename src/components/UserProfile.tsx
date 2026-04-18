@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
-import { LogOut, Crown, Infinity, Clock, Key, Eye, EyeOff, Copy, Check } from 'lucide-react';
+import { LogOut, Crown, Clock, Key, Eye, EyeOff, Copy, Check } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
@@ -43,8 +43,8 @@ const UserProfile: React.FC = () => {
   const profilePicture = getProfilePicture();
 
   const getTimeRemaining = () => {
-    if (!profile.expiration_date) return null;
-    const expirationDate = new Date(profile.expiration_date);
+    if (!profile.plan_expires_at) return null;
+    const expirationDate = new Date(profile.plan_expires_at);
     if (expirationDate < new Date()) return null;
     return formatDistanceToNow(expirationDate, { addSuffix: true });
   };
@@ -123,16 +123,16 @@ const UserProfile: React.FC = () => {
             {profile.is_premium ? (
               <div className="flex items-center text-xs text-purple-300 mt-1">
                 <Crown className="h-3 w-3 mr-1 text-yellow-400" />
-                <span>Premium User</span>
-                {timeRemaining && (
+                <span className="capitalize">{profile.plan_type} Plan</span>
+                {timeRemaining && profile.plan_type === 'standard' && (
                   <span className="ml-2 flex items-center text-purple-400">
                     <Clock className="h-3 w-3 mr-1" />
-                    {timeRemaining}
+                    Expires {timeRemaining}
                   </span>
                 )}
               </div>
             ) : (
-              <span className="text-xs text-gray-400 mt-1">Free User</span>
+              <span className="text-xs text-gray-400 mt-1">Free Plan</span>
             )}
           </div>
         </div>
@@ -141,18 +141,26 @@ const UserProfile: React.FC = () => {
         <div className="p-5 border-b border-gray-700">
           <h3 className="text-sm font-semibold text-gray-400 mb-2">Credits Remaining</h3>
           <div className="flex items-center justify-between bg-gray-700/30 p-3 rounded-lg border border-gray-600">
-            {profile.is_premium ? (
+            {profile.plan_type === 'exclusive' ? (
               <>
-                <span className="text-lg font-bold text-white">Unlimited</span>
-                <Infinity className="h-5 w-5 text-white" />
+                <span className="text-lg font-bold text-white">{profile.remaining_credits.toLocaleString()}</span>
+                <span className="text-sm text-gray-400">/ {profile.total_credits.toLocaleString()}</span>
+              </>
+            ) : profile.plan_type === 'standard' ? (
+              <>
+                <span className="text-lg font-bold text-blue-400">{profile.remaining_credits.toLocaleString()}</span>
+                <span className="text-sm text-gray-400">/ {profile.total_credits.toLocaleString()} per month</span>
               </>
             ) : (
               <>
-                <span className="text-lg font-bold text-blue-400">{Math.max(0, 5 - profile.credits_used)}</span>
-                <span className="text-sm text-gray-400">/ 5</span>
+                <span className="text-lg font-bold text-blue-400">{profile.remaining_credits}</span>
+                <span className="text-sm text-gray-400">/ {profile.total_credits} lifetime</span>
               </>
             )}
           </div>
+          {profile.credits_reset_type === 'monthly' && (
+            <p className="text-xs text-gray-500 mt-2">Resets monthly</p>
+          )}
         </div>
 
         {/* API Key Management */}

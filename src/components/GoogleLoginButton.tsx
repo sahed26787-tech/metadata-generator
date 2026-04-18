@@ -1,5 +1,5 @@
 import { Button } from './ui/button';
-import { supabase } from '@/integrations/supabase/client';
+import { serverSignInWithOAuth, isServerAuthAvailable } from '@/utils/serverAuth';
 
 interface GoogleLoginButtonProps {
   onSuccess?: (token: string) => void;
@@ -9,25 +9,20 @@ interface GoogleLoginButtonProps {
 export function GoogleLoginButton({ onSuccess, onError }: GoogleLoginButtonProps) {
   const handleGoogleLogin = async () => {
     try {
-      // Sign in with Google OAuth
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
-          queryParams: {
-            access_type: 'offline',
-            prompt: 'consent',
-          }
-        }
-      });
+      // Check if server auth is available
+      if (!isServerAuthAvailable()) {
+        throw new Error('Authentication is not configured. Please check your Supabase settings.');
+      }
 
-      if (error) {
-        console.error('Error with Google sign-in:', error);
-        onError?.(error);
-      } else if (onSuccess && data) {
+      // Sign in with Google OAuth using server-side function
+      const { url } = await serverSignInWithOAuth('google');
+
+      if (url) {
         // Redirect to the Google OAuth URL
-        window.location.href = data.url;
-        onSuccess(data.url || '');
+        window.location.href = url;
+        onSuccess?.(url);
+      } else {
+        throw new Error('Failed to get OAuth URL');
       }
     } catch (error) {
       console.error('Error with Google sign-in:', error);

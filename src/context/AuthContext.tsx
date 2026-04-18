@@ -3,8 +3,9 @@ import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { checkActiveSession, setActiveSession, removeActiveSession, getSafeUserProfile, createUserProfileSafe } from '@/utils/supabaseUtils';
+import { checkActiveSession, setActiveSession, removeActiveSession } from '@/utils/supabaseUtils';
 import { UserProfile } from '@/types/supabase';
+import { serverSignIn, serverSignUp, serverSignInWithOAuth, serverSignOut, isServerAuthAvailable } from '@/utils/serverAuth';
 
 interface AuthContextType {
   session: Session | null;
@@ -59,6 +60,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   useEffect(() => {
+    // Check if supabase client is initialized
+    if (!supabase) {
+      console.error('Supabase client not initialized. Authentication features will be disabled.');
+      setIsLoading(false);
+      return;
+    }
+
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, currentSession) => {
@@ -113,11 +121,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const buildFallbackProfile = (userId: string, email: string): UserProfile => ({
     id: userId,
     email,
+    plan_type: 'free',
+    total_credits: 15,
     credits_used: 0,
+    remaining_credits: 15,
+    credits_reset_type: 'never',
     is_premium: false
   });
 
   const fetchUserProfile = async (userId: string, sessionEmail?: string) => {
+    if (!supabase) return;
     if (isFetchingProfileRef.current) return;
     isFetchingProfileRef.current = true;
     try {
@@ -131,64 +144,43 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return;
       }
       
-      // Use the safe profile fetching utility function first
-      const profileData = await getSafeUserProfile(userId);
+      // Use the get_user_profile RPC function (handles fetch or create)
+      const { data: profileData, error: profileError } = await supabase
+        .rpc('get_user_profile', { p_user_id: userId });
       
-      if (profileData) {
-        console.log('Profile found via RPC function:', profileData);
-        setProfile(profileData as UserProfile);
-        return;
-      }
-
-      // If RPC function didn't work, try direct query
-      console.log('RPC function returned no profile, trying direct query...');
-      const { data: directData, error: directError } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .limit(1);
-
-      if (directError?.code === 'PGRST205') {
-        console.warn('Profiles table missing in Supabase project. Using fallback profile locally.');
-        isProfilesSchemaMissingRef.current = true;
+      if (profileError) {
+        console.error('Error fetching profile:', profileError);
         if (resolvedEmail) {
           setProfile(buildFallbackProfile(userId, resolvedEmail));
         }
         return;
       }
-
-      if (!directError && directData && directData.length > 0) {
-        console.log('Profile found via direct query:', directData[0]);
-        setProfile(directData[0] as UserProfile);
-        return;
-      }
-
-      // If no profile found, try to create one
-      console.log('No profile found, attempting to create new profile for user:', userId);
-      // Prefer the email from the active auth session to avoid state race conditions.
-      // Fallbacks keep profile creation working during initial load.
-      let userEmail = resolvedEmail;
-      if (!userEmail) {
-        const { data: userData } = await supabase.auth.getUser();
-        userEmail = userData?.user?.email || '';
-      }
-
-      if (!userEmail) {
-        console.error('Cannot create profile: user email is missing');
-        return;
-      }
-
-      const newProfile = await createUserProfileSafe(userId, userEmail);
       
-      if (newProfile) {
-        console.log('Successfully created and set new profile:', newProfile);
-        setProfile(newProfile as UserProfile);
-      } else {
-        console.error('Failed to create profile for user:', userId);
-        if (userEmail) {
-          setProfile(buildFallbackProfile(userId, userEmail));
-        }
-        console.log('User authentication state:', { userId, userEmail, sessionExists: !!session });
+      if (profileData && profileData.length > 0) {
+        console.log('Profile found:', profileData[0]);
+        const p = profileData[0];
+        // Map the returned columns to UserProfile interface
+        const mappedProfile: UserProfile = {
+          id: p.profile_id,
+          email: p.profile_email,
+          plan_type: p.profile_plan_type,
+          total_credits: p.profile_total_credits,
+          credits_used: p.profile_credits_used,
+          remaining_credits: p.profile_remaining_credits,
+          credits_reset_type: p.profile_credits_reset_type,
+          is_premium: p.profile_is_premium,
+          plan_expires_at: p.profile_plan_expires_at,
+          created_at: new Date().toISOString(), // These aren't returned, use current time
+          updated_at: new Date().toISOString()
+        };
+        setProfile(mappedProfile);
+        return;
+      }
+      
+      // If no profile returned, use fallback
+      console.warn('No profile returned from get_user_profile');
+      if (resolvedEmail) {
+        setProfile(buildFallbackProfile(userId, resolvedEmail));
       }
       
     } catch (error) {
@@ -201,6 +193,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Force sign out a user from any existing sessions
   const forceSignOut = async (email: string) => {
+    if (!supabase) {
+      throw new Error('Supabase client not initialized');
+    }
     try {
       // Use functions.invoke instead of rpc
       const { error } = await supabase.functions.invoke('remove_active_session_by_email', {
@@ -225,6 +220,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const signIn = async (email: string, password: string) => {
+    // Check if server auth is available
+    if (!isServerAuthAvailable()) {
+      toast.error('Authentication is not configured. Please check your Supabase settings.');
+      throw new Error('Supabase not configured');
+    }
+
     try {
       // Check if the user is already logged in elsewhere
       const isActiveSession = await checkUserActiveSession(email);
@@ -243,19 +244,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         toast.success('Previous session has been terminated');
       }
 
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+      // Use server-side authentication
+      const { user: authUser, session: authSession } = await serverSignIn(email, password);
 
-      if (error) throw error;
-      
+      if (!authUser || !authSession) {
+        throw new Error('Failed to sign in');
+      }
+
+      // Update local state
+      setSession(authSession);
+      setUser(authUser);
+
       // Set the user as active
-      if (data?.user) {
-        const sessionId = data.session?.access_token.slice(-10) || Date.now().toString();
-        await setActiveSession(data.user.id, email, sessionId);
-        
-        // No longer auto-assign API key - users will need to set it manually
+      const sessionId = authSession.access_token.slice(-10) || Date.now().toString();
+      await setActiveSession(authUser.id, email, sessionId);
+      
+      // Fetch user profile
+      if (authUser) {
+        await fetchUserProfile(authUser.id, authUser.email);
       }
       
       toast.success('Signed in successfully');
@@ -268,13 +274,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const signUp = async (email: string, password: string) => {
-    try {
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-      });
+    // Check if server auth is available
+    if (!isServerAuthAvailable()) {
+      toast.error('Authentication is not configured. Please check your Supabase settings.');
+      throw new Error('Supabase not configured');
+    }
 
-      if (error) throw error;
+    try {
+      // Use server-side authentication
+      const { user: authUser, session: authSession } = await serverSignUp(email, password);
+
+      if (!authUser) {
+        throw new Error('Failed to sign up');
+      }
       
       toast.success('Signed up successfully! Please check your email for verification.');
     } catch (error) {
@@ -285,14 +297,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const signOut = async () => {
+    if (!isServerAuthAvailable()) {
+      toast.error('Authentication is not configured.');
+      return;
+    }
     try {
       // Remove the user from active sessions before signing out
-      if (user) {
+      if (user && session) {
         await removeActiveSession(user.id);
+        // Use server-side sign out
+        await serverSignOut(session.access_token);
       }
       
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
+      // Clear local state
+      setSession(null);
+      setUser(null);
+      setProfile(null);
       
       toast.success('Signed out successfully');
       navigate('/auth');
@@ -303,36 +323,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const incrementCreditsUsed = async (): Promise<boolean> => {
-    if (!user || !profile) return false;
+    if (!supabase || !user || !profile) return false;
     
-    // If user is premium, allow unlimited processing
-    if (profile.is_premium) {
-      return true;
-    }
-    
-    // For free users, check if they've reached the 5 credits limit
-    if (profile.credits_used >= 5) {
-      toast.error('You have reached your 5 credits lifetime limit. Please upgrade to process UNLIMITED images.');
-      return false;
-    }
-    
+    // Use the database function to check and use credit
     try {
-      // Increment the credits used count in the database
-      const { error } = await supabase
-        .from('profiles')
-        .update({ credits_used: profile.credits_used + 1 })
-        .eq('id', user.id);
+      const { data, error } = await supabase.rpc('use_credit', {
+        p_user_id: user.id
+      });
       
       if (error) {
-        console.error('Error updating credits:', error);
-        toast.error('Failed to update credits. Please try again.');
+        console.error('Error using credit:', error);
+        toast.error('Failed to process credit. Please try again.');
+        return false;
+      }
+      
+      if (!data.success) {
+        const planName = profile.plan_type === 'free' ? 'Free' : profile.plan_type;
+        toast.error(`You have used all your credits for this ${profile.credits_reset_type === 'monthly' ? 'month' : 'period'}. Please upgrade to continue.`);
         return false;
       }
       
       // Update local profile state
       setProfile({
         ...profile,
-        credits_used: profile.credits_used + 1
+        credits_used: profile.total_credits - data.remaining_credits,
+        remaining_credits: data.remaining_credits
       });
       
       return true;

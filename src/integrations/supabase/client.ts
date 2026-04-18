@@ -12,15 +12,31 @@ const getEnvVar = (key: string): string => {
 const supabaseUrl = getEnvVar('VITE_SUPABASE_URL');
 const supabaseAnonKey = getEnvVar('VITE_SUPABASE_ANON_KEY');
 
+// Validate URL format
+const isValidUrl = (url: string): boolean => {
+  try {
+    new URL(url);
+    return true;
+  } catch {
+    return false;
+  }
+};
+
 // Create a default export for the supabase client
 let supabaseClient: any = null;
 
-try {
-  if (!supabaseUrl) {
-    console.error('Missing VITE_SUPABASE_URL environment variable');
-  } else if (!supabaseAnonKey) {
-    console.error('Missing VITE_SUPABASE_ANON_KEY environment variable');
-  } else {
+// Check for placeholder values
+const isPlaceholderUrl = supabaseUrl.includes('your_supabase') || supabaseUrl === '';
+const isPlaceholderKey = supabaseAnonKey.includes('your_supabase') || supabaseAnonKey === '';
+
+if (isPlaceholderUrl || isPlaceholderKey) {
+  console.error(
+    'Supabase credentials not configured. Please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in your .env file'
+  );
+} else if (!isValidUrl(supabaseUrl)) {
+  console.error('Invalid VITE_SUPABASE_URL format:', supabaseUrl);
+} else {
+  try {
     // Create the Supabase client
     supabaseClient = createClient<Database>(supabaseUrl, supabaseAnonKey, {
       auth: {
@@ -32,9 +48,9 @@ try {
       }
     });
     console.log('Supabase client initialized successfully');
+  } catch (error) {
+    console.error('Error initializing Supabase client:', error);
   }
-} catch (error) {
-  console.error('Error initializing Supabase client:', error);
 }
 
 // Export the client
