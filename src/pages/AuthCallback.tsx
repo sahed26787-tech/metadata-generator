@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2, AlertCircle } from 'lucide-react';
@@ -7,44 +7,54 @@ import { toast } from 'sonner';
 export default function AuthCallback() {
   const navigate = useNavigate();
   const [error, setError] = useState<string | null>(null);
+  const handledRef = useRef(false);
 
   useEffect(() => {
-    // Parse the hash from the URL
     const handleAuthCallback = async () => {
+      if (handledRef.current) return;
+      handledRef.current = true;
+
       try {
-        // Check if we have a session
+        // PKCE callback flow: exchange ?code= for an auth session when present.
+        const callbackUrl = new URL(window.location.href);
+        const code = callbackUrl.searchParams.get('code');
+
+        if (code) {
+          const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+          if (exchangeError) {
+            const message = exchangeError.message || '';
+            // This can happen if the code was already exchanged in a previous pass.
+            // In that case, continue and rely on getSession() below.
+            if (!message.includes('both auth code and code verifier should be non-empty')) {
+              console.error('Error exchanging auth code for session:', exchangeError);
+              setError('Authentication failed. Please try again.');
+              toast.error('Authentication failed');
+              setTimeout(() => navigate('/auth'), 2000);
+              return;
+            }
+          }
+        }
+
+        // Check for an active session after potential code exchange.
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-        
         if (sessionError) {
           console.error('Error getting session:', sessionError);
-          setError('Authentication failed. Please try again.');
-          toast.error('Authentication failed');
-          setTimeout(() => navigate('/'), 2000);
-          return;
         }
 
         if (session) {
           toast.success('Successfully signed in!');
           navigate('/');
         } else {
-          // Try to exchange the code for a session
-          const { error: signInError } = await supabase.auth.getUser();
-          
-          if (signInError) {
-            console.error('Error during auth state change:', signInError);
-            setError('Authentication failed. Please try again.');
-            toast.error('Authentication failed');
-            setTimeout(() => navigate('/'), 2000);
-          } else {
-            toast.success('Successfully signed in!');
-            navigate('/');
-          }
+          // Avoid AuthSessionMissingError from getUser() when no session exists yet.
+          setError('Authentication session missing. Please sign in again.');
+          toast.error('Authentication failed');
+          setTimeout(() => navigate('/auth'), 2000);
         }
       } catch (err) {
         console.error('Error during auth callback:', err);
         setError('An unexpected error occurred. Please try again.');
         toast.error('Authentication error');
-        setTimeout(() => navigate('/'), 2000);
+        setTimeout(() => navigate('/auth'), 2000);
       }
     };
 

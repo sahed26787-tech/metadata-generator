@@ -199,7 +199,10 @@ export const getSafeUserProfile = async (userId: string) => {
     });
     
     if (error) {
-      console.error('Error fetching safe user profile:', error);
+      // Expected on fresh projects where this RPC does not exist yet.
+      if (error.code !== 'PGRST202') {
+        console.error('Error fetching safe user profile:', error);
+      }
       return null;
     }
     
@@ -222,6 +225,11 @@ export const createUserProfileSafe = async (userId: string, email: string) => {
       .eq('id', userId)
       .limit(1);
 
+    // If profiles table doesn't exist in this project, fail softly.
+    if (fetchError?.code === 'PGRST205') {
+      return null;
+    }
+
     // If profile exists, return it
     if (!fetchError && existingData && existingData.length > 0) {
       console.log('Profile already exists for user:', userId);
@@ -243,6 +251,11 @@ export const createUserProfileSafe = async (userId: string, email: string) => {
       .single();
 
     if (error) {
+      // Fresh projects may not have profiles table yet.
+      if (error.code === 'PGRST205') {
+        return null;
+      }
+
       console.error('Error creating user profile:', error);
       
       // If duplicate constraint error, try to fetch again

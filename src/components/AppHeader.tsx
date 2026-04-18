@@ -134,19 +134,6 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   
   
   return <header className="bg-[#1F1F1F] border-b border-gray-700">
-        <div className="bg-white text-black border-b border-gray-200">
-          <div className="max-w-7xl mx-auto px-4 py-1 flex items-center justify-center gap-2">
-            <span className="text-base font-bold text-black">NO API KEY Requied And Also Process EPS/AI Format support with File Embed System!</span>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="bg-[#1F71DC] hover:bg-[#1F71DC] text-white border-[#1F71DC] px-3 py-0.5"
-              onClick={() => window.location.href = 'https://www.pixcraftai.com/metadata'}
-            >
-              Go to site
-            </Button>
-          </div>
-        </div>
       <div className="flex items-center justify-between">
         <div className="flex items-center ml-4">
           <h1 onClick={navigateToHome} className="text-xl font-bold flex items-center cursor-pointer hover:opacity-80 transition-opacity">
@@ -192,14 +179,6 @@ const AppHeader: React.FC<AppHeaderProps> = ({
               <Button 
                 variant="outline" 
                 size="sm" 
-                className="bg-[#1F71DC] hover:bg-[#1F71DC] text-white font-medium border-[#1F71DC] px-4 py-1 transform transition-transform duration-200 ease-out hover:scale-105 active:scale-95 hover:shadow-lg"
-                onClick={() => navigate('/Services')}
-              >
-                Services
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm" 
                 className="bg-white hover:bg-gray-100 text-black hover:text-black focus:text-black active:text-black font-medium border-white px-4 py-1 transform transition-transform duration-200 ease-out hover:scale-105 active:scale-95 hover:shadow-lg"
                 onClick={() => navigate('/pricing')}
               >
@@ -219,15 +198,6 @@ const AppHeader: React.FC<AppHeaderProps> = ({
         
           {user && (
             <>
-              {/* Services button left of pricing button */}
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="bg-[#1F71DC] hover:bg-[#1F71DC] text-white font-medium border-[#1F71DC] px-4 py-1 transform transition-transform duration-200 ease-out hover:scale-105 active:scale-95 hover:shadow-lg"
-                onClick={() => navigate('/Services')}
-              >
-                Services
-              </Button>
               {/* Pricing button left of profile icon (hidden for premium users) */}
               {!profile?.is_premium && (
                 <Button 

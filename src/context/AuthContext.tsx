@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect, useContext } from 'react';
+import React, { createContext, useState, useEffect, useContext, useRef } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
@@ -31,6 +31,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [canGenerateMetadata, setCanGenerateMetadata] = useState<boolean>(false);
   const [apiKey, setApiKey] = useState<string>('');
+  const isFetchingProfileRef = useRef<boolean>(false);
+  const isProfilesSchemaMissingRef = useRef<boolean>(false);
   const navigate = useNavigate();
 
   // Define the list of API keys
@@ -67,7 +69,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // Instead, defer with setTimeout
         if (currentSession?.user) {
           setTimeout(() => {
-            fetchUserProfile(currentSession.user.id);
+            fetchUserProfile(currentSession.user.id, currentSession.user.email);
           }, 0);
         } else {
           setProfile(null);
@@ -81,7 +83,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(currentSession?.user ?? null);
       
       if (currentSession?.user) {
-        fetchUserProfile(currentSession.user.id);
+        fetchUserProfile(currentSession.user.id, currentSession.user.email);
       }
       
       setIsLoading(false);
@@ -108,9 +110,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [profile]);
 
-  const fetchUserProfile = async (userId: string) => {
+  const buildFallbackProfile = (userId: string, email: string): UserProfile => ({
+    id: userId,
+    email,
+    credits_used: 0,
+    is_premium: false
+  });
+
+  const fetchUserProfile = async (userId: string, sessionEmail?: string) => {
+    if (isFetchingProfileRef.current) return;
+    isFetchingProfileRef.current = true;
     try {
       console.log('Fetching profile for user:', userId);
+      const resolvedEmail = sessionEmail || user?.email || session?.user?.email || '';
+
+      if (isProfilesSchemaMissingRef.current) {
+        if (resolvedEmail) {
+          setProfile(buildFallbackProfile(userId, resolvedEmail));
+        }
+        return;
+      }
       
       // Use the safe profile fetching utility function first
       const profileData = await getSafeUserProfile(userId);
@@ -129,6 +148,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .eq('id', userId)
         .limit(1);
 
+      if (directError?.code === 'PGRST205') {
+        console.warn('Profiles table missing in Supabase project. Using fallback profile locally.');
+        isProfilesSchemaMissingRef.current = true;
+        if (resolvedEmail) {
+          setProfile(buildFallbackProfile(userId, resolvedEmail));
+        }
+        return;
+      }
+
       if (!directError && directData && directData.length > 0) {
         console.log('Profile found via direct query:', directData[0]);
         setProfile(directData[0] as UserProfile);
@@ -137,8 +165,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       // If no profile found, try to create one
       console.log('No profile found, attempting to create new profile for user:', userId);
-      const userEmail = user?.email || '';
-      
+      // Prefer the email from the active auth session to avoid state race conditions.
+      // Fallbacks keep profile creation working during initial load.
+      let userEmail = resolvedEmail;
+      if (!userEmail) {
+        const { data: userData } = await supabase.auth.getUser();
+        userEmail = userData?.user?.email || '';
+      }
+
       if (!userEmail) {
         console.error('Cannot create profile: user email is missing');
         return;
@@ -151,12 +185,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setProfile(newProfile as UserProfile);
       } else {
         console.error('Failed to create profile for user:', userId);
+        if (userEmail) {
+          setProfile(buildFallbackProfile(userId, userEmail));
+        }
         console.log('User authentication state:', { userId, userEmail, sessionExists: !!session });
       }
       
     } catch (error) {
       console.error('Error in fetchUserProfile:', error);
       // Don't throw error to prevent session crash
+    } finally {
+      isFetchingProfileRef.current = false;
     }
   };
 
