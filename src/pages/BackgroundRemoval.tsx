@@ -349,31 +349,27 @@ const BackgroundRemoval: React.FC<BackgroundRemovalProps> = ({
               {tasks.length > 0 && (
                 <div className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
-                    {/* Main Result (shows result after processing, preview before) */}
+                    {/* Left: Always show original */}
                     <Card className="bg-[#1a1a1a] border-gray-700 overflow-hidden">
                       <CardContent className="p-4">
-                        <p className="text-sm text-gray-400 mb-2">
-                          {tasks[0].status === 'done' ? 'Result' : 'Original'}
-                        </p>
+                        <p className="text-sm text-gray-400 mb-2">Original</p>
                         <img 
-                          src={tasks[0].status === 'done' && tasks[0].resultUrl ? tasks[0].resultUrl : tasks[0].preview} 
-                          alt={tasks[0].status === 'done' ? 'Result' : 'Original'} 
+                          src={tasks[0].preview}
+                          alt="Original"
                           className="w-full h-64 object-contain bg-[#0f0f0f] rounded"
                         />
                       </CardContent>
                     </Card>
 
-                    {/* Secondary View (shows original after processing, result placeholder before) */}
+                    {/* Right: show result/placeholder */}
                     <Card className="bg-[#1a1a1a] border-gray-700 overflow-hidden">
                       <CardContent className="p-4">
-                        <p className="text-sm text-gray-400 mb-2">
-                          {tasks[0].status === 'done' ? 'Original' : 'Result'}
-                        </p>
+                        <p className="text-sm text-gray-400 mb-2">Result</p>
                         {tasks[0].status === 'done' && tasks[0].resultUrl ? (
                           <img 
-                            src={tasks[0].preview} 
-                            alt="Original" 
-                            className="w-full h-64 object-contain bg-[#0f0f0f] rounded opacity-60"
+                            src={tasks[0].resultUrl}
+                            alt="Result"
+                            className="w-full h-64 object-contain bg-[#0f0f0f] rounded"
                           />
                         ) : tasks[0].status === 'processing' ? (
                           <div className="w-full h-64 flex items-center justify-center bg-[#0f0f0f] rounded">

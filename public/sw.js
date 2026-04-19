@@ -1,4 +1,4 @@
-// Service Worker for PixCraftAI - Performance Optimization
+// Service Worker for TimesCraft AI - Performance Optimization
 const CACHE_NAME = 'pixcraftai-v3';
 const STATIC_ASSETS = [
   '/',

@@ -137,8 +137,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
       <div className="flex items-center justify-between">
         <div className="flex items-center ml-4">
           <h1 onClick={navigateToHome} className="text-xl font-bold flex items-center cursor-pointer hover:opacity-80 transition-opacity">
-            <img src="/new-site-logo.png" alt="PixCraftAI" className="h-12 w-auto mr-3" />
-            <span className="text-white text-xl font-bold">PixCraftAI</span>
+            <img src="/new-site-logo.png" alt="TimesCraft AI" className="h-12 w-auto mr-3 scale-125 origin-left" />
           </h1>
           
           {/* Sidebar toggle button - Modified to only show the icon */}

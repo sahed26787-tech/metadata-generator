@@ -10,7 +10,7 @@ const BlogSection: React.FC = () => {
       title: "AI Image Generation: Complete Guide to Creating Professional Visuals",
       excerpt: "Learn how to create stunning AI-generated images for social media, marketing, and professional use. Master the art of prompt engineering and image optimization.",
       date: "2024-01-15",
-      author: "PixCraftAI Team",
+      author: "TimesCraft AI Team",
       category: "AI Image Generation",
       tags: ["AI", "Image Generation", "Social Media", "Marketing"],
       readTime: "8 min read"

@@ -796,15 +796,16 @@ const Index: React.FC = () => {
                 />
               ) : (
                 <>
-                  <div className="flex flex-col mb-4 py-[22px] my-0 mx-0 px-0">
-                <div className="flex border-b border-gray-700">
-                  <PlatformSelector
-                    selectedPlatforms={platforms}
-                    onPlatformChange={handlePlatformChange}
-                  />
-                </div>
-                
-              </div>
+                  {generationMode !== 'imageToPrompt' && (
+                    <div className="flex flex-col mb-4 py-[22px] my-0 mx-0 px-0">
+                      <div className="flex border-b border-gray-700">
+                        <PlatformSelector
+                          selectedPlatforms={platforms}
+                          onPlatformChange={handlePlatformChange}
+                        />
+                      </div>
+                    </div>
+                  )}
               
               <div className="mt-6">
                 {user && profile && !profile.is_premium && profile.credits_used > 4.5 && (

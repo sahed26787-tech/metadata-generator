@@ -28,7 +28,7 @@ const Documents: React.FC = () => {
         {/* Page Header */}
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-white mb-4">
-            PixCraftAI Documentation & Resources
+            TimesCraft AI Documentation & Resources
           </h1>
           <p className="text-xl text-gray-300 max-w-3xl mx-auto">
             Comprehensive guides, tutorials, and resources to help you master AI-powered image metadata generation and SEO optimization.

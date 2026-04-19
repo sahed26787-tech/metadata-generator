@@ -82,48 +82,29 @@ const SEOContent: React.FC = () => {
 
         {/* Benefits Section */}
         <div className="bg-gradient-to-r from-blue-900/30 to-purple-900/30 p-12 rounded-2xl border border-blue-500/20 mb-16">
-          <h2 className="text-3xl font-bold text-center mb-12">Why Choose PixCraftAI for Image SEO?</h2>
-          <div className="grid md:grid-cols-2 gap-8">
-            <div className="flex items-start">
-              <Target className="h-6 w-6 text-blue-400 mr-4 mt-1 flex-shrink-0" />
-              <div>
-                <h4 className="font-semibold text-lg mb-2">Targeted SEO Keywords</h4>
-                <p className="text-gray-400">
-                  Our AI generates <strong>long-tail keywords</strong> and <strong>trending search terms</strong> that buyers actually use. 
-                  Increase your image discoverability with data-driven keyword optimization.
-                </p>
-              </div>
+          <h2 className="text-3xl font-bold text-center mb-12">Why Choose TimesCraft AI for Image SEO?</h2>
+          
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="bg-[#111827] p-6 rounded-xl border border-gray-800">
+              <h3 className="text-xl font-semibold text-white mb-3">AI-Powered Efficiency</h3>
+              <p className="text-gray-400">Our advanced algorithms analyze your images to generate highly relevant metadata in seconds, saving you hours of manual work.</p>
             </div>
-            <div className="flex items-start">
-              <Award className="h-6 w-6 text-green-400 mr-4 mt-1 flex-shrink-0" />
-              <div>
-                <h4 className="font-semibold text-lg mb-2">Professional Quality Descriptions</h4>
-                <p className="text-gray-400">
-                  Generate <strong>compelling image descriptions</strong> that convert browsers into buyers. 
-                  Our AI creates engaging, SEO-friendly content that ranks higher in search results.
-                </p>
-              </div>
+            
+            <div className="bg-[#111827] p-6 rounded-xl border border-gray-800">
+              <h3 className="text-xl font-semibold text-white mb-3">SEO Optimized</h3>
+              <p className="text-gray-400">Every title and description is crafted using SEO best practices to ensure your images rank higher on major stock photo platforms.</p>
             </div>
-            <div className="flex items-start">
-              <Users className="h-6 w-6 text-purple-400 mr-4 mt-1 flex-shrink-0" />
-              <div>
-                <h4 className="font-semibold text-lg mb-2">Trusted by 10,000+ Photographers</h4>
-                <p className="text-gray-400">
-                  Join thousands of successful stock photographers who use PixCraftAI to optimize their images. 
-                  Increase your <strong>passive income</strong> with better SEO metadata.
-                </p>
-              </div>
+            
+            <div className="bg-[#111827] p-6 rounded-xl border border-gray-800">
+              <h3 className="text-xl font-semibold text-white mb-3">Multi-Platform Support</h3>
+              <p className="text-gray-400">Generate metadata tailored for Freepik, Shutterstock, Adobe Stock, and Getty Images with a single click.</p>
             </div>
-            <div className="flex items-start">
-              <Zap className="h-6 w-6 text-yellow-400 mr-4 mt-1 flex-shrink-0" />
-              <div>
-                <h4 className="font-semibold text-lg mb-2">Lightning Fast Processing</h4>
-                <p className="text-gray-400">
-                  Process hundreds of images in minutes with our <strong>AI-powered batch processing</strong>. 
-                  Scale your stock photography business with automated metadata generation.
-                </p>
-              </div>
-            </div>
+          </div>
+
+          <div className="mt-12 text-center">
+            <p className="text-lg text-gray-300">
+              Join thousands of successful stock photographers who use TimesCraft AI to optimize their images. 
+            </p>
           </div>
         </div>
 

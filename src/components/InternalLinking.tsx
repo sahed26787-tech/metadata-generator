@@ -81,7 +81,7 @@ const InternalLinking: React.FC = () => {
         {/* Main Navigation Links */}
         <div className="mb-12">
           <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-8 text-center">
-            Explore PixCraftAI Features
+            Explore TimesCraft AI Features
           </h2>
           
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">

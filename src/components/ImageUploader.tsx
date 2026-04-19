@@ -58,7 +58,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
           };
         } else if (isValidImageType(file)) {
           const reducedFile = await reduceImageSize(file);
-          const previewUrl = await createImagePreview(reducedFile);
+          const previewUrl = await createImagePreview(file);
           processedImage = {
             id: generateId(),
             file,
