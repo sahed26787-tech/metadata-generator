@@ -210,10 +210,10 @@ const AppHeader: React.FC<AppHeaderProps> = ({
                 </Button>
               )}
               
-              {/* PRO Badge for Premium Users */}
+              {/* Plan Badge for Premium Users */}
               {profile?.is_premium && (
-                <div className="bg-white text-black px-3 py-1 rounded-full text-xs font-bold shadow-lg border border-gray-300">
-                  PRO
+                <div className="bg-white text-black px-3 py-1 rounded-full text-xs font-bold shadow-lg border border-gray-300 uppercase">
+                  {profile.plan_type}
                 </div>
               )}
               

@@ -385,10 +385,12 @@ const Index: React.FC = () => {
       return;
     }
     
-    // Always allow generation regardless of user status
-    const canProceed = await incrementCreditsUsed();
+    // Check if user has enough credits for all images in this batch
+    const batchImageCount = currentBatch.length;
+    const remainingCredits = profile?.remaining_credits || 0;
     
-    if (!canProceed) {
+    if (remainingCredits < batchImageCount) {
+      toast.error(`You need ${batchImageCount} credits to process ${batchImageCount} images, but you only have ${remainingCredits} credits remaining. Please upgrade your plan.`);
       setIsBatchProcessing(false);
       setIsProcessing(false);
       return;
@@ -470,6 +472,13 @@ const Index: React.FC = () => {
         for (let i = 0; i < currentBatch.length; i++) {
           const image = currentBatch[i];
           
+          // Deduct 1 credit per image (only for successful results)
+          const creditUsed = await incrementCreditsUsed();
+          if (!creditUsed) {
+            toast.error('Failed to process credit for image. Stopping batch processing.');
+            break;
+          }
+          
           // Try to find a match by filename first
           let result = batchResults.find(res => res.filename === image.file.name);
           
@@ -546,6 +555,13 @@ const Index: React.FC = () => {
         // Process files with a short delay between each as fallback
         for (const image of currentBatch) {
           try {
+            // Deduct 1 credit per image before processing
+            const creditUsed = await incrementCreditsUsed();
+            if (!creditUsed) {
+              toast.error('Failed to process credit for image. Stopping processing.');
+              break;
+            }
+            
             if (currentBatch.indexOf(image) > 0) {
               // Add a longer delay for video files to prevent overwhelming the browser
               const delayTime = isVideoFile(image.file) ? 3000 : 2000;
