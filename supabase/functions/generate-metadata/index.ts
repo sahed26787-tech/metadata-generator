@@ -1,18 +1,14 @@
-import { Platform } from '@/components/PlatformSelector';
-import { GenerationMode } from '@/components/GenerationModeSelector';
-import { reduceImageSize } from './imageHelpers';
-import { convertSvgToPng, isSvgFile } from './svgToPng';
-import { extractVideoThumbnail, isVideoFile } from './videoProcessor';
-import { isEpsFile, extractEpsMetadata, createEpsMetadataRepresentation } from './epsMetadataExtractor';
-import type { EpsMetadata } from './epsMetadataExtractor';
-import { supabase } from '@/integrations/supabase/client';
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
 
 interface AnalysisOptions {
-  titleLength?: number;
-  descriptionLength?: number;
-  keywordCount?: number;
-  platforms?: Platform[];
-  generationMode?: GenerationMode;
+  platforms?: string[];
+  generationMode?: 'metadata' | 'imageToPrompt' | 'bgRemoval';
   minTitleWords?: number;
   maxTitleWords?: number;
   minKeywords?: number;
@@ -27,70 +23,42 @@ interface AnalysisOptions {
   isolatedOnTransparentBgEnabled?: boolean;
   silhouetteEnabled?: boolean;
   singleWordKeywordsEnabled?: boolean;
+  originalFilename?: string;
+  originalIsSvg?: boolean;
+  originalIsVideo?: boolean;
+  originalIsEps?: boolean;
+  epsMetadata?: {
+    documentType?: string;
+    imageCount?: number;
+    colors?: string[];
+    fontInfo?: string[];
+  } | null;
 }
 
-interface AnalysisResult {
-  title: string;
-  description: string;
-  keywords: string[];
-  prompt?: string;
-  baseModel?: string;
-  categories?: string[];
-  error?: string;
-  filename?: string;
-  isVideo?: boolean;
-  category?: number;
-  isEps?: boolean;
-  index?: number;
-}
-
-function buildPrompt(params: {
-  originalFilename: string;
-  originalIsSvg: boolean;
-  originalIsVideo: boolean;
-  originalIsEps: boolean;
-  epsMetadata: EpsMetadata | null;
-  isFreepikOnly: boolean;
-  isShutterstock: boolean;
-  isAdobeStock: boolean;
-  generationMode: GenerationMode;
-  minTitleWords: number;
-  maxTitleWords: number;
-  minKeywords: number;
-  maxKeywords: number;
-  minDescriptionWords: number;
-  maxDescriptionWords: number;
-  customPromptEnabled: boolean;
-  customPrompt: string;
-  prohibitedWordsEnabled: boolean;
-  prohibitedWords: string;
-  transparentBgEnabled: boolean;
-  isolatedOnTransparentBgEnabled: boolean;
-  silhouetteEnabled: boolean;
-}): string {
+function buildPrompt(params: AnalysisOptions & { isFreepikOnly: boolean; isShutterstock: boolean; isAdobeStock: boolean }): string {
   const {
-    originalFilename,
-    originalIsSvg,
-    originalIsVideo,
-    originalIsEps,
-    epsMetadata,
+    originalFilename = '',
+    originalIsSvg = false,
+    originalIsVideo = false,
+    originalIsEps = false,
+    epsMetadata = null,
     isFreepikOnly,
     isShutterstock,
     isAdobeStock,
-    generationMode,
-    minTitleWords,
-    maxTitleWords,
-    minKeywords,
-    maxKeywords,
-    minDescriptionWords,
-    maxDescriptionWords,
-    customPromptEnabled,
-    customPrompt,
-    prohibitedWordsEnabled,
-    prohibitedWords,
-    transparentBgEnabled,
-    isolatedOnTransparentBgEnabled,
-    silhouetteEnabled,
+    generationMode = 'metadata',
+    minTitleWords = 8,
+    maxTitleWords = 15,
+    minKeywords = 20,
+    maxKeywords = 35,
+    minDescriptionWords = 30,
+    maxDescriptionWords = 40,
+    customPromptEnabled = false,
+    customPrompt = '',
+    prohibitedWordsEnabled = false,
+    prohibitedWords = '',
+    transparentBgEnabled = false,
+    isolatedOnTransparentBgEnabled = false,
+    silhouetteEnabled = false,
   } = params;
 
   let prompt = `Analyze this image and generate:`;
@@ -224,153 +192,321 @@ function buildPrompt(params: {
   return prompt;
 }
 
-function fileToBase64(file: File): Promise<string> {
-  if (file.type === 'text/plain') {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsText(file);
-      reader.onload = () => resolve(reader.result as string);
-      reader.onerror = error => reject(error);
-    });
-  }
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = () => resolve(reader.result as string);
-    reader.onerror = error => reject(error);
-  });
+function removeSymbolsFromTitle(title: string): string {
+  return title.replace(/[^\w\s-]/g, '').trim();
 }
 
-export async function analyzeImageWithGroq(
-  imageFile: File,
-  _apiKey: string, // Kept for compatibility, not used
-  options: AnalysisOptions = {}
-): Promise<AnalysisResult> {
-  try {
-    const originalFilename = imageFile.name;
-
-    let fileToProcess = imageFile;
-    let originalIsSvg = false;
-    let originalIsVideo = false;
-    let originalIsEps = false;
-    let epsMetadata: EpsMetadata | null = null;
-
-    if (isSvgFile(imageFile)) {
-      originalIsSvg = true;
-      fileToProcess = await convertSvgToPng(imageFile);
-    } else if (isEpsFile(imageFile)) {
-      originalIsEps = true;
-      epsMetadata = await extractEpsMetadata(imageFile);
-      fileToProcess = createEpsMetadataRepresentation(epsMetadata);
-    } else if (isVideoFile(imageFile)) {
-      originalIsVideo = true;
-      fileToProcess = await extractVideoThumbnail(imageFile);
-    } else if (fileToProcess.type.startsWith('image/')) {
-      try {
-        fileToProcess = await reduceImageSize(fileToProcess);
-      } catch (e) { void e; }
-    }
-
-    const base64ImageOrText = await fileToBase64(fileToProcess);
-
-    // Get current session
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session?.access_token) {
-      throw new Error('Not authenticated. Please sign in to generate metadata.');
-    }
-
-    // Call Edge Function with explicit Authorization header
-    const { data, error } = await supabase.functions.invoke('generate-metadata', {
-      headers: {
-        'Authorization': `Bearer ${session.access_token}`
-      },
-      body: {
-        image: base64ImageOrText,
-        options: {
-          ...options,
-          originalFilename,
-          originalIsSvg,
-          originalIsVideo,
-          originalIsEps,
-          epsMetadata: epsMetadata || undefined
-        }
-      }
-    });
-
-    if (error) {
-      throw new Error(error.message);
-    }
-
-    if (data?.error) {
-      throw new Error(data.error);
-    }
-
-    return {
-      title: data.title || '',
-      description: data.description || '',
-      keywords: data.keywords || [],
-      prompt: data.prompt,
-      baseModel: data.baseModel,
-      categories: data.categories,
-      category: data.category,
-      filename: originalFilename,
-      isVideo: originalIsVideo,
-      isEps: originalIsEps,
-    };
-  } catch (error) {
-    return {
-      title: '',
-      description: '',
-      keywords: [],
-      error: error instanceof Error ? error.message : 'Unknown error occurred',
-      isVideo: isVideoFile(imageFile),
-      isEps: isEpsFile(imageFile),
-      filename: imageFile.name,
-    };
-  }
+function capitalizeFirstWord(text: string): string {
+  if (!text || text.length === 0) return text;
+  return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
-export async function analyzeImagesInBatchWithGroq(
-  imageFiles: File[],
-  _apiKey: string, // Kept for compatibility, not used
-  options: AnalysisOptions = {}
-): Promise<AnalysisResult[]> {
-  let MAX_BATCH_SIZE = 10;
-  const totalSizeMB = imageFiles.reduce((sum, file) => sum + file.size / (1024 * 1024), 0);
-  if (totalSizeMB > 20) {
-    MAX_BATCH_SIZE = 5;
-  } else if (totalSizeMB > 10) {
-    MAX_BATCH_SIZE = 8;
-  }
-  const largeFiles = imageFiles.filter(file => file.size > 2 * 1024 * 1024).length;
-  if (largeFiles > 5) {
-    MAX_BATCH_SIZE = Math.min(MAX_BATCH_SIZE, 3);
-  }
-  // Process all images in parallel (concurrently) for maximum speed
-  const processPromises = imageFiles.map(async (file, index) => {
-    try {
-      const reducedFile = await reduceImageSize(file);
-      const result = await analyzeImageWithGroq(reducedFile, _apiKey, options);
-      result.index = index;
-      result.filename = file.name;
-      return result;
-    } catch (error) {
-      return {
-        title: '',
-        description: '',
-        keywords: [],
-        error: error instanceof Error ? error.message : 'Unknown error occurred',
-        isVideo: isVideoFile(file),
-        isEps: isEpsFile(file),
-        filename: file.name,
-        index: index
-      };
-    }
-  });
+function getRelevantFreepikKeywords(content: string): string[] {
+  const commonKeywords = [
+    'vector', 'illustration', 'design', 'graphic', 'background', 'template',
+    'abstract', 'banner', 'poster', 'creative', 'modern', 'minimal', 'colorful',
+    'decorative', 'ornament', 'pattern', 'texture', 'artistic', 'concept',
+    'element', 'symbol', 'icon', 'logo', 'business', 'marketing', 'digital'
+  ];
+  return commonKeywords.slice(0, 10);
+}
 
-  // Wait for all images to process in parallel
-  const allResults = await Promise.all(processPromises);
+function suggestCategoriesForShutterstock(title: string, description: string): string[] {
+  const content = (title + ' ' + description).toLowerCase();
+  const categories: string[] = [];
   
-  // Sort by index to maintain order
-  return allResults.sort((a, b) => (a.index || 0) - (b.index || 0));
+  if (content.includes('business') || content.includes('corporate')) categories.push('Business');
+  if (content.includes('nature') || content.includes('landscape')) categories.push('Nature');;
+  if (content.includes('people') || content.includes('person')) categories.push('People');
+  if (content.includes('technology') || content.includes('digital')) categories.push('Technology');
+  if (content.includes('food') || content.includes('cuisine')) categories.push('Food');
+  
+  return categories.length > 0 ? categories : ['Miscellaneous'];
 }
+
+function suggestCategoriesForAdobeStock(title: string, keywords: string[]): string[] {
+  const content = (title + ' ' + keywords.join(' ')).toLowerCase();
+  const categories: string[] = [];
+  
+  if (content.includes('animal') || content.includes('wildlife')) categories.push('Animals');
+  if (content.includes('building') || content.includes('architecture')) categories.push('Architecture');;
+  if (content.includes('business') || content.includes('corporate')) categories.push('Business');
+  if (content.includes('nature') || content.includes('landscape')) categories.push('Nature');
+  if (content.includes('travel') || content.includes('destination')) categories.push('Travel');
+  
+  return categories.length > 0 ? categories : ['Other'];
+}
+
+function determineVideoCategory(title: string, description: string, keywords: string[]): number {
+  const content = (title + ' ' + description + ' ' + keywords.join(' ')).toLowerCase();
+  
+  if (content.includes('animation') || content.includes('motion')) return 1;
+  if (content.includes('background')) return 2;
+  if (content.includes('business') || content.includes('corporate')) return 3;
+  if (content.includes('education') || content.includes('learning')) return 4;
+  if (content.includes('food') || content.includes('cuisine')) return 5;
+  if (content.includes('lifestyle') || content.includes('people')) return 6;
+  if (content.includes('nature') || content.includes('landscape')) return 7;
+  if (content.includes('presentation')) return 8;
+  if (content.includes('technology') || content.includes('digital')) return 9;
+  
+  return 10; // Other
+}
+
+serve(async (req) => {
+  // Handle CORS preflight requests
+  if (req.method === "OPTIONS") {
+    return new Response("ok", { headers: corsHeaders });
+  }
+
+  try {
+    // Get JWT token from Authorization header
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: "Missing Authorization header" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const token = authHeader.replace("Bearer ", "");
+
+    // Create Supabase client to verify token
+    const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
+
+    const supabase = createClient(supabaseUrl, supabaseServiceKey, {
+      auth: { autoRefreshToken: false, persistSession: false },
+    });
+
+    // Verify the JWT token
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    if (authError || !user) {
+      return new Response(
+        JSON.stringify({ error: "Invalid or expired token" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Parse request body
+    const { image, options = {} } = await req.json();
+
+    if (!image) {
+      return new Response(
+        JSON.stringify({ error: "Missing required field: image" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const platforms = options.platforms || ['AdobeStock'];
+    const isFreepikOnly = platforms.length === 1 && platforms[0] === 'Freepik';
+    const isShutterstock = platforms.length === 1 && platforms[0] === 'Shutterstock';
+    const isAdobeStock = platforms.length === 1 && platforms[0] === 'AdobeStock';
+
+    // Build prompt
+    const prompt = buildPrompt({ ...options, isFreepikOnly, isShutterstock, isAdobeStock });
+
+    // Get DeepInfra API key from environment
+    const deepinfraApiKey = Deno.env.get("DEEPINFRA_API_KEY");
+    if (!deepinfraApiKey) {
+      return new Response(
+        JSON.stringify({ error: "Server configuration error: DEEPINFRA_API_KEY not set" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const generationMode = options.generationMode || 'metadata';
+    const originalIsEps = options.originalIsEps || false;
+    const requiresVision = !originalIsEps;
+
+    // Call DeepInfra API
+    const response = await fetch("https://api.deepinfra.com/v1/openai/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${deepinfraApiKey}`,
+      },
+      body: JSON.stringify({
+        model: "google/gemma-3-27b-it",
+        max_tokens: 4092,
+        messages: [
+          {
+            role: "system",
+            content: generationMode === 'imageToPrompt' 
+              ? "You are a helpful assistant. Provide a detailed description of the image for AI image generation. Return only the description text, no JSON formatting."
+              : "You are a helpful assistant that returns JSON according to instructions when asked."
+          },
+          {
+            role: "user",
+            content: requiresVision
+              ? [
+                  { type: "text", text: prompt },
+                  { type: "image_url", image_url: { url: image } }
+                ]
+              : `${prompt}\n\nEPS Metadata:\n${image}`
+          }
+        ],
+        temperature: 1,
+        top_p: 1,
+        stream: false,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      return new Response(
+        JSON.stringify({ error: `DeepInfra API error: ${response.status} - ${errorText}` }),
+        { status: response.status, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const data = await response.json();
+    const text = data.choices?.[0]?.message?.content || '';
+
+    // For image-to-prompt mode, extract and return just the prompt text
+    if (generationMode === 'imageToPrompt') {
+      let promptText = text.trim();
+      
+      // Try to extract prompt from JSON if AI still returned JSON
+      const jsonMatch = promptText.match(/```json\n([\s\S]*?)\n```/) ||
+                        promptText.match(/```\n([\s\S]*?)\n```/);
+      if (jsonMatch) {
+        try {
+          const parsed = JSON.parse(jsonMatch[1] || jsonMatch[0]);
+          if (parsed.prompt) {
+            promptText = parsed.prompt;
+          } else if (parsed.description) {
+            promptText = parsed.description;
+          }
+        } catch { /* ignore parse error, use original text */ }
+      } else {
+        // Try to extract from raw JSON
+        try {
+          const parsed = JSON.parse(promptText);
+          if (parsed.prompt) {
+            promptText = parsed.prompt;
+          } else if (parsed.description) {
+            promptText = parsed.description;
+          }
+        } catch { /* not valid JSON, use original text */ }
+      }
+      
+      return new Response(
+        JSON.stringify({
+          title: '',
+          description: promptText,
+          keywords: [],
+          userId: user.id
+        }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Extract JSON from response
+    const jsonMatch = text.match(/```json\n([\s\S]*?)\n```/) ||
+                      text.match(/```\n([\s\S]*?)\n```/) ||
+                      text.match(/\{[\s\S]*\}/);
+    let jsonStr = jsonMatch ? (jsonMatch[1] || jsonMatch[0]) : text;
+    jsonStr = jsonStr.replace(/^[^{]*/, '').replace(/[^}]*$/, '');
+
+    let result;
+    try {
+      result = JSON.parse(jsonStr);
+    } catch (e) {
+      return new Response(
+        JSON.stringify({ error: "Failed to parse metadata from the API response" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Process results
+    if (result.title) {
+      result.title = capitalizeFirstWord(removeSymbolsFromTitle(result.title));
+    }
+
+    const singleWordKeywordsEnabled = options.singleWordKeywordsEnabled || false;
+    const maxKeywords = options.maxKeywords || 35;
+    const minKeywords = options.minKeywords || 20;
+
+    if (singleWordKeywordsEnabled && result.keywords && result.keywords.length > 0) {
+      const singleWordKeywords: string[] = [];
+      for (const keyword of result.keywords) {
+        const words = String(keyword)
+          .split(/\s+/)
+          .map((w: string) => w.trim())
+          .filter((w: string) => w.length > 0 && !singleWordKeywords.includes(w));
+        singleWordKeywords.push(...words);
+      }
+      result.keywords = [...new Set(singleWordKeywords)].slice(0, maxKeywords);
+    }
+
+    // Ensure minimum keywords
+    if (result.keywords && result.keywords.length < minKeywords) {
+      const contentForKeywords = [
+        result.title || '',
+        result.description || '',
+        result.keywords.join(', ')
+      ].join(' ');
+      const additionalKeywords = getRelevantFreepikKeywords(contentForKeywords);
+      const combinedKeywords = [...new Set([...result.keywords, ...additionalKeywords])];
+      result.keywords = combinedKeywords.slice(0, maxKeywords);
+    }
+
+    // Filter prohibited words
+    const prohibitedWordsEnabled = options.prohibitedWordsEnabled || false;
+    const prohibitedWords = options.prohibitedWords || '';
+    if (prohibitedWordsEnabled && prohibitedWords.trim()) {
+      const prohibitedWordsArray = prohibitedWords
+        .split(',')
+        .map(word => word.trim().toLowerCase())
+        .filter(word => word.length > 0);
+      if (prohibitedWordsArray.length > 0 && result.keywords) {
+        result.keywords = result.keywords.filter((keyword: string) => {
+          const lowerKeyword = String(keyword).toLowerCase();
+          return !prohibitedWordsArray.some(prohibited => lowerKeyword.includes(prohibited));
+        });
+      }
+    }
+
+    // Add categories for specific platforms
+    if (isShutterstock) {
+      result.categories = suggestCategoriesForShutterstock(result.title || '', result.description || '');
+    }
+    if (isAdobeStock) {
+      result.categories = suggestCategoriesForAdobeStock(result.title || '', result.keywords || []);
+    }
+
+    // Handle video category
+    const originalIsVideo = options.originalIsVideo || false;
+    if (originalIsVideo) {
+      let videoCategory: number;
+      if (result.category && typeof result.category === 'number' && result.category >= 1 && result.category <= 21) {
+        videoCategory = result.category;
+      } else {
+        videoCategory = determineVideoCategory(result.title || '', result.description || '', result.keywords || []);
+      }
+      result.category = videoCategory;
+    }
+
+    // Handle Freepik specific
+    if (isFreepikOnly) {
+      result.baseModel = 'leonardo';
+    }
+
+    return new Response(
+      JSON.stringify({
+        ...result,
+        userId: user.id
+      }),
+      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+
+  } catch (error) {
+    console.error("Edge function error:", error);
+    const message = error instanceof Error ? error.message : "Internal server error";
+    return new Response(
+      JSON.stringify({ error: message }),
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+  }
+});

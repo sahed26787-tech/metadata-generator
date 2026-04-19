@@ -116,7 +116,8 @@ const BackgroundRemoval: React.FC<BackgroundRemovalProps> = ({
   preserveAlpha, 
   outputFormat 
 }) => {
-  const { user } = useAuth();
+  const { user, deductCredits } = useAuth();
+  const CREDIT_COST_PER_IMAGE = 5;
   
   // State: Tasks
   const [tasks, setTasks] = useState<RemovalTask[]>([]);
@@ -209,6 +210,13 @@ const BackgroundRemoval: React.FC<BackgroundRemovalProps> = ({
       const base64 = await fileToBase64(task.file);
       const resultUrl = await removeBackground(base64, preserveAlpha, outputFormat);
       
+      // Deduct credits only after successful API call
+      const creditsDeducted = await deductCredits(CREDIT_COST_PER_IMAGE);
+      if (!creditsDeducted) {
+        // If credit deduction failed, still show result but warn user
+        toast.warning('Background removed but failed to deduct credits');
+      }
+      
       setTasks(prev => prev.map(t => 
         t.id === task.id ? { ...t, status: 'done', resultUrl } : t
       ));
@@ -232,6 +240,7 @@ const BackgroundRemoval: React.FC<BackgroundRemovalProps> = ({
 
     setIsProcessing(true);
     let completed = 0;
+    let totalCreditsDeducted = 0;
 
     for (let i = 0; i < tasks.length; i++) {
       const task = tasks[i];
@@ -246,6 +255,12 @@ const BackgroundRemoval: React.FC<BackgroundRemovalProps> = ({
         const base64 = await fileToBase64(task.file);
         const resultUrl = await removeBackground(base64, preserveAlpha, outputFormat);
         
+        // Deduct credits only after successful API call for each image
+        const creditsDeducted = await deductCredits(CREDIT_COST_PER_IMAGE);
+        if (creditsDeducted) {
+          totalCreditsDeducted += CREDIT_COST_PER_IMAGE;
+        }
+        
         setTasks(prev => prev.map(t => 
           t.id === task.id ? { ...t, status: 'done', resultUrl } : t
         ));
@@ -255,17 +270,14 @@ const BackgroundRemoval: React.FC<BackgroundRemovalProps> = ({
         setTasks(prev => prev.map(t => 
           t.id === task.id ? { ...t, status: 'failed', error: message } : t
         ));
-      }
-
-      // Small delay to avoid rate limits
-      if (i < tasks.length - 1) {
-        await new Promise(resolve => setTimeout(resolve, 500));
+        toast.error(`${task.file.name}: ${message}`);
       }
     }
 
     setIsProcessing(false);
-    setCurrentTaskIndex(0);
-    toast.success(`Processed ${completed} of ${pendingTasks.length} images`);
+    if (completed > 0) {
+      toast.success(`Processed ${completed} images successfully! ${totalCreditsDeducted} credits used.`);
+    }
   };
 
   // Download all results as ZIP

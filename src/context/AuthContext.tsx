@@ -16,6 +16,7 @@ interface AuthContextType {
   signUp: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
   incrementCreditsUsed: () => Promise<boolean>;
+  deductCredits: (amount: number) => Promise<boolean>;
   canGenerateMetadata: boolean;
   forceSignOut: (email: string) => Promise<void>;
   getRandomApiKey: () => string;
@@ -350,9 +351,72 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         remaining_credits: data.remaining_credits
       });
       
+      // Track plan credit usage
+      try {
+        await supabase.rpc('increment_plan_daily_credits', {
+          p_plan_type: profile.plan_type,
+          p_credits_amount: 1
+        });
+      } catch (trackError) {
+        console.error('Failed to track plan credit usage:', trackError);
+        // Don't fail the operation if tracking fails
+      }
+      
       return true;
     } catch (error) {
       console.error('Error in incrementCreditsUsed:', error);
+      toast.error('An error occurred while processing your request.');
+      return false;
+    }
+  };
+
+  // Deduct multiple credits at once (for background removal)
+  const deductCredits = async (amount: number): Promise<boolean> => {
+    if (!supabase || !user || !profile) return false;
+    
+    try {
+      // Check if user has enough credits
+      if (profile.remaining_credits < amount) {
+        const planName = profile.plan_type === 'free' ? 'Free' : profile.plan_type;
+        toast.error(`Not enough credits. You need ${amount} credits but only have ${profile.remaining_credits}. Please upgrade to continue.`);
+        return false;
+      }
+
+      // Deduct credits by calling use_credit multiple times
+      for (let i = 0; i < amount; i++) {
+        const { data, error } = await supabase.rpc('use_credit', {
+          p_user_id: user.id
+        });
+        
+        if (error || !data.success) {
+          console.error('Error deducting credit:', error);
+          toast.error('Failed to process credits. Please try again.');
+          return false;
+        }
+      }
+      
+      // Update local profile state
+      const newRemaining = profile.remaining_credits - amount;
+      setProfile({
+        ...profile,
+        credits_used: profile.total_credits - newRemaining,
+        remaining_credits: newRemaining
+      });
+      
+      // Track plan credit usage
+      try {
+        await supabase.rpc('increment_plan_daily_credits', {
+          p_plan_type: profile.plan_type,
+          p_credits_amount: amount
+        });
+      } catch (trackError) {
+        console.error('Failed to track plan credit usage:', trackError);
+        // Don't fail the operation if tracking fails
+      }
+      
+      return true;
+    } catch (error) {
+      console.error('Error in deductCredits:', error);
       toast.error('An error occurred while processing your request.');
       return false;
     }
@@ -405,6 +469,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     signUp,
     signOut,
     incrementCreditsUsed,
+    deductCredits,
     canGenerateMetadata,
     forceSignOut,
     getRandomApiKey,

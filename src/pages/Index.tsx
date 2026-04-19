@@ -599,11 +599,7 @@ const Index: React.FC = () => {
               break;
             }
             
-            if (currentBatch.indexOf(image) > 0) {
-              // Add a longer delay for video files to prevent overwhelming the browser
-              const delayTime = isVideoFile(image.file) ? 3000 : 2000;
-              await new Promise(resolve => setTimeout(resolve, delayTime));
-            }
+            // Removed delay - server-side processing handles rate limiting
             
             // Process the image/video with selected provider
             const fileToProcess = image.reducedFile || image.file; // Use reducedFile if available, otherwise fall back to original

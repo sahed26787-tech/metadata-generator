@@ -163,89 +163,13 @@ const UserProfile: React.FC = () => {
           )}
         </div>
 
-        {/* API Key Management */}
-        <div className="p-5 space-y-4">
-          <h3 className="text-sm font-semibold text-gray-400">API Provider</h3>
-          <div className="flex items-center gap-2">
-            <Button
-              variant={provider === 'Groq' ? 'default' : 'outline'}
-              className={provider === 'Groq' ? 'bg-white text-black' : 'bg-transparent border border-gray-600 text-gray-300'}
-              onClick={() => {
-                setProvider('Groq');
-                if (typeof window !== 'undefined') {
-                  localStorage.setItem('ai-provider', 'Groq');
-                  window.dispatchEvent(new Event('ai-provider-changed'));
-                }
-              }}
-            >
-              Groq
-            </Button>
-            <Button
-              variant={provider === 'Gemini' ? 'default' : 'outline'}
-              className={provider === 'Gemini' ? 'bg-white text-black' : 'bg-transparent border border-gray-600 text-gray-300'}
-              onClick={() => {
-                setProvider('Gemini');
-                if (typeof window !== 'undefined') {
-                  localStorage.setItem('ai-provider', 'Gemini');
-                  window.dispatchEvent(new Event('ai-provider-changed'));
-                }
-              }}
-            >
-              Gemini
-            </Button>
+        {/* Server-Powered AI - API Key Management hidden as we now use server-side API */}
+        <div className="p-5 border-b border-gray-700">
+          <h3 className="text-sm font-semibold text-gray-400 mb-2">AI Processing</h3>
+          <div className="flex items-center justify-between bg-gray-700/30 p-3 rounded-lg border border-gray-600">
+            <span className="text-sm text-gray-300">Powered by server-side AI</span>
+            <span className="text-xs text-green-400">Active</span>
           </div>
-          <h3 className="text-sm font-semibold text-gray-400">API Key Management ({provider})</h3>
-          
-          {/* Existing API Key Input */}
-          <div className="relative flex items-center">
-            <Key className="absolute left-3 h-4 w-4 text-gray-400" />
-            <Input
-              type={showApiKey ? "text" : "password"}
-              value={apiKeyValue}
-              onChange={(e) => {
-                setApiKeyValue(e.target.value);
-                if (provider === 'Groq') {
-                  setGroqKey(e.target.value);
-                } else {
-                  setGeminiKey(e.target.value);
-                }
-              }}
-              placeholder={provider === 'Groq' ? "Enter your Groq API Key" : "Enter your Gemini API Key"}
-              className="w-full pl-10 pr-20 py-2 bg-gray-700 border border-gray-600 rounded-md focus:ring-1 focus:ring-purple-500 focus:border-transparent text-white text-sm"
-            />
-            <button
-              type="button"
-              onClick={() => setShowApiKey(!showApiKey)}
-              className="absolute right-10 text-gray-400 hover:text-white transition-colors"
-            >
-              {showApiKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-            </button>
-            <button
-              type="button"
-              onClick={handleCopyApiKey}
-              className="absolute right-3 text-gray-400 hover:text-white transition-colors"
-            >
-              {isCopied ? <Check className="h-4 w-4 text-green-400" /> : <Copy className="h-4 w-4" />}
-            </button>
-          </div>
-
-          <div className="flex space-x-2">
-            <Button onClick={handleSaveApiKey} className="flex-1 h-9 px-3 py-1 bg-white hover:bg-gray-100 text-black text-sm font-medium rounded-md shadow-sm transition-colors">
-              Save Key
-            </Button>
-            <Button onClick={handleClearApiKey} className="flex-1 h-9 px-3 py-1 bg-transparent border border-slate-500 text-slate-400 hover:bg-slate-500 hover:text-white text-sm font-medium rounded-md shadow-sm transition-colors">
-              Clear
-            </Button>
-            <Button
-              onClick={() => window.open(provider === 'Groq' ? 'https://console.groq.com/keys' : 'https://aistudio.google.com/app/apikey', '_blank')}
-              className="flex-1 h-9 px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium rounded-md shadow-sm transition-colors"
-            >
-              {provider === 'Groq' ? 'Get Groq Key' : 'Get Gemini Key'}
-            </Button>
-          </div>
-
-          {/* Add Another API Key (Placeholder for future implementation) */}
-          
         </div>
 
         {/* Logout Option */}

@@ -5,8 +5,10 @@ import { suggestCategoriesForShutterstock, suggestCategoriesForAdobeStock, remov
 import { convertSvgToPng, isSvgFile } from './svgToPng';
 import { extractVideoThumbnail, isVideoFile } from './videoProcessor';
 import { isEpsFile, extractEpsMetadata, createEpsMetadataRepresentation } from './epsMetadataExtractor';
+import type { EpsMetadata } from './epsMetadataExtractor';
 import { determineVideoCategory } from './categorySelector';
 import { capitalizeFirstWord } from './stringUtils';
+import { supabase } from '@/integrations/supabase/client';
 
 interface AnalysisOptions {
   titleLength?: number;
@@ -56,7 +58,97 @@ interface BatchImageData {
 
 export async function analyzeImageWithGemini(
   imageFile: File,
-  apiKey: string,
+  _apiKey: string, // Kept for compatibility, not used
+  options: AnalysisOptions = {}
+): Promise<AnalysisResult> {
+  try {
+    const originalFilename = imageFile.name;
+
+    let fileToProcess = imageFile;
+    let originalIsSvg = false;
+    let originalIsVideo = false;
+    let originalIsEps = false;
+    let epsMetadata: EpsMetadata | null = null;
+
+    if (isSvgFile(imageFile)) {
+      originalIsSvg = true;
+      fileToProcess = await convertSvgToPng(imageFile);
+    } else if (isEpsFile(imageFile)) {
+      originalIsEps = true;
+      epsMetadata = await extractEpsMetadata(imageFile);
+      fileToProcess = createEpsMetadataRepresentation(epsMetadata);
+    } else if (isVideoFile(imageFile)) {
+      originalIsVideo = true;
+      fileToProcess = await extractVideoThumbnail(imageFile);
+    } else if (fileToProcess.type.startsWith('image/')) {
+      try {
+        fileToProcess = await reduceImageSize(fileToProcess);
+      } catch (e) { void e; }
+    }
+
+    const base64ImageOrText = await fileToBase64(fileToProcess);
+
+    // Get current session
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.access_token) {
+      throw new Error('Not authenticated. Please sign in to generate metadata.');
+    }
+
+    // Call Edge Function with explicit Authorization header
+    const { data, error } = await supabase.functions.invoke('generate-metadata', {
+      headers: {
+        'Authorization': `Bearer ${session.access_token}`
+      },
+      body: {
+        image: base64ImageOrText,
+        options: {
+          ...options,
+          originalFilename,
+          originalIsSvg,
+          originalIsVideo,
+          originalIsEps,
+          epsMetadata: epsMetadata || undefined
+        }
+      }
+    });
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    if (data?.error) {
+      throw new Error(data.error);
+    }
+
+    return {
+      title: data.title || '',
+      description: data.description || '',
+      keywords: data.keywords || [],
+      prompt: data.prompt,
+      baseModel: data.baseModel,
+      categories: data.categories,
+      category: data.category,
+      filename: originalFilename,
+      isVideo: originalIsVideo,
+      isEps: originalIsEps,
+    };
+  } catch (error) {
+    return {
+      title: '',
+      description: '',
+      keywords: [],
+      error: error instanceof Error ? error.message : 'Unknown error occurred',
+      isVideo: isVideoFile(imageFile),
+      isEps: isEpsFile(imageFile),
+      filename: imageFile.name,
+    };
+  }
+}
+
+// Legacy function - kept for reference but all processing now done via Edge Function
+async function legacyAnalyzeImageWithGemini(
+  imageFile: File,
+  _apiKey: string,
   options: AnalysisOptions = {}
 ): Promise<AnalysisResult> {
   const {
@@ -378,22 +470,22 @@ Generate appropriate metadata for this design file:
     // Make API request with retry logic for rate limiting
     const MAX_RETRIES = 5;
     const candidates = [
-      `https://generativelanguage.googleapis.com/v1beta/models/gemma-3-27b:generateContent?key=${apiKey}`,
-      `https://generativelanguage.googleapis.com/v1/models/gemma-3-27b:generateContent?key=${apiKey}`,
-      `https://generativelanguage.googleapis.com/v1beta/models/gemma-3-27b-it:generateContent?key=${apiKey}`,
-      `https://generativelanguage.googleapis.com/v1/models/gemma-3-27b-it:generateContent?key=${apiKey}`,
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
-      `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent?key=${apiKey}`,
-      `https://generativelanguage.googleapis.com/v1/models/gemini-3.1-flash-lite:generateContent?key=${apiKey}`,
-      `https://generativelanguage.googleapis.com/v1beta/models/gemma-3-12b:generateContent?key=${apiKey}`,
-      `https://generativelanguage.googleapis.com/v1/models/gemma-3-12b:generateContent?key=${apiKey}`,
-      `https://generativelanguage.googleapis.com/v1beta/models/gemma-3-12b-it:generateContent?key=${apiKey}`,
-      `https://generativelanguage.googleapis.com/v1/models/gemma-3-12b-it:generateContent?key=${apiKey}`,
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
-      `https://generativelanguage.googleapis.com/v1/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${apiKey}`,
-      `https://generativelanguage.googleapis.com/v1/models/gemini-2.0-flash-lite:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemma-3-27b:generateContent?key=${_apiKey}`,
+      `https://generativelanguage.googleapis.com/v1/models/gemma-3-27b:generateContent?key=${_apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemma-3-27b-it:generateContent?key=${_apiKey}`,
+      `https://generativelanguage.googleapis.com/v1/models/gemma-3-27b-it:generateContent?key=${_apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${_apiKey}`,
+      `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${_apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent?key=${_apiKey}`,
+      `https://generativelanguage.googleapis.com/v1/models/gemini-3.1-flash-lite:generateContent?key=${_apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemma-3-12b:generateContent?key=${_apiKey}`,
+      `https://generativelanguage.googleapis.com/v1/models/gemma-3-12b:generateContent?key=${_apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemma-3-12b-it:generateContent?key=${_apiKey}`,
+      `https://generativelanguage.googleapis.com/v1/models/gemma-3-12b-it:generateContent?key=${_apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${_apiKey}`,
+      `https://generativelanguage.googleapis.com/v1/models/gemini-2.0-flash:generateContent?key=${_apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${_apiKey}`,
+      `https://generativelanguage.googleapis.com/v1/models/gemini-2.0-flash-lite:generateContent?key=${_apiKey}`,
     ];
     let response;
     let lastErrorMessage = '';
@@ -774,7 +866,7 @@ async function exponentialBackoff(retryCount: number): Promise<void> {
  */
 export async function analyzeImagesInBatch(
   imageFiles: File[],
-  apiKey: string,
+  _apiKey: string, // Kept for compatibility, not used
   options: AnalysisOptions = {}
 ): Promise<AnalysisResult[]> {
   // Adjust batch size based on file sizes to prevent API errors
@@ -800,202 +892,37 @@ export async function analyzeImagesInBatch(
     console.log(`Many large files detected (${largeFiles} files > 2MB). Reducing batch size to ${MAX_BATCH_SIZE}`);
   }
   
-  // For extremely large uploads or many files, process one by one to avoid JSON parsing errors
-  if (totalSizeMB > 50 || imageFiles.length > 50) {
-    console.log(`Very large upload detected. Processing images individually to avoid errors.`);
-    
-    // Process each image individually
-    const allResults: AnalysisResult[] = [];
-    
-    for (let i = 0; i < imageFiles.length; i++) {
-      try {
-        // Reduce image size before processing
-        const reducedFile = await reduceImageSize(imageFiles[i]);
-        
-        // Add retry logic for rate limiting
-        let result: AnalysisResult | null = null;
-        let retryCount = 0;
-        const MAX_RETRIES = 5;
-        
-        while (retryCount < MAX_RETRIES) {
-          try {
-            result = await analyzeImageWithGemini(reducedFile, apiKey, options);
-            break; // Success, exit retry loop
-          } catch (error) {
-            if (error instanceof Error && 
-                (error.message.includes("429") || 
-                 error.message.includes("Too Many Requests") || 
-                 error.message.includes("Resource has been exhausted"))) {
-              // Rate limit hit, apply exponential backoff
-              retryCount++;
-              if (retryCount < MAX_RETRIES) {
-                await exponentialBackoff(retryCount);
-                continue; // Try again
-              }
-            }
-            // For other errors or if max retries reached, rethrow
-            throw error;
-          }
-        }
-        
-        if (!result) {
-          throw new Error("Failed to process image after multiple retries");
-        }
-        
-        // Add index to result for consistent behavior with batch processing
-        result.index = i;
-        // Make sure we preserve the original filename
-        result.filename = imageFiles[i].name;
-        allResults.push(result);
-        
-        // Add a small delay between requests to avoid rate limiting
-        // Increase delay as we process more files to avoid hitting limits
-        const baseDelay = 1000; // 1 second base delay
-        const progressiveDelay = baseDelay + (i * 50); // Add 50ms for each file processed
-        await new Promise(resolve => setTimeout(resolve, progressiveDelay));
-        
-        // Log progress
-        console.log(`Processed ${i + 1}/${imageFiles.length} images (${Math.round((i + 1) / imageFiles.length * 100)}%)`);
-      } catch (error) {
-        console.error(`Error processing file ${imageFiles[i].name}:`, error);
-        allResults.push({
-          title: '',
-          description: '',
-          keywords: [],
-          error: error instanceof Error ? error.message : 'Unknown error occurred',
-          isVideo: isVideoFile(imageFiles[i]),
-          isEps: isEpsFile(imageFiles[i]),
-          filename: imageFiles[i].name,
-          index: i
-        });
-      }
-    }
-    
-    return allResults;
-  }
+  // Process all images in parallel (concurrently) for maximum speed
+  console.log(`Processing ${imageFiles.length} files in parallel for maximum speed`);
   
-  const batches: File[][] = [];
-  
-  // Split images into batches
-  for (let i = 0; i < imageFiles.length; i += MAX_BATCH_SIZE) {
-    batches.push(imageFiles.slice(i, i + MAX_BATCH_SIZE));
-  }
-  
-  console.log(`Processing ${imageFiles.length} files in ${batches.length} batches of up to ${MAX_BATCH_SIZE} files each`);
-  
-  // Process each batch and collect results
-  const allResults: AnalysisResult[] = [];
-  
-  // Process each batch using the existing batch processing logic
-  for (let batchIndex = 0; batchIndex < batches.length; batchIndex++) {
-    const batch = batches[batchIndex];
-    console.log(`Processing batch ${batchIndex + 1} of ${batches.length} (${batch.length} files)`);
-    
+  const processPromises = imageFiles.map(async (file, index) => {
     try {
-      // Always process individually for better reliability
-      console.log('Processing files individually for better reliability');
-      
-      // Process files individually
-      for (let i = 0; i < batch.length; i++) {
-        const file = batch[i];
-        const globalIndex = batchIndex * MAX_BATCH_SIZE + i;
-        
-        try {
-          // Reduce image size before processing
-          const reducedFile = await reduceImageSize(file);
-          
-          // Add retry logic for rate limiting
-          let result: AnalysisResult | null = null;
-          let retryCount = 0;
-          const MAX_RETRIES = 5;
-          
-          while (retryCount < MAX_RETRIES) {
-            try {
-              result = await analyzeImageWithGemini(reducedFile, apiKey, options);
-              break; // Success, exit retry loop
-            } catch (error) {
-              if (error instanceof Error && 
-                  (error.message.includes("429") || 
-                   error.message.includes("Too Many Requests") || 
-                   error.message.includes("Resource has been exhausted"))) {
-                // Rate limit hit, apply exponential backoff
-                retryCount++;
-                if (retryCount < MAX_RETRIES) {
-                  await exponentialBackoff(retryCount);
-                  continue; // Try again
-                }
-              }
-              // For other errors or if max retries reached, rethrow
-              throw error;
-            }
-          }
-          
-          if (!result) {
-            throw new Error("Failed to process image after multiple retries");
-          }
-          
-          result.index = globalIndex;
-          // Make sure we preserve the original filename
-          result.filename = file.name;
-          allResults.push(result);
-          
-          // Log progress
-          const overallProgress = batchIndex * MAX_BATCH_SIZE + i + 1;
-          const totalFiles = imageFiles.length;
-          console.log(`Processed ${overallProgress}/${totalFiles} images (${Math.round(overallProgress / totalFiles * 100)}%)`);
-          
-          // Add a progressive delay between requests to avoid rate limiting
-          // Increase delay as we process more files
-          const baseDelay = 1000; // 1 second base delay
-          const progressiveDelay = baseDelay + (overallProgress * 50); // Add 50ms for each file processed
-          
-          if (i < batch.length - 1) {
-            await new Promise(resolve => setTimeout(resolve, progressiveDelay));
-          }
-        } catch (error) {
-          console.error(`Error processing file ${file.name}:`, error);
-          allResults.push({
-            title: '',
-            description: '',
-            keywords: [],
-            error: error instanceof Error ? error.message : 'Unknown error occurred',
-            isVideo: isVideoFile(file),
-            isEps: isEpsFile(file),
-            filename: file.name,
-            index: globalIndex
-          });
-        }
-      }
+      const reducedFile = await reduceImageSize(file);
+      const result = await analyzeImageWithGemini(reducedFile, _apiKey, options);
+      result.index = index;
+      result.filename = file.name;
+      return result;
     } catch (error) {
-      console.error(`Error processing batch ${batchIndex + 1}:`, error);
-      
-      // Add error results for all files in this batch
-      for (let i = 0; i < batch.length; i++) {
-        const file = batch[i];
-        const globalIndex = batchIndex * MAX_BATCH_SIZE + i;
-        
-        allResults.push({
-          title: '',
-          description: '',
-          keywords: [],
-          error: error instanceof Error ? error.message : 'Unknown error occurred',
-          isVideo: isVideoFile(file),
-          isEps: isEpsFile(file),
-          filename: file.name,
-          index: globalIndex
-        });
-      }
+      console.error(`Error processing file ${file.name}:`, error);
+      return {
+        title: '',
+        description: '',
+        keywords: [],
+        error: error instanceof Error ? error.message : 'Unknown error occurred',
+        isVideo: isVideoFile(file),
+        isEps: isEpsFile(file),
+        filename: file.name,
+        index: index
+      };
     }
-    
-    // Add a longer delay between batches to avoid rate limiting
-    if (batchIndex < batches.length - 1) {
-      const batchDelay = 3000 + (batchIndex * 1000); // Increase delay for each batch
-      console.log(`Waiting ${batchDelay/1000} seconds before processing next batch...`);
-      await new Promise(resolve => setTimeout(resolve, batchDelay));
-    }
-  }
+  });
+
+  // Wait for all images to process in parallel
+  const allResults = await Promise.all(processPromises);
   
   console.log('Final batch processing results:', allResults);
-  return allResults;
+  
+  // Sort by index to maintain order
+  return allResults.sort((a, b) => (a.index || 0) - (b.index || 0));
 }
 
