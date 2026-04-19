@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Navigate, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import ImageUploader from '@/components/ImageUploader';
 import ResultsDisplay from '@/components/ResultsDisplay';
 import ThemeToggle from '@/components/ThemeToggle';
@@ -87,6 +87,7 @@ const Index: React.FC = () => {
   const [selectedTab, setSelectedTab] = useState('image');
   const [shouldRedirect, setShouldRedirect] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
 
   // Updated default values for metadata customization to match reference photo
   const [minTitleWords, setMinTitleWords] = useState(8);
@@ -168,6 +169,22 @@ const Index: React.FC = () => {
       window.removeEventListener('ai-provider-changed', handler as unknown as EventListener);
     };
   }, []);
+
+  useEffect(() => {
+    if (location.pathname === '/bg-remover' || location.pathname === '/background-removal') {
+      setGenerationMode('backgroundRemoval');
+      return;
+    }
+
+    if (location.pathname === '/image-to-prompt') {
+      setGenerationMode('imageToPrompt');
+      return;
+    }
+
+    if (location.pathname === '/metadata' || location.pathname === '/') {
+      setGenerationMode('metadata');
+    }
+  }, [location.pathname]);
   
   // Get API key from localStorage based on provider
   useEffect(() => {
@@ -281,6 +298,20 @@ const Index: React.FC = () => {
   
   const handleModeChange = (mode: GenerationMode) => {
     setGenerationMode(mode);
+
+    if (mode === 'backgroundRemoval') {
+      navigate('/bg-remover');
+      return;
+    }
+
+    if (mode === 'imageToPrompt') {
+      navigate('/image-to-prompt');
+      return;
+    }
+
+    if (mode === 'metadata') {
+      navigate('/metadata');
+    }
   };
   
   const handleMinTitleWordsChange = (value: number[]) => {

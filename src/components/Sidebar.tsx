@@ -141,33 +141,35 @@ const Sidebar: React.FC<SidebarProps> = ({
           <GenerationModeSelector selectedMode={selectedMode} onModeChange={onModeChange} />
         </div>
         
-        <div className="p-4 border-b border-gray-700 py-[8px]">
-          <div className="flex items-center justify-between cursor-pointer mb-4" onClick={toggleMetadata}>
-            <h3 className="text-sm font-medium text-white">Metadata Customization</h3>
-            {metadataExpanded ? (
-              <ChevronDown className="h-4 w-4 text-gray-400 transition-transform" />
-            ) : (
-              <ChevronRight className="h-4 w-4 text-gray-400 transition-transform" />
+        {selectedMode === 'metadata' && (
+          <div className="p-4 border-b border-gray-700 py-[8px]">
+            <div className="flex items-center justify-between cursor-pointer mb-4" onClick={toggleMetadata}>
+              <h3 className="text-sm font-medium text-white">Metadata Customization</h3>
+              {metadataExpanded ? (
+                <ChevronDown className="h-4 w-4 text-gray-400 transition-transform" />
+              ) : (
+                <ChevronRight className="h-4 w-4 text-gray-400 transition-transform" />
+              )}
+            </div>
+            {metadataExpanded && (
+              <CustomizationControls 
+                minTitleWords={minTitleWords} 
+                onMinTitleWordsChange={onMinTitleWordsChange} 
+                maxTitleWords={maxTitleWords} 
+                onMaxTitleWordsChange={onMaxTitleWordsChange} 
+                minKeywords={minKeywords} 
+                onMinKeywordsChange={onMinKeywordsChange} 
+                maxKeywords={maxKeywords} 
+                onMaxKeywordsChange={onMaxKeywordsChange} 
+                minDescriptionWords={minDescriptionWords} 
+                onMinDescriptionWordsChange={onMinDescriptionWordsChange} 
+                maxDescriptionWords={maxDescriptionWords} 
+                onMaxDescriptionWordsChange={onMaxDescriptionWordsChange} 
+                selectedPlatforms={selectedPlatforms} 
+              />
             )}
           </div>
-          {metadataExpanded && (
-            <CustomizationControls 
-              minTitleWords={minTitleWords} 
-              onMinTitleWordsChange={onMinTitleWordsChange} 
-              maxTitleWords={maxTitleWords} 
-              onMaxTitleWordsChange={onMaxTitleWordsChange} 
-              minKeywords={minKeywords} 
-              onMinKeywordsChange={onMinKeywordsChange} 
-              maxKeywords={maxKeywords} 
-              onMaxKeywordsChange={onMaxKeywordsChange} 
-              minDescriptionWords={minDescriptionWords} 
-              onMinDescriptionWordsChange={onMinDescriptionWordsChange} 
-              maxDescriptionWords={maxDescriptionWords} 
-              onMaxDescriptionWordsChange={onMaxDescriptionWordsChange} 
-              selectedPlatforms={selectedPlatforms} 
-            />
-          )}
-        </div>
+        )}
         
         {selectedMode === 'backgroundRemoval' && (
           <div className="p-4 border-b border-gray-700 py-[8px]">
@@ -223,28 +225,36 @@ const Sidebar: React.FC<SidebarProps> = ({
           </div>
         )}
 
-        <div className="p-4 border-b border-gray-700 py-[8px]">
-          <CustomizationOptions 
-            enabled={customPromptEnabled}
-            onEnabledChange={onCustomPromptEnabledChange} 
-            customPrompt={customPrompt} 
-            onCustomPromptChange={onCustomPromptChange} 
-            prohibitedWords={prohibitedWords} 
-            onProhibitedWordsChange={onProhibitedWordsChange} 
-            prohibitedWordsEnabled={prohibitedWordsEnabled} 
-            onProhibitedWordsEnabledChange={onProhibitedWordsEnabledChange} 
-            transparentBgEnabled={transparentBgEnabled} 
-            onTransparentBgEnabledChange={onTransparentBgEnabledChange} 
-            isolatedOnTransparentBgEnabled={isolatedOnTransparentBgEnabled} 
-            onIsolatedOnTransparentBgEnabledChange={onIsolatedOnTransparentBgEnabledChange} 
-            silhouetteEnabled={silhouetteEnabled} 
-            onSilhouetteEnabledChange={onSilhouetteEnabledChange} 
-            singleWordKeywordsEnabled={singleWordKeywordsEnabled}
-            onSingleWordKeywordsEnabledChange={onSingleWordKeywordsEnabledChange}
-            apiKey={apiKey}
-            onApiKeyChange={onApiKeyChange}
-          />
-        </div>
+        {selectedMode !== 'backgroundRemoval' && (
+          <div className="p-4 border-b border-gray-700 py-[8px]">
+            <CustomizationOptions 
+              enabled={customPromptEnabled}
+              onEnabledChange={onCustomPromptEnabledChange} 
+              customPrompt={customPrompt} 
+              onCustomPromptChange={onCustomPromptChange} 
+              prohibitedWords={prohibitedWords} 
+              onProhibitedWordsChange={onProhibitedWordsChange} 
+              prohibitedWordsEnabled={prohibitedWordsEnabled} 
+              onProhibitedWordsEnabledChange={onProhibitedWordsEnabledChange} 
+              transparentBgEnabled={transparentBgEnabled} 
+              onTransparentBgEnabledChange={onTransparentBgEnabledChange} 
+              isolatedOnTransparentBgEnabled={isolatedOnTransparentBgEnabled} 
+              onIsolatedOnTransparentBgEnabledChange={onIsolatedOnTransparentBgEnabledChange} 
+              silhouetteEnabled={silhouetteEnabled} 
+              onSilhouetteEnabledChange={onSilhouetteEnabledChange} 
+              singleWordKeywordsEnabled={singleWordKeywordsEnabled}
+              onSingleWordKeywordsEnabledChange={onSingleWordKeywordsEnabledChange}
+              apiKey={apiKey}
+              onApiKeyChange={onApiKeyChange}
+              showSingleWordKeywords={selectedMode !== 'imageToPrompt'}
+              showWhiteBackground={selectedMode === 'imageToPrompt'}
+              showTransparentBackground={true}
+              showSilhouette={true}
+              showCustomPrompt={true}
+              showProhibitedWords={selectedMode !== 'imageToPrompt'}
+            />
+          </div>
+        )}
       </div>
     </aside>;
 };

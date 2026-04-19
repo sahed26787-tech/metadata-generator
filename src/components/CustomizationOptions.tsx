@@ -25,6 +25,12 @@ interface CustomizationOptionsProps {
   onSingleWordKeywordsEnabledChange?: (enabled: boolean) => void;
   apiKey?: string;
   onApiKeyChange?: (key: string) => void;
+  showSingleWordKeywords?: boolean;
+  showWhiteBackground?: boolean;
+  showTransparentBackground?: boolean;
+  showSilhouette?: boolean;
+  showCustomPrompt?: boolean;
+  showProhibitedWords?: boolean;
 }
 
 const CustomizationOptions: React.FC<CustomizationOptionsProps> = ({
@@ -45,7 +51,13 @@ const CustomizationOptions: React.FC<CustomizationOptionsProps> = ({
   singleWordKeywordsEnabled = false,
   onSingleWordKeywordsEnabledChange = () => {},
   apiKey = '',
-  onApiKeyChange = () => {}
+  onApiKeyChange = () => {},
+  showSingleWordKeywords = true,
+  showWhiteBackground = false,
+  showTransparentBackground = true,
+  showSilhouette = true,
+  showCustomPrompt = true,
+  showProhibitedWords = true
 }) => {
   const t = useText();
   const [settingsExpanded, setSettingsExpanded] = useState(true);
@@ -151,48 +163,69 @@ const CustomizationOptions: React.FC<CustomizationOptionsProps> = ({
 
       {settingsExpanded && <div className="space-y-2 ml-2">
           {/* 1st: Single Word Keywords */}
-          <FeatureToggle 
-            title="SINGLE WORD KEYWORDS" 
-            description="When enabled, generated keywords will be single words only."
-            tooltipText="Use this to ensure all generated keywords contain only single words. This will split any multi-word keywords into individual words." 
-            enabled={singleWordKeywordsEnabled} 
-            onEnabledChange={onSingleWordKeywordsEnabledChange} 
-            footer="Helpful for platforms that prefer single-word keywords instead of phrases." 
-          />
+          {showSingleWordKeywords && (
+            <FeatureToggle 
+              title="SINGLE WORD KEYWORDS" 
+              description="When enabled, generated keywords will be single words only."
+              tooltipText="Use this to ensure all generated keywords contain only single words. This will split any multi-word keywords into individual words." 
+              enabled={singleWordKeywordsEnabled} 
+              onEnabledChange={onSingleWordKeywordsEnabledChange} 
+              footer="Helpful for platforms that prefer single-word keywords instead of phrases." 
+            />
+          )}
           
-          {/* 2nd: Transparent Background */}
-          <FeatureToggle 
-            title="TRANSPARENT BACKGROUND" 
-            description={t('features.silhouetteDesc')} 
-            bullets={["Add \"isolated on transparent background\" to the end of the title", "Include \"transparent background\" as a keyword", "Mention transparent background in the description"]} 
-            tooltipText="Optimize metadata for isolated objects on transparent background to improve their discoverability in search results." 
-            enabled={isolatedOnTransparentBgEnabled} 
-            onEnabledChange={onIsolatedOnTransparentBgEnabledChange} 
-            footer="Use this for isolated objects on transparent background to improve their discoverability." 
-          />
+          {/* 2nd: White Background */}
+          {showWhiteBackground && (
+            <FeatureToggle 
+              title="WHITE BACKGROUND" 
+              description="Optimize metadata for isolated objects on white background."
+              bullets={["Add \"isolated on white background\" to the end of the title", "Include \"white background\" as a keyword", "Mention white background in the description"]} 
+              tooltipText="Optimize metadata for isolated objects on white background to improve their discoverability in search results." 
+              enabled={transparentBgEnabled} 
+              onEnabledChange={onTransparentBgEnabledChange} 
+              footer="Use this for isolated objects on white background." 
+            />
+          )}
           
-          {/* 3rd: Silhouette */}
-          <FeatureToggle 
-            title={t('features.silhouette')} 
-            description={t('features.silhouetteDesc')} 
-            bullets={["Add \"silhouette\" to the end of the title", "Include \"silhouette\" as a keyword", "Mention silhouette in the description"]} 
-            tooltipText="Use this for silhouette-style images to improve their discoverability in marketplaces." 
-            enabled={silhouetteEnabled} 
-            onEnabledChange={onSilhouetteEnabledChange} 
-            footer="Use this for silhouette-style images to improve their discoverability in marketplaces." 
-          />
+          {/* 3rd: Transparent Background */}
+          {showTransparentBackground && (
+            <FeatureToggle 
+              title="TRANSPARENT BACKGROUND" 
+              description={t('features.silhouetteDesc')} 
+              bullets={["Add \"isolated on transparent background\" to the end of the title", "Include \"transparent background\" as a keyword", "Mention transparent background in the description"]} 
+              tooltipText="Optimize metadata for isolated objects on transparent background to improve their discoverability in search results." 
+              enabled={isolatedOnTransparentBgEnabled} 
+              onEnabledChange={onIsolatedOnTransparentBgEnabledChange} 
+              footer="Use this for isolated objects on transparent background to improve their discoverability." 
+            />
+          )}
           
-          {/* 4th: Custom Prompt */}
-          <FeatureToggle 
-            title={t('features.customPrompt')} 
-            description={t('features.customPromptDesc')} 
-            tooltipText="Create your own custom prompt for AI-generated metadata. This will override the default prompts while still ensuring proper formatting and keyword count." 
-            enabled={enabled} 
-            onEnabledChange={handleCustomPromptEnabledChange} 
-          />
+          {/* 4th: Silhouette */}
+          {showSilhouette && (
+            <FeatureToggle 
+              title={t('features.silhouette')} 
+              description={t('features.silhouetteDesc')} 
+              bullets={["Add \"silhouette\" to the end of the title", "Include \"silhouette\" as a keyword", "Mention silhouette in the description"]} 
+              tooltipText="Use this for silhouette-style images to improve their discoverability in marketplaces." 
+              enabled={silhouetteEnabled} 
+              onEnabledChange={onSilhouetteEnabledChange} 
+              footer="Use this for silhouette-style images to improve their discoverability in marketplaces." 
+            />
+          )}
+          
+          {/* 5th: Custom Prompt */}
+          {showCustomPrompt && (
+            <FeatureToggle 
+              title={t('features.customPrompt')} 
+              description={t('features.customPromptDesc')} 
+              tooltipText="Create your own custom prompt for AI-generated metadata. This will override the default prompts while still ensuring proper formatting and keyword count." 
+              enabled={enabled} 
+              onEnabledChange={handleCustomPromptEnabledChange} 
+            />
+          )}
           
           {/* Custom Prompt Input Field - Shows when enabled */}
-          {enabled && (
+          {showCustomPrompt && enabled && (
             <div className="ml-4 mt-2 space-y-2">
               <div className="bg-gray-800/50 rounded-lg p-3 border border-gray-600">
                 <label className="block text-xs font-medium text-gray-300 mb-2">
@@ -221,17 +254,19 @@ const CustomizationOptions: React.FC<CustomizationOptionsProps> = ({
             </div>
           )}
           
-          {/* 5th: Prohibited Words */}
-          <FeatureToggle 
-            title={t('features.prohibitedWords')} 
-            description="Words that should be avoided in the generated metadata." 
-            tooltipText="Words that should be avoided in the generated metadata. The AI will try to exclude these terms from titles, descriptions, and keywords." 
-            enabled={prohibitedWordsEnabled} 
-            onEnabledChange={onProhibitedWordsEnabledChange} 
-          />
+          {/* 6th: Prohibited Words */}
+          {showProhibitedWords && (
+            <FeatureToggle 
+              title={t('features.prohibitedWords')} 
+              description="Words that should be avoided in the generated metadata." 
+              tooltipText="Words that should be avoided in the generated metadata. The AI will try to exclude these terms from titles, descriptions, and keywords." 
+              enabled={prohibitedWordsEnabled} 
+              onEnabledChange={onProhibitedWordsEnabledChange} 
+            />
+          )}
           
           {/* Prohibited Words Input Field - Shows when enabled */}
-          {prohibitedWordsEnabled && (
+          {showProhibitedWords && prohibitedWordsEnabled && (
             <div className="ml-4 mt-2 space-y-2">
               <div className="bg-gray-800/50 rounded-lg p-3 border border-gray-600">
                 <label className="block text-xs font-medium text-gray-300 mb-2">

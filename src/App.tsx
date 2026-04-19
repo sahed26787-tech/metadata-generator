@@ -11,7 +11,6 @@ import NotFound from "./pages/NotFound";
 import Pricing from "./pages/Pricing";
 import AutomationScripts from "./pages/AutomationScripts";
 import Documents from "./pages/Documents";
-import BackgroundRemoval from "./pages/BackgroundRemoval";
 import TermsOfService from "./pages/TermsOfService";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import PaymentSuccess from "./pages/PaymentSuccess";
@@ -37,13 +36,16 @@ const App = () => (
               <Sonner />
               <NoticePopup />
               <Routes>
-                <Route path="/" element={<Index />} />
+                <Route path="/" element={<Navigate to="/metadata" replace />} />
+                <Route path="/metadata" element={<Index />} />
+                <Route path="/bg-remover" element={<Index />} />
+                <Route path="/image-to-prompt" element={<Index />} />
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/auth/callback" element={<AuthCallback />} />
                 <Route path="/pricing" element={<Pricing />} />
                 <Route path="/Services" element={<AutomationScripts />} />
                 <Route path="/documents" element={<Documents />} />
-                <Route path="/background-removal" element={<BackgroundRemoval />} />
+                <Route path="/background-removal" element={<Navigate to="/bg-remover" replace />} />
                 <Route path="/terms" element={<TermsOfService />} />
                 <Route path="/privacy" element={<PrivacyPolicy />} />
                 <Route path="/payment-success" element={<PaymentSuccess />} />
