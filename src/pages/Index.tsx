@@ -16,6 +16,7 @@ import { useAuth } from '@/context/AuthContext';
 import { Platform } from '@/components/PlatformSelector';
 import PlatformSelector from '@/components/PlatformSelector';
 import GenerationModeSelector, { GenerationMode } from '@/components/GenerationModeSelector';
+import BackgroundRemoval from '@/pages/BackgroundRemoval';
 import { Separator } from '@/components/ui/separator';
 import AppHeader from '@/components/AppHeader';
 import Sidebar from '@/components/Sidebar';
@@ -57,6 +58,11 @@ const Index: React.FC = () => {
 
   const [apiKey, setApiKey] = useState('');
   const [images, setImages] = useState<ProcessedImage[]>([]);
+  
+  // Background Removal state
+  const [bgRemovalMode, setBgRemovalMode] = useState<'single' | 'batch'>('single');
+  const [bgPreserveAlpha, setBgPreserveAlpha] = useState(false);
+  const [bgOutputFormat, setBgOutputFormat] = useState<'PNG' | 'WEBP'>('PNG');
   const [isProcessing, setIsProcessing] = useState(false);
   const [titleLength, setTitleLength] = useState(200);
   const [descriptionLength, setDescriptionLength] = useState(200);
@@ -740,12 +746,26 @@ const Index: React.FC = () => {
           onSingleWordKeywordsEnabledChange={handleSingleWordKeywordsEnabledChange}
           apiKey={apiKey}
           onApiKeyChange={handleApiKeyChange}
+          bgRemovalMode={bgRemovalMode}
+          onBgRemovalModeChange={setBgRemovalMode}
+          bgPreserveAlpha={bgPreserveAlpha}
+          onBgPreserveAlphaChange={setBgPreserveAlpha}
+          bgOutputFormat={bgOutputFormat}
+          onBgOutputFormatChange={setBgOutputFormat}
         />
         
         <main className="flex-1 p-6 overflow-auto">
           <div className="max-w-5xl mx-auto">
             <div className="mb-6">
-              <div className="flex flex-col mb-4 py-[22px] my-0 mx-0 px-0">
+              {generationMode === 'backgroundRemoval' ? (
+                <BackgroundRemoval 
+                  mode={bgRemovalMode}
+                  preserveAlpha={bgPreserveAlpha}
+                  outputFormat={bgOutputFormat}
+                />
+              ) : (
+                <>
+                  <div className="flex flex-col mb-4 py-[22px] my-0 mx-0 px-0">
                 <div className="flex border-b border-gray-700">
                   <PlatformSelector
                     selectedPlatforms={platforms}
@@ -814,6 +834,8 @@ const Index: React.FC = () => {
                   onEpsEnabledChange={handleEpsEnabledChange}
                 />
               </div>
+              </>
+              )}
             </div>
           </div>
         </main>

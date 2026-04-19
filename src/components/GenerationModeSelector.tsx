@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { FileImage, MessageSquareText, ChevronDown, ChevronRight } from "lucide-react";
+import { FileImage, MessageSquareText, ChevronDown, ChevronRight, Scissors } from "lucide-react";
 import { useText } from '@/hooks/useText';
 
-export type GenerationMode = 'metadata' | 'imageToPrompt';
+export type GenerationMode = 'metadata' | 'imageToPrompt' | 'backgroundRemoval';
 
 interface GenerationModeSelectorProps {
   selectedMode: GenerationMode;
@@ -33,29 +33,43 @@ const GenerationModeSelector: React.FC<GenerationModeSelectorProps> = ({
       </div>
       {isExpanded && (
         <RadioGroup value={selectedMode} onValueChange={value => onModeChange(value as GenerationMode)} className="grid grid-cols-2 gap-2">
-          <div className={`flex items-center rounded cursor-pointer transition-colors ${
-            selectedMode === 'metadata' 
-              ? 'bg-blue-700 border border-blue-500' 
+          <div className={`flex items-center justify-center rounded cursor-pointer transition-colors h-10 ${
+            selectedMode === 'metadata'
+              ? 'bg-blue-700 border border-blue-500'
               : 'bg-gray-800 border border-gray-700 hover:bg-gray-700'
           }`}>
             <RadioGroupItem value="metadata" id="metadata" className="sr-only" />
-            <Label htmlFor="metadata" className="flex items-center py-1.5 px-3 w-full cursor-pointer">
+            <Label htmlFor="metadata" className="flex items-center justify-center w-full h-full cursor-pointer px-3">
               <FileImage className="h-4 w-4 mr-2 text-blue-300" />
               <span className="text-xs font-medium text-white">Metadata</span>
             </Label>
           </div>
-          
-          <div className={`flex items-center rounded cursor-pointer transition-colors ${
-            selectedMode === 'imageToPrompt' 
-              ? 'bg-purple-800 border border-purple-500' 
+
+          <div className={`flex items-center justify-center rounded cursor-pointer transition-colors h-10 ${
+            selectedMode === 'imageToPrompt'
+              ? 'bg-purple-800 border border-purple-500'
               : 'bg-gray-800 border border-gray-700 hover:bg-gray-700'
           }`}>
             <RadioGroupItem value="imageToPrompt" id="imageToPrompt" className="sr-only" />
-            <Label htmlFor="imageToPrompt" className="flex items-center py-1.5 px-3 w-full cursor-pointer">
+            <Label htmlFor="imageToPrompt" className="flex items-center justify-center w-full h-full cursor-pointer px-3">
               <MessageSquareText className="h-4 w-4 mr-2 text-purple-300" />
               <span className="text-xs font-medium text-white">Image to Prompt</span>
             </Label>
           </div>
+
+          <div className={`flex items-center justify-center rounded cursor-pointer transition-colors h-10 ${
+            selectedMode === 'backgroundRemoval'
+              ? 'bg-green-700 border border-green-500'
+              : 'bg-gray-800 border border-gray-700 hover:bg-gray-700'
+          }`}>
+            <RadioGroupItem value="backgroundRemoval" id="backgroundRemoval" className="sr-only" />
+            <Label htmlFor="backgroundRemoval" className="flex items-center justify-center w-full h-full cursor-pointer px-3">
+              <Scissors className="h-4 w-4 mr-2 text-green-300" />
+              <span className="text-xs font-medium text-white">BG Removal</span>
+            </Label>
+          </div>
+
+          <div className="rounded" />
         </RadioGroup>
       )}
     </div>;

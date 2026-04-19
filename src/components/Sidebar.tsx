@@ -5,7 +5,17 @@ import CustomizationOptions from '@/components/CustomizationOptions';
 import UserProfile from '@/components/UserProfile';
 import { Platform } from './PlatformSelector';
 import { useText } from '@/hooks/useText';
-import { ChevronDown, ChevronRight } from 'lucide-react';
+import { ChevronDown, ChevronRight, ImageIcon, Images } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from '@/components/ui/select';
 
 interface SidebarProps {
   selectedMode: GenerationMode;
@@ -42,6 +52,12 @@ interface SidebarProps {
   onSingleWordKeywordsEnabledChange?: (enabled: boolean) => void;
   apiKey?: string;
   onApiKeyChange?: (key: string) => void;
+  bgRemovalMode?: 'single' | 'batch';
+  onBgRemovalModeChange?: (mode: 'single' | 'batch') => void;
+  bgPreserveAlpha?: boolean;
+  onBgPreserveAlphaChange?: (enabled: boolean) => void;
+  bgOutputFormat?: 'PNG' | 'WEBP';
+  onBgOutputFormatChange?: (format: 'PNG' | 'WEBP') => void;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({
@@ -78,7 +94,13 @@ const Sidebar: React.FC<SidebarProps> = ({
   singleWordKeywordsEnabled = false,
   onSingleWordKeywordsEnabledChange = () => {},
   apiKey = '',
-  onApiKeyChange = () => {}
+  onApiKeyChange = () => {},
+  bgRemovalMode,
+  onBgRemovalModeChange,
+  bgPreserveAlpha,
+  onBgPreserveAlphaChange,
+  bgOutputFormat,
+  onBgOutputFormatChange
 }) => {
   const t = useText();
   const [isVisible, setIsVisible] = useState(true);
@@ -147,9 +169,63 @@ const Sidebar: React.FC<SidebarProps> = ({
           )}
         </div>
         
+        {selectedMode === 'backgroundRemoval' && (
+          <div className="p-4 border-b border-gray-700 py-[8px]">
+            <div className="space-y-4">
+              <h3 className="text-sm font-medium text-white">Mode</h3>
+              <div className="grid grid-cols-2 gap-2">
+                <Button
+                  variant={bgRemovalMode === 'single' ? 'default' : 'outline'}
+                  onClick={() => onBgRemovalModeChange?.('single')}
+                  className={bgRemovalMode === 'single' ? 'bg-blue-600' : 'bg-[#2a2a2a] border-gray-600'}
+                >
+                  <ImageIcon className="w-4 h-4 mr-2" />
+                  Single
+                </Button>
+                <Button
+                  variant={bgRemovalMode === 'batch' ? 'default' : 'outline'}
+                  onClick={() => onBgRemovalModeChange?.('batch')}
+                  className={bgRemovalMode === 'batch' ? 'bg-blue-600' : 'bg-[#2a2a2a] border-gray-600'}
+                >
+                  <Images className="w-4 h-4 mr-2" />
+                  Batch
+                </Button>
+              </div>
+            </div>
+            
+            <div className="space-y-4 pt-4 border-t border-gray-700 mt-4">
+              <h3 className="text-sm font-medium text-white">Settings</h3>
+              
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-300">Preserve Alpha</span>
+                <Switch
+                  checked={bgPreserveAlpha}
+                  onCheckedChange={onBgPreserveAlphaChange}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <span className="text-sm text-gray-300">Output Format</span>
+                <Select
+                  value={bgOutputFormat}
+                  onValueChange={(v) => onBgOutputFormatChange?.(v as 'PNG' | 'WEBP')}
+                >
+                  <SelectTrigger className="bg-[#2a2a2a] border-gray-600 text-white">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-[#2a2a2a] border-gray-600">
+                    <SelectItem value="PNG" className="text-white">PNG</SelectItem>
+                    <SelectItem value="WEBP" className="text-white">WEBP</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="p-4 border-b border-gray-700 py-[8px]">
           <CustomizationOptions 
-            enabled={customPromptEnabled} 
+            enabled={customPromptEnabled}
             onEnabledChange={onCustomPromptEnabledChange} 
             customPrompt={customPrompt} 
             onCustomPromptChange={onCustomPromptChange} 
