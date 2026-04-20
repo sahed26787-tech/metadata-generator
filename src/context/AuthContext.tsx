@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { checkActiveSession, setActiveSession, removeActiveSession } from '@/utils/supabaseUtils';
 import { UserProfile } from '@/types/supabase';
-import { serverSignIn, serverSignUp, serverSignInWithOAuth, serverSignOut, isServerAuthAvailable } from '@/utils/serverAuth';
+import { serverSignIn, serverSignUp, serverSignOut, isServerAuthAvailable } from '@/utils/serverAuth';
 
 interface AuthContextType {
   session: Session | null;
