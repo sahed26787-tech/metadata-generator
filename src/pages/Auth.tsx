@@ -28,9 +28,9 @@ const Auth: React.FC = () => {
   }
   
   return (
-    <div className="flex min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="flex min-h-screen bg-background text-foreground">
       {/* Left section with image */}
-      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-[#1a1f2e] items-center justify-center">
+      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-secondary items-center justify-center">
         <img 
           src="/images/hosting/website-hosting-illustration.jpg" 
           alt="Website Hosting Illustration"
@@ -44,15 +44,15 @@ const Auth: React.FC = () => {
           {/* Logo */}
           <div className="flex justify-center mb-8">
             <div className="flex items-center">
-              <span className="text-3xl md:text-4xl font-bold text-white flex items-center">
+              <span className="text-3xl md:text-4xl font-bold text-foreground flex items-center">
                 PixcraftAI
               </span>
             </div>
           </div>
           
           {/* Login Form */}
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8">
-            <h2 className="text-lg md:text-xl font-semibold text-center mb-6">
+          <div className="bg-card rounded-2xl shadow-lg p-8 border border-border">
+            <h2 className="text-lg md:text-xl font-semibold text-center mb-6 text-foreground">
               Log In Or Sign Up to PixcraftAI
             </h2>
             
@@ -60,7 +60,7 @@ const Auth: React.FC = () => {
               <GoogleLoginButton onError={handleGoogleError} />
               
               <div className="text-center mt-6">
-                <p className="text-gray-500 dark:text-gray-400 text-sm">
+                <p className="text-muted-foreground text-sm">
                   Sign in with your Google account to continue
                 </p>
               </div>
@@ -68,8 +68,8 @@ const Auth: React.FC = () => {
           </div>
           
           <div className="mt-6 text-center">
-            <p className="text-gray-500 dark:text-gray-400 text-xs">
-              By signing in, you agree to our <Link to="/terms" className="text-blue-600 hover:underline">Terms of Service</Link> and <Link to="/privacy" className="text-blue-600 hover:underline">Privacy Policy</Link>
+            <p className="text-muted-foreground text-xs">
+              By signing in, you agree to our <Link to="/terms" className="text-primary hover:underline">Terms of Service</Link> and <Link to="/privacy" className="text-primary hover:underline">Privacy Policy</Link>
             </p>
           </div>
         </div>

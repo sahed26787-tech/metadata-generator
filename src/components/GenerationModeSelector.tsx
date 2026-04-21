@@ -24,11 +24,11 @@ const GenerationModeSelector: React.FC<GenerationModeSelectorProps> = ({
 
   return <div className="space-y-2">
       <div className="flex items-center justify-between cursor-pointer" onClick={toggleExpanded}>
-        <h3 className="text-sm font-medium text-white">Mode Selection</h3>
+        <h3 className="text-sm font-medium text-foreground">Mode Selection</h3>
         {isExpanded ? (
-          <ChevronDown className="h-4 w-4 text-gray-400 transition-transform" />
+          <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform" />
         ) : (
-          <ChevronRight className="h-4 w-4 text-gray-400 transition-transform" />
+          <ChevronRight className="h-4 w-4 text-muted-foreground transition-transform" />
         )}
       </div>
       {isExpanded && (
@@ -36,36 +36,36 @@ const GenerationModeSelector: React.FC<GenerationModeSelectorProps> = ({
           <div className={`flex items-center justify-center rounded-xl cursor-pointer transition-all h-11 border ${
             selectedMode === 'metadata'
               ? 'bg-gradient-to-r from-[#0086FF] to-[#003E81] border-[#2f8fff] shadow-[0_0_20px_rgba(0,134,255,0.5)]'
-              : 'bg-[#161b22] border-[#2b3748] hover:bg-[#1d2631]'
+              : 'bg-secondary border-border hover:bg-muted'
           }`}>
             <RadioGroupItem value="metadata" id="metadata" className="sr-only" />
             <Label htmlFor="metadata" className="flex items-center justify-center w-full h-full cursor-pointer px-3">
-              <FileImage className="h-4 w-4 mr-2 text-[#c9e7ff]" />
-              <span className="text-xs font-medium text-white">Metadata</span>
+              <FileImage className="h-4 w-4 mr-2 text-primary" />
+              <span className={`text-xs font-medium ${selectedMode === 'metadata' ? 'text-white' : 'text-foreground'}`}>Metadata</span>
             </Label>
           </div>
 
           <div className={`flex items-center justify-center rounded-xl cursor-pointer transition-all h-11 border ${
             selectedMode === 'imageToPrompt'
               ? 'bg-gradient-to-r from-[#0086FF] to-[#003E81] border-[#2f8fff] shadow-[0_0_20px_rgba(0,134,255,0.5)]'
-              : 'bg-[#161b22] border-[#2b3748] hover:bg-[#1d2631]'
+              : 'bg-secondary border-border hover:bg-muted'
           }`}>
             <RadioGroupItem value="imageToPrompt" id="imageToPrompt" className="sr-only" />
             <Label htmlFor="imageToPrompt" className="flex items-center justify-center w-full h-full cursor-pointer px-3">
-              <MessageSquareText className="h-4 w-4 mr-2 text-[#c9e7ff]" />
-              <span className="text-xs font-medium text-white">Image to Prompt</span>
+              <MessageSquareText className="h-4 w-4 mr-2 text-primary" />
+              <span className={`text-xs font-medium ${selectedMode === 'imageToPrompt' ? 'text-white' : 'text-foreground'}`}>Image to Prompt</span>
             </Label>
           </div>
 
           <div className={`flex items-center justify-center rounded-xl cursor-pointer transition-all h-11 border ${
             selectedMode === 'backgroundRemoval'
               ? 'bg-gradient-to-r from-[#0086FF] to-[#003E81] border-[#2f8fff] shadow-[0_0_20px_rgba(0,134,255,0.5)]'
-              : 'bg-[#161b22] border-[#2b3748] hover:bg-[#1d2631]'
+              : 'bg-secondary border-border hover:bg-muted'
           }`}>
             <RadioGroupItem value="backgroundRemoval" id="backgroundRemoval" className="sr-only" />
             <Label htmlFor="backgroundRemoval" className="flex items-center justify-center w-full h-full cursor-pointer px-3">
-              <Scissors className="h-4 w-4 mr-2 text-[#c9e7ff]" />
-              <span className="text-xs font-medium text-white">BG Removal</span>
+              <Scissors className="h-4 w-4 mr-2 text-primary" />
+              <span className={`text-xs font-medium ${selectedMode === 'backgroundRemoval' ? 'text-white' : 'text-foreground'}`}>BG Removal</span>
             </Label>
           </div>
         </RadioGroup>

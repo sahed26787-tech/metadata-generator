@@ -133,7 +133,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
 
   
   
-  return <header className="sticky top-0 z-30 bg-[#0a0a0f]/80 backdrop-blur-xl border-b border-[#1f2a3a]">
+  return <header className="sticky top-0 z-30 bg-background/80 backdrop-blur-xl border-b border-border">
       <div className="flex items-center justify-between">
         <div className="flex items-center ml-4">
           <h1 onClick={navigateToHome} className="text-xl font-bold flex items-center cursor-pointer hover:opacity-80 transition-opacity">
@@ -145,7 +145,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
             variant="ghost" 
             size="icon" 
             onClick={toggleSidebar}
-            className="ml-4 text-gray-300 hover:bg-[#0086FF]/10 hover:text-white border border-transparent hover:border-[#0086FF]/40"
+            className="ml-4 text-muted-foreground hover:bg-accent hover:text-foreground border border-transparent hover:border-border"
             title={sidebarVisible ? "Hide Sidebar" : "Show Sidebar"}
           >
             {sidebarVisible ? 
@@ -159,13 +159,11 @@ const AppHeader: React.FC<AppHeaderProps> = ({
             variant="ghost"
             size="sm"
             onClick={handleRefresh}
-            className="ml-2 text-gray-300 hover:bg-[#0086FF]/10 hover:text-white border border-transparent hover:border-[#0086FF]/40"
+            className="ml-2 text-muted-foreground hover:bg-accent hover:text-foreground border border-transparent hover:border-border"
             title="Refresh page"
           >
             <RefreshCcw className="h-4 w-4" />
           </Button>
-          
-
         </div>
         
         {/* Empty center area */}
@@ -175,7 +173,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
           <Button 
             variant="ghost" 
             size="sm" 
-            className="text-gray-300 hover:bg-[#0086FF]/10 hover:text-white border border-transparent hover:border-[#0086FF]/40"
+            className="text-muted-foreground hover:bg-accent hover:text-foreground border border-transparent hover:border-border"
             onClick={openWhatsAppSupport}
           >
             <Users className="h-4 w-4 mr-2" />
@@ -188,7 +186,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
               <Button 
                 variant="outline" 
                 size="sm" 
-                className="border-[#0086FF] text-[#dbeafe] hover:bg-[#0086FF]/10 px-4 py-1"
+                className="border-primary text-foreground hover:bg-accent px-4 py-1"
                 onClick={() => navigate('/pricing')}
               >
                 Pricing
@@ -196,7 +194,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
               <Button 
                 variant="default" 
                 size="sm" 
-                className="text-white border-0" 
+                className="text-primary-foreground border-0" 
                 onClick={() => navigate('/auth')}
               >
                 <LogIn className="h-4 w-4 mr-1" />
@@ -211,7 +209,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
               <Button 
                 variant="outline" 
                 size="sm" 
-                className="border-[#0086FF] text-[#dbeafe] hover:bg-[#0086FF]/10 px-4 py-1"
+                className="border-primary text-foreground hover:bg-accent px-4 py-1"
                 onClick={() => navigate('/pricing')}
               >
                 Pricing
@@ -219,7 +217,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
               
               {/* Plan Badge for Premium Users */}
               {profile?.is_premium && (
-                <div className="bg-[#161b22] text-[#dbeafe] px-3 py-1 rounded-full text-xs font-bold shadow-lg border border-[#2d3f57] uppercase">
+                <div className="bg-secondary text-foreground px-3 py-1 rounded-full text-xs font-bold shadow-lg border border-border uppercase">
                   {profile.plan_type}
                 </div>
               )}
@@ -235,7 +233,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
                     </Avatar>
                   </div>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-96 p-0 bg-[#161b22] border border-[#273244] shadow-[0_16px_40px_rgba(0,0,0,0.5)]">
+                <DropdownMenuContent className="w-96 p-0 bg-card border border-border shadow-[0_16px_40px_rgba(0,0,0,0.5)]">
                   <UserProfile />
                 </DropdownMenuContent>
               </DropdownMenu>

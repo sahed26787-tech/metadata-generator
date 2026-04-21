@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { LogOut, Crown, Clock, Key, Eye, EyeOff, Copy, Check } from 'lucide-react';
+import ThemeToggle from '@/components/ThemeToggle';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
@@ -108,75 +109,74 @@ const UserProfile: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-black p-4 text-white font-sans">
-      <div className="max-w-md mx-auto bg-gray-800/70 backdrop-blur-sm rounded-xl shadow-xl overflow-hidden border border-gray-700">
+    <div className="bg-background p-4 text-foreground font-sans">
+      <div className="max-w-md mx-auto bg-card backdrop-blur-sm rounded-xl shadow-xl overflow-hidden border border-border">
         {/* User Info Section */}
-        <div className="p-5 border-b border-gray-700 flex items-center space-x-3">
-          <Avatar className="h-12 w-12 ring-1 ring-purple-500/50">
+        <div className="p-5 border-b border-border flex items-center space-x-3">
+          <Avatar className="h-12 w-12 ring-1 ring-primary/50">
             <AvatarImage src={profilePicture} alt={user.email} />
-            <AvatarFallback className="bg-purple-600 text-base font-medium">
+            <AvatarFallback className="bg-primary text-base font-medium text-primary-foreground">
               {user.email.charAt(0).toUpperCase()}
             </AvatarFallback>
           </Avatar>
           <div className="flex-1">
             <p className="text-base font-medium truncate">{user.email}</p>
             {profile.is_premium ? (
-              <div className="flex items-center text-xs text-purple-300 mt-1">
-                <Crown className="h-3 w-3 mr-1 text-yellow-400" />
+              <div className="flex items-center text-xs text-primary mt-1">
+                <Crown className="h-3 w-3 mr-1 text-yellow-500" />
                 <span className="capitalize">{profile.plan_type} Plan</span>
                 {timeRemaining && profile.plan_type === 'standard' && (
-                  <span className="ml-2 flex items-center text-purple-400">
+                  <span className="ml-2 flex items-center text-muted-foreground">
                     <Clock className="h-3 w-3 mr-1" />
                     Expires {timeRemaining}
                   </span>
                 )}
               </div>
             ) : (
-              <span className="text-xs text-gray-400 mt-1">Free Plan</span>
+              <span className="text-xs text-muted-foreground mt-1">Free Plan</span>
             )}
           </div>
         </div>
 
         {/* Credits Remaining Section */}
-        <div className="p-5 border-b border-gray-700">
-          <h3 className="text-sm font-semibold text-gray-400 mb-2">Credits Remaining</h3>
-          <div className="flex items-center justify-between bg-gray-700/30 p-3 rounded-lg border border-gray-600">
+        <div className="p-5 border-b border-border">
+          <h3 className="text-sm font-semibold text-muted-foreground mb-2">Credits Remaining</h3>
+          <div className="flex items-center justify-between bg-secondary p-3 rounded-lg border border-border">
             {profile.plan_type === 'exclusive' ? (
               <>
-                <span className="text-lg font-bold text-white">{profile.remaining_credits.toLocaleString()}</span>
-                <span className="text-sm text-gray-400">/ {profile.total_credits.toLocaleString()}</span>
+                <span className="text-lg font-bold text-foreground">{profile.remaining_credits.toLocaleString()}</span>
+                <span className="text-sm text-muted-foreground">/ {profile.total_credits.toLocaleString()}</span>
               </>
             ) : profile.plan_type === 'standard' ? (
               <>
-                <span className="text-lg font-bold text-blue-400">{profile.remaining_credits.toLocaleString()}</span>
-                <span className="text-sm text-gray-400">/ {profile.total_credits.toLocaleString()} per month</span>
+                <span className="text-lg font-bold text-primary">{profile.remaining_credits.toLocaleString()}</span>
+                <span className="text-sm text-muted-foreground">/ {profile.total_credits.toLocaleString()} per month</span>
               </>
             ) : (
               <>
-                <span className="text-lg font-bold text-blue-400">{profile.remaining_credits}</span>
-                <span className="text-sm text-gray-400">/ {profile.total_credits} lifetime</span>
+                <span className="text-lg font-bold text-primary">{profile.remaining_credits}</span>
+                <span className="text-sm text-muted-foreground">/ {profile.total_credits} lifetime</span>
               </>
             )}
           </div>
           {profile.credits_reset_type === 'monthly' && (
-            <p className="text-xs text-gray-500 mt-2">Resets monthly</p>
+            <p className="text-xs text-muted-foreground mt-2">Resets monthly</p>
           )}
         </div>
 
-        {/* Server-Powered AI - API Key Management hidden as we now use server-side API */}
-        <div className="p-5 border-b border-gray-700">
-          <h3 className="text-sm font-semibold text-gray-400 mb-2">AI Processing</h3>
-          <div className="flex items-center justify-between bg-gray-700/30 p-3 rounded-lg border border-gray-600">
-            <span className="text-sm text-gray-300">Powered by server-side AI</span>
-            <span className="text-xs text-green-400">Active</span>
+        {/* Theme Selection Section */}
+        <div className="p-5 border-b border-border">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-semibold text-muted-foreground">Theme Selection</h3>
+            <ThemeToggle />
           </div>
         </div>
 
         {/* Logout Option */}
-        <div className="p-5 border-t border-gray-700 flex justify-center">
+        <div className="p-5 border-t border-border flex justify-center">
           <Button 
             variant="ghost" 
-            className="text-gray-400 hover:text-red-400 hover:bg-gray-700 px-4 py-2 text-sm transition-colors rounded-md"
+            className="text-muted-foreground hover:text-destructive hover:bg-muted px-4 py-2 text-sm transition-colors rounded-md"
             onClick={signOut}
           >
             <LogOut className="h-4 w-4 mr-2" />

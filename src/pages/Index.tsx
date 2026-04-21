@@ -61,7 +61,7 @@ const Index: React.FC = () => {
   
   // Background Removal state
   const [bgRemovalMode, setBgRemovalMode] = useState<'single' | 'batch'>('single');
-  const [bgPreserveAlpha, setBgPreserveAlpha] = useState(false);
+  const [bgPreserveAlpha, setBgPreserveAlpha] = useState(true);
   const [bgOutputFormat, setBgOutputFormat] = useState<'PNG' | 'WEBP'>('PNG');
   const [isProcessing, setIsProcessing] = useState(false);
   const [titleLength, setTitleLength] = useState(200);
@@ -718,7 +718,7 @@ const Index: React.FC = () => {
   const remainingCredits = profile?.is_premium ? '∞' : profile ? `${Math.max(0, 5000 - profile.credits_used)}` : '0';
   
   return (
-    <div className="bg-[#0a0a0f] flex flex-col min-h-screen text-white">
+    <div className="bg-background flex flex-col min-h-screen text-foreground">
       <AppHeader
         remainingCredits={remainingCredits}
         apiKey={apiKey}
@@ -769,7 +769,7 @@ const Index: React.FC = () => {
           onBgOutputFormatChange={setBgOutputFormat}
         />
         
-        <main className="flex-1 p-6 overflow-auto bg-[#0a0a0f]">
+        <main className="flex-1 p-6 overflow-auto bg-background">
           <div className="max-w-5xl mx-auto">
             <div className="mb-6">
               {generationMode === 'backgroundRemoval' ? (
@@ -782,7 +782,7 @@ const Index: React.FC = () => {
                 <>
                   {generationMode !== 'imageToPrompt' && (
                     <div className="flex flex-col mb-4 py-[22px] my-0 mx-0 px-0">
-                      <div className="flex border-b border-[#1f2a3a] pb-4">
+                      <div className="flex border-b border-border pb-4">
                         <PlatformSelector
                           selectedPlatforms={platforms}
                           onPlatformChange={handlePlatformChange}
@@ -793,12 +793,12 @@ const Index: React.FC = () => {
               
               <div className="mt-6">
                 {user && profile && !profile.is_premium && profile.credits_used > 4.5 && (
-                  <div className="bg-amber-900/30 border border-amber-700 text-amber-200 p-3 rounded-md mb-4">
+                  <div className="bg-amber-100 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-700 text-amber-800 dark:text-amber-200 p-3 rounded-md mb-4">
                     <div className="flex items-center">
-                      <div className="mr-3 text-amber-400">⚠️</div>
+                      <div className="mr-3 text-amber-500 dark:text-amber-400">⚠️</div>
                       <div>
                         <p className="font-medium">You have {Math.max(0, 5 - profile.credits_used)} credits remaining</p>
-                        <p className="text-sm">Free users are limited to 5 lifetime credits. <a href="/pricing" className="text-amber-400 underline">Upgrade to Premium</a> for unlimited processing.</p>
+                        <p className="text-sm">Free users are limited to 5 lifetime credits. <a href="/pricing" className="text-amber-600 dark:text-amber-400 underline">Upgrade to Premium</a> for unlimited processing.</p>
                       </div>
                     </div>
                   </div>

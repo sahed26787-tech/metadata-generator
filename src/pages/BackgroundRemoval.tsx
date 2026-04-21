@@ -62,7 +62,7 @@ const downloadImage = async (url: string, filename: string) => {
 // Supabase Edge Function Call
 const removeBackground = async (
   base64Image: string, 
-  preserveAlpha: boolean = false,
+  preserveAlpha: boolean = true,
   outputFormat: 'PNG' | 'WEBP' = 'PNG'
 ): Promise<string> => {
   // Get current session to ensure JWT is available
@@ -155,6 +155,11 @@ const BackgroundRemoval: React.FC<BackgroundRemovalProps> = ({
   const handleBatchUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     if (files.length === 0) return;
+
+    if (files.length > 500) {
+      toast.error('Maximum 500 images allowed at once');
+      return;
+    }
 
     const validFiles = files.filter(file => 
       ['image/jpeg', 'image/png', 'image/webp'].includes(file.type)
@@ -341,12 +346,14 @@ const BackgroundRemoval: React.FC<BackgroundRemovalProps> = ({
               {/* Upload Area */}
               {tasks.length === 0 && (
                 <div 
-                  className="border-2 border-dashed border-gray-600 rounded-lg p-12 text-center hover:border-blue-500 transition-colors cursor-pointer bg-[#1a1a1a]"
+                  className="border-2 border-dashed border-primary/60 rounded-xl p-16 text-center hover:border-primary transition-all duration-300 cursor-pointer bg-card shadow-sm hover:shadow-md group"
                   onClick={() => fileInputRef.current?.click()}
                 >
-                  <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-lg text-white mb-2">Click to upload an image</p>
-                  <p className="text-sm text-gray-400">JPG, PNG, WEBP supported</p>
+                  <div className="bg-primary/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-primary/20 transition-colors">
+                    <Upload className="w-8 h-8 text-primary" />
+                  </div>
+                  <p className="text-xl font-semibold text-foreground mb-2">Click to upload an image</p>
+                  <p className="text-sm text-muted-foreground">JPG, PNG, WEBP supported</p>
                   <input
                     ref={fileInputRef}
                     type="file"
@@ -362,33 +369,33 @@ const BackgroundRemoval: React.FC<BackgroundRemovalProps> = ({
                 <div className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     {/* Left: Always show original */}
-                    <Card className="bg-[#1a1a1a] border-gray-700 overflow-hidden">
+                    <Card className="bg-card border-border overflow-hidden">
                       <CardContent className="p-4">
-                        <p className="text-sm text-gray-400 mb-2">Original</p>
+                        <p className="text-sm text-muted-foreground mb-2">Original</p>
                         <img 
                           src={tasks[0].preview}
                           alt="Original"
-                          className="w-full h-64 object-contain bg-[#0f0f0f] rounded"
+                          className="w-full h-64 object-contain bg-background rounded"
                         />
                       </CardContent>
                     </Card>
 
                     {/* Right: show result/placeholder */}
-                    <Card className="bg-[#1a1a1a] border-gray-700 overflow-hidden">
+                    <Card className="bg-card border-border overflow-hidden">
                       <CardContent className="p-4">
-                        <p className="text-sm text-gray-400 mb-2">Result</p>
+                        <p className="text-sm text-muted-foreground mb-2">Result</p>
                         {tasks[0].status === 'done' && tasks[0].resultUrl ? (
                           <img 
                             src={tasks[0].resultUrl}
                             alt="Result"
-                            className="w-full h-64 object-contain bg-[#0f0f0f] rounded"
+                            className="w-full h-64 object-contain bg-background rounded"
                           />
                         ) : tasks[0].status === 'processing' ? (
-                          <div className="w-full h-64 flex items-center justify-center bg-[#0f0f0f] rounded">
-                            <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
+                          <div className="w-full h-64 flex items-center justify-center bg-background rounded">
+                            <Loader2 className="w-8 h-8 text-primary animate-spin" />
                           </div>
                         ) : (
-                          <div className="w-full h-64 flex items-center justify-center bg-[#0f0f0f] rounded text-gray-500">
+                          <div className="w-full h-64 flex items-center justify-center bg-background rounded text-muted-foreground">
                             {tasks[0].status === 'failed' ? 'Failed to process' : 'Click Remove Background to start'}
                           </div>
                         )}
@@ -401,7 +408,7 @@ const BackgroundRemoval: React.FC<BackgroundRemovalProps> = ({
                     <Button
                       onClick={processSingle}
                       disabled={tasks[0].status === 'processing' || tasks[0].status === 'done'}
-                      className="bg-blue-600 hover:bg-blue-700"
+                      className="bg-primary hover:bg-primary/90"
                     >
                       {tasks[0].status === 'processing' ? (
                         <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Processing...</>
@@ -414,7 +421,7 @@ const BackgroundRemoval: React.FC<BackgroundRemovalProps> = ({
                       <Button
                         onClick={() => downloadImage(tasks[0].resultUrl!, `bg-removed-${tasks[0].file.name}`)}
                         variant="outline"
-                        className="border-green-600 text-green-500 hover:bg-green-600 hover:text-white"
+                        className="border-green-600 text-green-600 hover:bg-green-600 hover:text-white"
                       >
                         <Download className="w-4 h-4 mr-2" />
                         Download PNG
@@ -424,7 +431,7 @@ const BackgroundRemoval: React.FC<BackgroundRemovalProps> = ({
                     <Button
                       onClick={() => setTasks([])}
                       variant="outline"
-                      className="border-gray-600 text-gray-400"
+                      className="border-border text-muted-foreground"
                     >
                       <Trash2 className="w-4 h-4 mr-2" />
                       Clear
@@ -440,14 +447,6 @@ const BackgroundRemoval: React.FC<BackgroundRemovalProps> = ({
               {/* Upload & Progress Header */}
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                  <Button
-                    onClick={() => batchFileInputRef.current?.click()}
-                    disabled={isProcessing}
-                    className="bg-blue-600 hover:bg-blue-700"
-                  >
-                    <Upload className="w-4 h-4 mr-2" />
-                    Upload Images
-                  </Button>
                   <input
                     ref={batchFileInputRef}
                     type="file"
@@ -461,7 +460,7 @@ const BackgroundRemoval: React.FC<BackgroundRemovalProps> = ({
                     <Button
                       onClick={processBatch}
                       disabled={isProcessing || tasks.filter(t => t.status === 'pending').length === 0}
-                      className="bg-green-600 hover:bg-green-700"
+                      className="bg-green-600 hover:bg-green-700 text-white"
                     >
                       {isProcessing ? (
                         <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Processing...</>
@@ -475,7 +474,7 @@ const BackgroundRemoval: React.FC<BackgroundRemovalProps> = ({
                     <Button
                       onClick={clearAll}
                       variant="outline"
-                      className="border-gray-600 text-gray-400"
+                      className="border-border text-muted-foreground"
                     >
                       <Trash2 className="w-4 h-4 mr-2" />
                       Clear All
@@ -487,7 +486,7 @@ const BackgroundRemoval: React.FC<BackgroundRemovalProps> = ({
                   <Button
                     onClick={downloadAllAsZip}
                     variant="outline"
-                    className="border-purple-600 text-purple-400 hover:bg-purple-600 hover:text-white"
+                    className="border-purple-600 text-purple-600 hover:bg-purple-600 hover:text-white"
                   >
                     <FileArchive className="w-4 h-4 mr-2" />
                     Download All as ZIP
@@ -499,22 +498,25 @@ const BackgroundRemoval: React.FC<BackgroundRemovalProps> = ({
               {tasks.length > 0 && (
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-400">Progress</span>
-                    <span className="text-white">{doneCount} / {totalCount} completed</span>
+                    <span className="text-muted-foreground">Progress</span>
+                    <span className="text-foreground">{doneCount} / {totalCount} completed</span>
                   </div>
-                  <Progress value={progress} className="h-2 bg-gray-700" />
+                  <Progress value={progress} className="h-2 bg-secondary" />
                 </div>
               )}
 
               {/* Empty State */}
               {tasks.length === 0 && (
                 <div 
-                  className="border-2 border-dashed border-gray-600 rounded-lg p-16 text-center hover:border-blue-500 transition-colors cursor-pointer bg-[#1a1a1a]"
+                  className="border-2 border-dashed border-primary/60 rounded-xl p-20 text-center hover:border-primary transition-all duration-300 cursor-pointer bg-card shadow-sm hover:shadow-md group"
                   onClick={() => batchFileInputRef.current?.click()}
                 >
-                  <Images className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                  <p className="text-lg text-white mb-2">Upload multiple images</p>
-                  <p className="text-sm text-gray-400">Select multiple JPG, PNG, or WEBP files</p>
+                  <div className="bg-primary/10 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:bg-primary/20 transition-colors">
+                    <Images className="w-10 h-10 text-primary" />
+                  </div>
+                  <p className="text-2xl font-bold text-foreground mb-3">Upload multiple images</p>
+                  <p className="text-sm text-muted-foreground mb-4">Select multiple JPG, PNG, or WEBP files</p>
+                  <p className="text-foreground text-sm font-medium">Process 500 images in a Single Action</p>
                 </div>
               )}
 
@@ -524,8 +526,8 @@ const BackgroundRemoval: React.FC<BackgroundRemovalProps> = ({
                   {tasks.map((task, index) => (
                     <Card 
                       key={task.id} 
-                      className={`bg-[#1a1a1a] border-gray-700 overflow-hidden ${
-                        isProcessing && currentTaskIndex === index ? 'ring-2 ring-blue-500' : ''
+                      className={`bg-card border-border overflow-hidden ${
+                        isProcessing && currentTaskIndex === index ? 'ring-2 ring-primary' : ''
                       }`}
                     >
                       <div className="relative aspect-square">
@@ -554,7 +556,7 @@ const BackgroundRemoval: React.FC<BackgroundRemovalProps> = ({
                         </div>
                       </div>
                       <CardContent className="p-3">
-                        <p className="text-xs text-gray-400 truncate mb-2" title={task.file.name}>
+                        <p className="text-xs text-muted-foreground truncate mb-2" title={task.file.name}>
                           {task.file.name}
                         </p>
                         <div className="flex items-center justify-between">

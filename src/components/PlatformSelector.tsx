@@ -62,7 +62,7 @@ const PlatformSelector: React.FC<PlatformSelectorProps> = ({
 
   return (
     <div className="space-y-3">
-      <h3 className="text-sm font-medium text-[#f3f4f6] text-center px-3 py-1 inline-block mb-2 w-full tracking-wide">PLATFORMS</h3>
+      <h3 className="text-sm font-medium text-foreground text-center px-3 py-1 inline-block mb-2 w-full tracking-wide">PLATFORMS</h3>
       <div className="flex flex-wrap gap-2 px-2">
         {platforms.map(platform => {
           const isSelected = selectedPlatforms.includes(platform.id);
@@ -78,16 +78,16 @@ const PlatformSelector: React.FC<PlatformSelectorProps> = ({
                       "hover:scale-[1.02]",
                       isSelected
                         ? "bg-gradient-to-r from-[#0086FF] to-[#003E81] border-[#2f8fff] text-white shadow-[0_0_16px_rgba(0,134,255,0.45)]"
-                        : "bg-[#161b22] border-[#2b3748] text-[#d1d5db] hover:bg-[#1d2631] hover:border-[#39506d]"
+                        : "bg-secondary border-border text-muted-foreground hover:bg-muted hover:border-border"
                     )}
                   >
                     <div className="flex items-center justify-center w-5 h-5">
                       {platform.icon}
                     </div>
-                    <span className="whitespace-nowrap text-white">{platform.name}</span>
+                    <span className={cn("whitespace-nowrap", isSelected ? "text-white" : "text-foreground")}>{platform.name}</span>
                   </button>
                 </TooltipTrigger>
-                <TooltipContent className="bg-[#161b22] text-gray-200 border-[#2b3748]">
+                <TooltipContent className="bg-card text-foreground border-border">
                   <p>{platform.name}</p>
                 </TooltipContent>
               </Tooltip>

@@ -41,9 +41,9 @@ const SettingRow: React.FC<SettingRowProps> = ({
   return <div className="mb-4">
       <div className="flex justify-between items-center mb-1">
         {/* Label section - now takes more space without info icon */}
-        <span className="text-xs text-gray-300 tracking-wide">{label}</span>
+        <span className="text-xs text-muted-foreground tracking-wide">{label}</span>
         {/* Right-aligned value */}
-        <span className="text-xs font-medium text-white bg-[#161b22] border border-[#2c3e55] px-2 py-0.5 rounded-md">{currentValue}</span>
+        <span className="text-xs font-medium text-foreground bg-secondary border border-border px-2 py-0.5 rounded-md">{currentValue}</span>
       </div>
       <div className="flex items-center">
         <Slider value={[value]} min={minValue} max={maxValue} step={1} className="flex-1" onValueChange={onChange} />

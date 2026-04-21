@@ -147,24 +147,24 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
 
   return <div className="w-full space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-medium">Generated Data</h2>
+        <h2 className="text-lg font-medium text-foreground">Generated Data</h2>
         <div className="flex items-center gap-4">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="flex items-center gap-2 bg-gray-800 border-gray-700 text-gray-200 hover:bg-gray-700">
-                <FileIcon className="h-4 w-4 text-blue-500" />
+              <Button variant="outline" size="sm" className="flex items-center gap-2 bg-secondary border-border text-foreground hover:bg-muted">
+                <FileIcon className="h-4 w-4 text-primary" />
                 <span>{selectedFormat === 'original' ? 'File format' : `.${selectedFormat}`}</span>
                 <ChevronDown className="h-3 w-3 opacity-50" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="bg-gray-900 border-gray-800 text-gray-200 w-40">
-              <DropdownMenuLabel className="text-blue-500 font-bold px-4 py-2">File format</DropdownMenuLabel>
-              <DropdownMenuSeparator className="bg-gray-800" />
+            <DropdownMenuContent className="bg-card border-border text-foreground w-40">
+              <DropdownMenuLabel className="text-primary font-bold px-4 py-2">File format</DropdownMenuLabel>
+              <DropdownMenuSeparator className="border-border" />
               {formats.map((format) => (
                 <DropdownMenuItem 
                   key={format.value}
                   onClick={() => setSelectedFormat(format.value)}
-                  className={`px-4 py-2 cursor-pointer hover:bg-blue-600 hover:text-white transition-colors ${selectedFormat === format.value ? 'bg-blue-600 text-white' : ''}`}
+                  className={`px-4 py-2 cursor-pointer hover:bg-primary hover:text-primary-foreground transition-colors ${selectedFormat === format.value ? 'bg-primary text-primary-foreground' : ''}`}
                 >
                   {format.label}
                 </DropdownMenuItem>
@@ -173,18 +173,18 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
           </DropdownMenu>
 
           <div className="flex gap-2">
-          {hasCompletedImages && generationMode === 'metadata' && <Button variant="outline" size="sm" onClick={handleDownloadCSV} className="flex items-center gap-1 bg-blue-600 hover:bg-blue-700 text-white border-none">
+          {hasCompletedImages && generationMode === 'metadata' && <Button variant="outline" size="sm" onClick={handleDownloadCSV} className="flex items-center gap-1 bg-primary hover:bg-primary/90 text-primary-foreground border-none">
               <Download className="h-4 w-4" />
               <span>Download All CSV{selectedFormat !== 'original' ? ` (.${selectedFormat})` : ''}</span>
             </Button>}
-          {hasCompletedImages && generationMode === 'imageToPrompt' && completedImages.length > 1 && <Button variant="outline" size="sm" onClick={downloadAllPrompts} className="flex items-center gap-1 bg-blue-600 hover:bg-blue-700 text-white border-none">
+          {hasCompletedImages && generationMode === 'imageToPrompt' && completedImages.length > 1 && <Button variant="outline" size="sm" onClick={downloadAllPrompts} className="flex items-center gap-1 bg-primary hover:bg-primary/90 text-primary-foreground border-none">
               <Download className="h-4 w-4" />
               <span>Download All</span>
             </Button>}
           
 
           
-          <Button variant="outline" size="sm" onClick={onClearAll} className="flex items-center gap-1">
+          <Button variant="outline" size="sm" onClick={onClearAll} className="flex items-center gap-1 border-border text-foreground">
             <X className="h-4 w-4" />
             <span>Clear All</span>
           </Button>
@@ -197,18 +197,18 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
           {completedImages.map(image => <div 
               key={image.id} 
               ref={el => completedImageRefs.current[image.id] = el}
-              className={`bg-black rounded-lg border border-gray-800 overflow-hidden ${lastCompletedId === image.id ? 'animate-scroll-highlight' : ''}`}>
+              className={`bg-card rounded-lg border border-border overflow-hidden ${lastCompletedId === image.id ? 'animate-scroll-highlight' : ''}`}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4">
                 {/* Left column - Source Image */}
-                <div className="p-4 border border-gray-800 rounded-lg">
-                  <h3 className="text-xl font-semibold mb-4">Source Image:</h3>
+                <div className="p-4 border border-border rounded-lg">
+                  <h3 className="text-xl font-semibold mb-4 text-foreground">Source Image:</h3>
                   <div className="rounded-lg overflow-hidden mb-4">
-                    {image.result?.isVideo ? <div className="flex items-center justify-center bg-gray-900 h-[200px] rounded-lg">
-                        <Film className="h-16 w-16 text-gray-400" />
-                        <span className="ml-2 text-gray-400">Video File</span>
-                      </div> : image.result?.isEps ? <div className="flex items-center justify-center bg-gray-900 h-[200px] rounded-lg">
-                        <FileType className="h-16 w-16 text-amber-400" />
-                        <span className="ml-2 text-gray-400">EPS Design File</span>
+                    {image.result?.isVideo ? <div className="flex items-center justify-center bg-secondary h-[200px] rounded-lg">
+                        <Film className="h-16 w-16 text-muted-foreground" />
+                        <span className="ml-2 text-muted-foreground">Video File</span>
+                      </div> : image.result?.isEps ? <div className="flex items-center justify-center bg-secondary h-[200px] rounded-lg">
+                        <FileType className="h-16 w-16 text-amber-500" />
+                        <span className="ml-2 text-muted-foreground">EPS Design File</span>
                       </div> : <img src={image.previewUrl} alt={image.file?.name || 'Image'} className="w-full object-cover max-h-[400px]" />}
                   </div>
                   
@@ -216,12 +216,12 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                 
                 {/* Right column - Generated Prompt */}
                 <div className="p-4">
-                  <h3 className="text-xl font-semibold mb-4">Generated Prompt:</h3>
-                  <div className="bg-black border border-gray-800 rounded-lg p-6">
-                    <p className="text-gray-300 whitespace-pre-wrap">{image.result?.description || ''}</p>
+                  <h3 className="text-xl font-semibold mb-4 text-foreground">Generated Prompt:</h3>
+                  <div className="bg-background border border-border rounded-lg p-6">
+                    <p className="text-muted-foreground whitespace-pre-wrap">{image.result?.description || ''}</p>
                   </div>
                   <div className="flex justify-end mt-4 gap-2">
-                    <Button variant="outline" size="sm" onClick={() => handleCopyToClipboard(image.result?.description || '', image.id)} className="flex items-center gap-1">
+                    <Button variant="outline" size="sm" onClick={() => handleCopyToClipboard(image.result?.description || '', image.id)} className="flex items-center gap-1 border-border text-foreground">
                       {copiedId === image.id ? <>
                           <Check className="h-4 w-4" />
                           <span>Copied</span>
@@ -230,7 +230,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                           <span>Copy</span>
                         </>}
                     </Button>
-                    <Button variant="outline" size="sm" onClick={() => downloadPromptText(image.result?.description || '', image.file?.name || 'image')} className="flex items-center gap-1">
+                    <Button variant="outline" size="sm" onClick={() => downloadPromptText(image.result?.description || '', image.file?.name || 'image')} className="flex items-center gap-1 border-border text-foreground">
                       <Download className="h-4 w-4" />
                       <span>Download</span>
                     </Button>
@@ -248,17 +248,17 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
         return <div 
           key={image.id} 
           ref={el => completedImageRefs.current[image.id] = el}
-          className={`mb-6 bg-gray-800/30 border border-gray-700/50 rounded-lg overflow-hidden ${lastCompletedId === image.id ? 'animate-scroll-highlight' : ''}`}>
+          className={`mb-6 bg-secondary/30 border border-border/50 rounded-lg overflow-hidden ${lastCompletedId === image.id ? 'animate-scroll-highlight' : ''}`}>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="p-6 border-r border-gray-700/50">
-                    <h3 className="text-amber-500 text-lg mb-2">Image Preview</h3>
+                  <div className="p-6 border-r border-border/50">
+                    <h3 className="text-primary text-lg mb-2">Image Preview</h3>
                     <div className="rounded-lg overflow-hidden mb-4">
-                      {image.result?.isVideo ? <div className="flex items-center justify-center bg-gray-900 h-[200px] rounded-lg">
-                          <Film className="h-16 w-16 text-gray-400" />
-                          <span className="ml-2 text-gray-400">Video File</span>
-                        </div> : image.result?.isEps ? <div className="flex items-center justify-center bg-gray-900 h-[200px] rounded-lg">
-                          <FileType className="h-16 w-16 text-amber-400" />
-                          <span className="ml-2 text-gray-400">EPS Design File</span>
+                      {image.result?.isVideo ? <div className="flex items-center justify-center bg-secondary h-[200px] rounded-lg">
+                          <Film className="h-16 w-16 text-muted-foreground" />
+                          <span className="ml-2 text-muted-foreground">Video File</span>
+                        </div> : image.result?.isEps ? <div className="flex items-center justify-center bg-secondary h-[200px] rounded-lg">
+                          <FileType className="h-16 w-16 text-amber-500" />
+                          <span className="ml-2 text-muted-foreground">EPS Design File</span>
                         </div> : <img src={image.previewUrl} alt={image.file?.name || 'Image'} className="w-full object-cover max-h-[400px]" />}
                     </div>
                     
@@ -266,8 +266,8 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                   
                   <div className="p-6">
                     <div className="flex justify-between items-center mb-4">
-                      <h3 className="text-amber-500 text-lg">Generated Metadata</h3>
-                      <Button variant="outline" size="sm" onClick={handleDownloadCSV} className="flex items-center gap-1 bg-blue-600 hover:bg-blue-700 text-white border-none">
+                      <h3 className="text-primary text-lg">Generated Metadata</h3>
+                      <Button variant="outline" size="sm" onClick={handleDownloadCSV} className="flex items-center gap-1 bg-primary hover:bg-primary/90 text-primary-foreground border-none">
                         <Download className="h-4 w-4" />
                         <span>Download CSV</span>
                       </Button>
@@ -276,56 +276,56 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                     <div className="space-y-4">
                       <div>
                         <div className="flex justify-between items-center">
-                          <h4 className="text-amber-500">Filename:</h4>
+                          <h4 className="text-primary">Filename:</h4>
                           <Button 
                             variant="ghost" 
                             size="sm" 
                             onClick={() => handleCopyToClipboard(image.file?.name || '', `filename-${image.id}`)} 
-                            className="h-6 px-2 flex items-center text-gray-400 hover:text-white"
+                            className="h-6 px-2 flex items-center text-muted-foreground hover:text-foreground"
                           >
                             {copiedId === `filename-${image.id}` ? <CheckCircle className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                           </Button>
                         </div>
-                        <p className="text-white">{image.file?.name || 'Unknown file'}</p>
+                        <p className="text-foreground">{image.file?.name || 'Unknown file'}</p>
                       </div>
                       
                       {/* Show title for all platforms except Shutterstock */}
                       {!isShutterstock && <div>
                           <div className="flex justify-between items-center">
-                            <h4 className="text-amber-500">Title:</h4>
+                            <h4 className="text-primary">Title:</h4>
                             <Button 
                               variant="ghost" 
                               size="sm" 
                               onClick={() => handleCopyToClipboard(cleanTitle, `title-${image.id}`)} 
-                              className="h-6 px-2 flex items-center text-gray-400 hover:text-white"
+                              className="h-6 px-2 flex items-center text-muted-foreground hover:text-foreground"
                             >
                               {copiedId === `title-${image.id}` ? <CheckCircle className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                             </Button>
                           </div>
-                          <p className="text-white">{cleanTitle}</p>
+                          <p className="text-foreground">{cleanTitle}</p>
                         </div>}
                       
                       {/* Show description if it exists and is not N/A */}
                       {image.result?.description && image.result.description !== 'N/A' && (
                         <div>
                           <div className="flex justify-between items-center">
-                            <h4 className="text-amber-500">Description:</h4>
+                            <h4 className="text-primary">Description:</h4>
                             <Button 
                               variant="ghost" 
                               size="sm" 
                               onClick={() => handleCopyToClipboard(image.result?.description || '', `description-${image.id}`)} 
-                              className="h-6 px-2 flex items-center text-gray-400 hover:text-white"
+                              className="h-6 px-2 flex items-center text-muted-foreground hover:text-foreground"
                             >
                               {copiedId === `description-${image.id}` ? <CheckCircle className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                             </Button>
                           </div>
-                          <p className="text-white whitespace-pre-wrap mb-4">{image.result.description}</p>
+                          <p className="text-foreground whitespace-pre-wrap mb-4">{image.result.description}</p>
                         </div>
                       )}
                       
                       <div>
                         <div className="flex justify-between items-center">
-                          <h4 className="text-amber-500">Keywords:</h4>
+                          <h4 className="text-primary">Keywords:</h4>
                           <Button 
                             variant="ghost" 
                             size="sm" 
@@ -333,7 +333,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                               (image.result?.keywords || []).join(', '), 
                               `keywords-${image.id}`
                             )} 
-                            className="h-6 px-2 flex items-center text-gray-400 hover:text-white"
+                            className="h-6 px-2 flex items-center text-muted-foreground hover:text-foreground"
                           >
                             {copiedId === `keywords-${image.id}` ? <CheckCircle className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                           </Button>
@@ -346,7 +346,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                                 return (
                                   <span 
                                     key={index} 
-                                    className={`${isCut ? 'bg-gray-600 line-through' : 'bg-blue-600'} text-white text-xs px-3 py-1 rounded-full flex items-center gap-1 group relative`}
+                                    className={`${isCut ? 'bg-muted text-muted-foreground line-through' : 'bg-primary text-primary-foreground'} text-xs px-3 py-1 rounded-full flex items-center gap-1 group relative`}
                                   >
                                     {displayKeyword}
                                     {!isCut && (
@@ -361,14 +361,14 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                                           // Force re-render
                                           setRefreshKey(prev => prev + 1);
                                         }}
-                                        className="ml-1 text-red-500 focus:outline-none opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                                        className="ml-1 text-destructive focus:outline-none opacity-0 group-hover:opacity-100 transition-opacity duration-200"
                                       >
                                         <X className="h-3 w-3" />
                                       </button>
                                     )}
                                   </span>
                                 );
-                              }) : <span className="text-gray-400">No keywords available</span>}
+                              }) : <span className="text-muted-foreground">No keywords available</span>}
                         </div>
                       </div>
 
@@ -379,7 +379,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                       {isFreepikOnly && <>
                           <div>
                             <div className="flex justify-between items-center">
-                              <h4 className="text-amber-500">Prompt:</h4>
+                              <h4 className="text-primary">Prompt:</h4>
                               <Button 
                                 variant="ghost" 
                                 size="sm" 
@@ -387,17 +387,17 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                                   image.result?.prompt || 'Not provided', 
                                   `prompt-${image.id}`
                                 )} 
-                                className="h-6 px-2 flex items-center text-gray-400 hover:text-white"
+                                className="h-6 px-2 flex items-center text-muted-foreground hover:text-foreground"
                               >
                                 {copiedId === `prompt-${image.id}` ? <CheckCircle className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                               </Button>
                             </div>
-                            <p className="text-white">{image.result?.prompt || 'Not provided'}</p>
+                            <p className="text-foreground">{image.result?.prompt || 'Not provided'}</p>
                           </div>
                           
                           <div>
                             <div className="flex justify-between items-center">
-                              <h4 className="text-amber-500">Base-Model:</h4>
+                              <h4 className="text-primary">Base-Model:</h4>
                               <Button 
                                 variant="ghost" 
                                 size="sm" 
@@ -405,12 +405,12 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                                   image.result?.baseModel || 'Not provided', 
                                   `basemodel-${image.id}`
                                 )} 
-                                className="h-6 px-2 flex items-center text-gray-400 hover:text-white"
+                                className="h-6 px-2 flex items-center text-muted-foreground hover:text-foreground"
                               >
                                 {copiedId === `basemodel-${image.id}` ? <CheckCircle className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                               </Button>
                             </div>
-                            <p className="text-white">{image.result?.baseModel || 'Not provided'}</p>
+                            <p className="text-foreground">{image.result?.baseModel || 'Not provided'}</p>
                           </div>
                         </>}
                     </div>
@@ -422,48 +422,48 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
       
       {/* Pending/Processing Images */}
       {images.filter(img => img.status !== 'complete').length > 0 && <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
-          {images.filter(img => img.status !== 'complete').map(image => <div key={image.id} className={`${image.status === 'error' ? 'bg-gray-900' : 'bg-gray-800'} rounded-lg border ${image.status === 'error' ? 'border-red-700/50' : 'border-gray-700'} overflow-hidden shadow-md`}>
+          {images.filter(img => img.status !== 'complete').map(image => <div key={image.id} className={`${image.status === 'error' ? 'bg-background' : 'bg-card'} rounded-lg border ${image.status === 'error' ? 'border-destructive/50' : 'border-border'} overflow-hidden shadow-md`}>
               <div className="p-3">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="relative h-10 w-10 overflow-hidden rounded border bg-gray-700">
+                    <div className="relative h-10 w-10 overflow-hidden rounded border bg-secondary">
                       <img src={image.previewUrl} alt={image.file?.name || 'Image'} className="h-full w-full object-cover" />
                     </div>
                     <div className="overflow-hidden">
-                      <h3 className="font-medium text-xs truncate max-w-[140px]" title={image.file?.name || 'Unknown file'}>
+                      <h3 className="font-medium text-xs truncate max-w-[140px] text-foreground" title={image.file?.name || 'Unknown file'}>
                         {image.file?.name || 'Unknown file'}
                       </h3>
-                      <p className="text-xs text-gray-400">
+                      <p className="text-xs text-muted-foreground">
                         {formatFileSize(image.file?.size || 0)}
                       </p>
                     </div>
                   </div>
                   
-                  <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => onRemoveImage(image.id)}>
+                  <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground" onClick={() => onRemoveImage(image.id)}>
                     <X className="h-3 w-3" />
                     <span className="sr-only">Remove</span>
                   </Button>
                 </div>
               </div>
               
-              <div className={`border-t ${image.status === 'error' ? 'border-red-700/50' : 'border-gray-700'} p-3`}>
+              <div className={`border-t ${image.status === 'error' ? 'border-destructive/50' : 'border-border'} p-3`}>
                 {image.status === 'pending' && <div className="h-12 flex items-center justify-center">
-                    <p className="text-xs text-gray-400">Ready to process</p>
+                    <p className="text-xs text-muted-foreground">Ready to process</p>
                   </div>}
                 
                 {image.status === 'processing' && <div className="h-12 flex flex-col items-center justify-center">
-                    <div className="h-6 w-6 rounded-full border-2 border-blue-500/20 border-t-blue-500 animate-spin mb-1"></div>
-                    <p className="text-xs text-gray-400 animate-pulse">Analyzing image...</p>
+                    <div className="h-6 w-6 rounded-full border-2 border-primary/20 border-t-primary animate-spin mb-1"></div>
+                    <p className="text-xs text-muted-foreground animate-pulse">Analyzing image...</p>
                   </div>}
                 
                 {image.status === 'error' && 
-                  <div className="bg-gray-900/70 border-t border-red-900/40 rounded-b-md p-4 flex flex-col items-center justify-center">
-                    <p className="text-sm text-red-400 mb-3 text-center">{image.error || 'Error processing image'}</p>
+                  <div className="bg-background/70 border-t border-destructive/40 rounded-b-md p-4 flex flex-col items-center justify-center">
+                    <p className="text-sm text-destructive mb-3 text-center">{image.error || 'Error processing image'}</p>
                     {onRegenerateImage && (
                       <Button 
                         variant="default" 
                         size="sm" 
-                        className="bg-green-500 hover:bg-green-600 text-white font-semibold px-5 py-2 h-9 rounded-md shadow-md transition-all duration-300 hover:scale-105 hover:shadow-lg flex items-center"
+                        className="bg-green-600 hover:bg-green-700 text-white font-semibold px-5 py-2 h-9 rounded-md shadow-md transition-all duration-300 hover:scale-105 hover:shadow-lg flex items-center"
                         onClick={() => onRegenerateImage(image.id)}
                       >
                         <RefreshCw className="h-4 w-4 mr-2 animate-spin animate-duration-[2500ms]" />
