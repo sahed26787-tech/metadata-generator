@@ -426,11 +426,6 @@ const Index: React.FC = () => {
       startTimer();
     }
     
-    // Show batch processing message
-    toast.info(`Processing batch ${batchIndex + 1} of ${batches.length} (${currentBatch.length} images)...`, {
-      duration: 5000,
-    });
-    
     try {
       // Update only the current batch images to processing state
       setImages(prev => prev.map(img => 
@@ -642,25 +637,33 @@ const Index: React.FC = () => {
         }
       }
       
-      // Batch completed successfully
-      toast.success(`Batch ${batchIndex + 1} of ${batches.length} completed!`);
-      
       // Automatically process next batch if there are more batches
       if (batchIndex < batches.length - 1) {
-        // Add a small delay before starting the next batch
+        const nextBatch = batches[batchIndex + 1];
+        // Immediately set next batch images to processing status to hide the delay
+        setImages(prev => prev.map(img => 
+          nextBatch.some(batchImg => batchImg.id === img.id) ? {
+            ...img,
+            status: 'processing' as const
+          } : img
+        ));
+        
+        // Add a 7-second hidden delay before starting the next batch to respect RPM limits
         setTimeout(() => {
           processBatch(batchIndex + 1);
-        }, 1000);
+        }, 7000);
+        return; // Skip the finally block's state reset
       } else {
         // All batches completed
         stopTimer();
+        setIsBatchProcessing(false);
+        setIsProcessing(false);
         toast.success('All batches processed successfully!');
       }
       
     } catch (error) {
       console.error('Error processing batch:', error);
       toast.error('An error occurred while processing the batch');
-    } finally {
       setIsBatchProcessing(false);
       setIsProcessing(false);
     }
