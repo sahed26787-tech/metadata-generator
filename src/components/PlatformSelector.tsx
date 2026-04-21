@@ -13,81 +13,41 @@ const platforms: {
   id: Platform;
   icon: React.ReactNode;
   name: string;
-  colors: {
-    ring: string;
-    bg: string;
-    glow: string;
-  };
 }[] = [
   {
     id: 'Alamy',
     icon: <img src="/images/platforms/alamy.svg" alt="General" className="h-5 w-5" />,
-    name: 'General',
-    colors: {
-      ring: "ring-gray-400",
-      bg: "bg-slate-800",
-      glow: "from-slate-800/30 via-slate-800/20 to-slate-800/10"
-    }
+    name: 'General'
   },
   {
     id: 'AdobeStock',
     icon: <img src="/images/platforms/adobestock.svg" alt="AdobeStock" className="h-5 w-5" />,
-    name: 'AdobeStock',
-    colors: {
-      ring: "ring-gray-400",
-      bg: "bg-slate-800",
-      glow: "from-slate-800/30 via-slate-800/20 to-slate-800/10"
-    }
+    name: 'AdobeStock'
   },
   {
     id: 'Freepik',
     icon: <img src="/images/platforms/freepik.svg" alt="Freepik" className="h-5 w-5" />,
-    name: 'Freepik',
-    colors: {
-      ring: "ring-gray-400",
-      bg: "bg-slate-800",
-      glow: "from-slate-800/30 via-slate-800/20 to-slate-800/10"
-    }
+    name: 'Freepik'
   },
   {
     id: 'Shutterstock',
     icon: <img src="/images/platforms/shutterstock.svg" alt="Shutterstock" className="h-5 w-5" />,
-    name: 'Shutterstock',
-    colors: {
-      ring: "ring-gray-400",
-      bg: "bg-slate-800",
-      glow: "from-slate-800/30 via-slate-800/20 to-slate-800/10"
-    }
+    name: 'Shutterstock'
   },
   {
     id: 'Vecteezy',
     icon: <img src="/images/platforms/vecteezy.svg" alt="Vecteezy" className="h-5 w-5" />,
-    name: 'Vecteezy',
-    colors: {
-      ring: "ring-gray-400",
-      bg: "bg-slate-800",
-      glow: "from-slate-800/30 via-slate-800/20 to-slate-800/10"
-    }
+    name: 'Vecteezy'
   },
   {
     id: 'Depositphotos',
     icon: <img src="/images/platforms/depositphotos.svg" alt="Depositphotos" className="h-5 w-5" />,
-    name: 'Depositphotos',
-    colors: {
-      ring: "ring-gray-400",
-      bg: "bg-slate-800",
-      glow: "from-slate-800/30 via-slate-800/20 to-slate-800/10"
-    }
+    name: 'Depositphotos'
   },
   {
     id: '123RF',
     icon: <img src="/images/platforms/123rf.svg" alt="123RF" className="h-5 w-5" />,
-    name: '123RF',
-    colors: {
-      ring: "ring-gray-400",
-      bg: "bg-slate-800",
-      glow: "from-slate-800/30 via-slate-800/20 to-slate-800/10"
-    }
+    name: '123RF'
   }
 ];
 
@@ -102,7 +62,7 @@ const PlatformSelector: React.FC<PlatformSelectorProps> = ({
 
   return (
     <div className="space-y-3">
-      <h3 className="text-sm font-medium text-white text-center px-3 py-1 inline-block mb-2 w-full">PLATFORMS:-</h3>
+      <h3 className="text-sm font-medium text-[#f3f4f6] text-center px-3 py-1 inline-block mb-2 w-full tracking-wide">PLATFORMS</h3>
       <div className="flex flex-wrap gap-2 px-2">
         {platforms.map(platform => {
           const isSelected = selectedPlatforms.includes(platform.id);
@@ -115,10 +75,10 @@ const PlatformSelector: React.FC<PlatformSelectorProps> = ({
                     onClick={() => togglePlatform(platform.id)}
                     className={cn(
                       "flex items-center justify-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 border",
-                      "hover:scale-105 hover:shadow-lg",
+                      "hover:scale-[1.02]",
                       isSelected
-                        ? `${platform.colors.bg} ${platform.colors.ring} border-current text-white shadow-lg`
-                        : "bg-slate-800 border-gray-600 text-white hover:bg-slate-700 hover:border-gray-500"
+                        ? "bg-gradient-to-r from-[#0086FF] to-[#003E81] border-[#2f8fff] text-white shadow-[0_0_16px_rgba(0,134,255,0.45)]"
+                        : "bg-[#161b22] border-[#2b3748] text-[#d1d5db] hover:bg-[#1d2631] hover:border-[#39506d]"
                     )}
                   >
                     <div className="flex items-center justify-center w-5 h-5">
@@ -127,7 +87,7 @@ const PlatformSelector: React.FC<PlatformSelectorProps> = ({
                     <span className="whitespace-nowrap text-white">{platform.name}</span>
                   </button>
                 </TooltipTrigger>
-                <TooltipContent className="bg-gray-800 text-gray-200 border-gray-700">
+                <TooltipContent className="bg-[#161b22] text-gray-200 border-[#2b3748]">
                   <p>{platform.name}</p>
                 </TooltipContent>
               </Tooltip>

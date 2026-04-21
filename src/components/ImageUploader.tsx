@@ -145,13 +145,13 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
   return (
     <div className="max-w-[650px] mx-auto">
       <div 
-        className={`rgb-corners ${isDragging ? 'active' : ''} relative overflow-hidden rounded-xl border border-gray-800 shadow-[0_4px_20px_rgba(0,0,0,0.25)] transition-all duration-300 cursor-pointer ${
+        className={`relative overflow-hidden rounded-2xl border-2 border-dashed border-[#0086FF]/60 shadow-[0_8px_30px_rgba(0,0,0,0.35)] transition-all duration-300 cursor-pointer ${
           isDragging 
-            ? 'transform scale-[1.01] shadow-[0_0_30px_rgba(59,130,246,0.5)]' 
-            : 'hover:bg-gray-800/30'
+            ? 'transform scale-[1.01] shadow-[0_0_35px_rgba(0,134,255,0.45)] border-[#0086FF]' 
+            : 'hover:border-[#0086FF] hover:shadow-[0_0_22px_rgba(0,134,255,0.28)]'
         }`}
         style={{
-          background: 'linear-gradient(135deg, #212121 0%, #1f1f1f 100%)'
+          background: 'linear-gradient(150deg, #161b22 0%, #0f1721 100%)'
         }}
         onDragOver={handleDragOver}
         onDragEnter={handleDragEnter}
@@ -162,7 +162,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
       >
         <div className="flex flex-col items-center justify-center p-12">
           {/* Upload Icon */}
-          <div className="bg-gray-500/50 p-4 rounded-full mb-6 cursor-pointer hover:bg-gray-600/50 transition-colors">
+          <div className="bg-[#0086FF]/15 border border-[#0086FF]/35 p-4 rounded-full mb-6 cursor-pointer hover:bg-[#0086FF]/20 transition-colors">
             <Upload className="h-8 w-8 text-white" />
           </div>
           
@@ -174,8 +174,8 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
             <button 
               className={`px-6 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
                 activeTab === 'JPG' 
-                  ? 'bg-blue-600 text-white' 
-                  : 'bg-blue-600/20 text-blue-300 hover:bg-blue-600/30'
+                  ? 'bg-gradient-to-r from-[#0086FF] to-[#003E81] text-white shadow-[0_0_16px_rgba(0,134,255,0.5)]' 
+                  : 'bg-[#0f1724] text-[#93c5fd] border border-[#24415f] hover:bg-[#14243a]'
               }`}
               onClick={(e) => handleTabClick('JPG', e)}
             >
@@ -184,8 +184,8 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
             <button 
               className={`px-6 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
                 activeTab === 'PNG' 
-                  ? 'bg-purple-600 text-white' 
-                  : 'bg-purple-600/20 text-purple-300 hover:bg-purple-600/30'
+                  ? 'bg-gradient-to-r from-[#0086FF] to-[#003E81] text-white shadow-[0_0_16px_rgba(0,134,255,0.5)]' 
+                  : 'bg-[#0f1724] text-[#93c5fd] border border-[#24415f] hover:bg-[#14243a]'
               }`}
               onClick={(e) => handleTabClick('PNG', e)}
             >
@@ -194,8 +194,8 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
             <button 
               className={`px-6 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
                 activeTab === 'webp' 
-                  ? 'bg-red-600 text-white' 
-                  : 'bg-red-600/20 text-red-300 hover:bg-red-600/30'
+                  ? 'bg-gradient-to-r from-[#0086FF] to-[#003E81] text-white shadow-[0_0_16px_rgba(0,134,255,0.5)]' 
+                  : 'bg-[#0f1724] text-[#93c5fd] border border-[#24415f] hover:bg-[#14243a]'
               }`}
               onClick={(e) => handleTabClick('webp', e)}
             >
@@ -205,17 +205,17 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
           
           {/* Privacy Section */}
           <div className="flex items-center justify-center mb-2">
-            <Lock className="h-4 w-4 text-gray-400 mr-2" />
-            <span className="text-gray-400 text-sm">Privacy Statement</span>
+            <Lock className="h-4 w-4 text-[#9ca3af] mr-2" />
+            <span className="text-[#9ca3af] text-sm">Privacy Statement</span>
           </div>
           
           {/* Privacy Description */}
-          <p className="text-gray-400 text-sm text-center mb-4 max-w-md">
+          <p className="text-[#aeb7c2] text-sm text-center mb-4 max-w-md">
             We process your files directly on your device. All data is automatically removed after metadata extraction.
           </p>
           
           {/* Bottom Text */}
-          <p className="text-gray-300 text-sm font-medium">Process Unlimited images in a Single Action</p>
+          <p className="text-[#e5e7eb] text-sm font-medium">Process Unlimited images in a Single Action</p>
         </div>
         
         <input 

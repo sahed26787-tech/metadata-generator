@@ -154,7 +154,7 @@ const CustomizationOptions: React.FC<CustomizationOptionsProps> = ({
 
   return <div className="space-y-0">
       {/* Settings Header */}
-      <div className="flex items-center justify-between p-2 rounded cursor-pointer hover:bg-gray-700/40 transition-colors" onClick={toggleSettings}>
+      <div className="flex items-center justify-between p-2 rounded-md cursor-pointer hover:bg-[#0086FF]/10 transition-colors border border-transparent hover:border-[#0086FF]/25" onClick={toggleSettings}>
         <div className="flex items-center space-x-2">
           <h2 className="text-sm font-medium text-white">SETTINGS</h2>
         </div>
@@ -227,7 +227,7 @@ const CustomizationOptions: React.FC<CustomizationOptionsProps> = ({
           {/* Custom Prompt Input Field - Shows when enabled */}
           {showCustomPrompt && enabled && (
             <div className="ml-4 mt-2 space-y-2">
-              <div className="bg-gray-800/50 rounded-lg p-3 border border-gray-600">
+              <div className="bg-[#161b22] rounded-lg p-3 border border-[#2b3748]">
                 <label className="block text-xs font-medium text-gray-300 mb-2">
                   Custom Prompt
                 </label>
@@ -235,7 +235,7 @@ const CustomizationOptions: React.FC<CustomizationOptionsProps> = ({
                   value={customPrompt}
                   onChange={handleCustomPromptChange}
                   placeholder="Enter your custom prompt here..."
-                  className="w-full h-24 px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                  className="w-full h-24 px-3 py-2 bg-[#0f1724] border border-[#2b3748] rounded-md text-white text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#0086FF] focus:border-transparent resize-none"
                 />
                 <div className="flex justify-between items-center mt-2">
                   <span className="text-xs text-gray-400">
@@ -245,7 +245,7 @@ const CustomizationOptions: React.FC<CustomizationOptionsProps> = ({
                     onClick={handleResetToDefault}
                     variant="outline"
                     size="sm"
-                    className="text-xs h-7 px-2 bg-gray-700 border-gray-600 hover:bg-gray-600 text-gray-300"
+                    className="text-xs h-7 px-2 bg-[#0f1724] border-[#2b3748] hover:bg-[#162235] text-gray-300"
                   >
                     Reset to Default
                   </Button>
@@ -268,7 +268,7 @@ const CustomizationOptions: React.FC<CustomizationOptionsProps> = ({
           {/* Prohibited Words Input Field - Shows when enabled */}
           {showProhibitedWords && prohibitedWordsEnabled && (
             <div className="ml-4 mt-2 space-y-2">
-              <div className="bg-gray-800/50 rounded-lg p-3 border border-gray-600">
+              <div className="bg-[#161b22] rounded-lg p-3 border border-[#2b3748]">
                 <label className="block text-xs font-medium text-gray-300 mb-2">
                   Prohibited Words
                 </label>
@@ -277,7 +277,7 @@ const CustomizationOptions: React.FC<CustomizationOptionsProps> = ({
                   value={prohibitedWords}
                   onChange={handleProhibitedWordsChange}
                   placeholder="Enter words to avoid, separated by commas (e.g., word1, word2, word3)"
-                  className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2 bg-[#0f1724] border border-[#2b3748] rounded-md text-white text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#0086FF] focus:border-transparent"
                 />
                 <div className="mt-2">
                   <span className="text-xs text-gray-400">

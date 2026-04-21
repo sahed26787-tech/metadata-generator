@@ -730,7 +730,7 @@ const Index: React.FC = () => {
   const remainingCredits = profile?.is_premium ? '∞' : profile ? `${Math.max(0, 5000 - profile.credits_used)}` : '0';
   
   return (
-    <div className="bg-[#030712] flex flex-col min-h-screen">
+    <div className="bg-[#0a0a0f] flex flex-col min-h-screen text-white">
       <AppHeader
         remainingCredits={remainingCredits}
         apiKey={apiKey}
@@ -781,7 +781,7 @@ const Index: React.FC = () => {
           onBgOutputFormatChange={setBgOutputFormat}
         />
         
-        <main className="flex-1 p-6 overflow-auto">
+        <main className="flex-1 p-6 overflow-auto bg-[#0a0a0f]">
           <div className="max-w-5xl mx-auto">
             <div className="mb-6">
               {generationMode === 'backgroundRemoval' ? (
@@ -794,7 +794,7 @@ const Index: React.FC = () => {
                 <>
                   {generationMode !== 'imageToPrompt' && (
                     <div className="flex flex-col mb-4 py-[22px] my-0 mx-0 px-0">
-                      <div className="flex border-b border-gray-700">
+                      <div className="flex border-b border-[#1f2a3a] pb-4">
                         <PlatformSelector
                           selectedPlatforms={platforms}
                           onPlatformChange={handlePlatformChange}
@@ -825,7 +825,7 @@ const Index: React.FC = () => {
                 <div className="flex justify-center mt-4">
                   <Button
                     onClick={handleProcessImages}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-2 rounded-md flex items-center justify-center gap-2"
+                    className="bg-gradient-to-r from-[#0086FF] to-[#003E81] hover:brightness-110 text-white px-8 py-2 rounded-xl flex items-center justify-center gap-2 shadow-[0_0_24px_rgba(0,134,255,0.4)]"
                     disabled={isProcessing || isBatchProcessing || images.filter(img => img.status === 'pending').length === 0 || !apiKey}
                   >
                     {isProcessing || isBatchProcessing ? 

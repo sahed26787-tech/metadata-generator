@@ -135,14 +135,14 @@ const Sidebar: React.FC<SidebarProps> = ({
     return null;
   }
   
-  return <aside className="w-80 bg-[#1F1F1F] border-r border-gray-700 flex flex-col h-screen">
+  return <aside className="w-80 bg-[#0d1117] border-r border-[#1f2a3a] flex flex-col h-screen">
       <div className="flex-1 overflow-auto">
-        <div className="p-4 border-b border-gray-700">
+        <div className="p-4 border-b border-[#1f2a3a]">
           <GenerationModeSelector selectedMode={selectedMode} onModeChange={onModeChange} />
         </div>
         
         {selectedMode === 'metadata' && (
-          <div className="p-4 border-b border-gray-700 py-[8px]">
+          <div className="p-4 border-b border-[#1f2a3a] py-[8px]">
             <div className="flex items-center justify-between cursor-pointer mb-4" onClick={toggleMetadata}>
               <h3 className="text-sm font-medium text-white">Metadata Customization</h3>
               {metadataExpanded ? (
@@ -172,14 +172,14 @@ const Sidebar: React.FC<SidebarProps> = ({
         )}
         
         {selectedMode === 'backgroundRemoval' && (
-          <div className="p-4 border-b border-gray-700 py-[8px]">
+          <div className="p-4 border-b border-[#1f2a3a] py-[8px]">
             <div className="space-y-4">
               <h3 className="text-sm font-medium text-white">Mode</h3>
               <div className="grid grid-cols-2 gap-2">
                 <Button
                   variant={bgRemovalMode === 'single' ? 'default' : 'outline'}
                   onClick={() => onBgRemovalModeChange?.('single')}
-                  className={bgRemovalMode === 'single' ? 'bg-blue-600' : 'bg-[#2a2a2a] border-gray-600'}
+                  className={bgRemovalMode === 'single' ? 'bg-gradient-to-r from-[#0086FF] to-[#003E81] shadow-[0_0_18px_rgba(0,134,255,0.55)] border-0' : 'bg-[#161b22] border-[#2b3748] text-gray-200 hover:bg-[#1d2631]'}
                 >
                   <ImageIcon className="w-4 h-4 mr-2" />
                   Single
@@ -187,7 +187,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                 <Button
                   variant={bgRemovalMode === 'batch' ? 'default' : 'outline'}
                   onClick={() => onBgRemovalModeChange?.('batch')}
-                  className={bgRemovalMode === 'batch' ? 'bg-blue-600' : 'bg-[#2a2a2a] border-gray-600'}
+                  className={bgRemovalMode === 'batch' ? 'bg-gradient-to-r from-[#0086FF] to-[#003E81] shadow-[0_0_18px_rgba(0,134,255,0.55)] border-0' : 'bg-[#161b22] border-[#2b3748] text-gray-200 hover:bg-[#1d2631]'}
                 >
                   <Images className="w-4 h-4 mr-2" />
                   Batch
@@ -195,7 +195,7 @@ const Sidebar: React.FC<SidebarProps> = ({
               </div>
             </div>
             
-            <div className="space-y-4 pt-4 border-t border-gray-700 mt-4">
+            <div className="space-y-4 pt-4 border-t border-[#1f2a3a] mt-4">
               <h3 className="text-sm font-medium text-white">Settings</h3>
               
               <div className="flex items-center justify-between">
@@ -212,10 +212,10 @@ const Sidebar: React.FC<SidebarProps> = ({
                   value={bgOutputFormat}
                   onValueChange={(v) => onBgOutputFormatChange?.(v as 'PNG' | 'WEBP')}
                 >
-                  <SelectTrigger className="bg-[#2a2a2a] border-gray-600 text-white">
+                  <SelectTrigger className="bg-[#161b22] border-[#2b3748] text-white">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-[#2a2a2a] border-gray-600">
+                  <SelectContent className="bg-[#161b22] border-[#2b3748]">
                     <SelectItem value="PNG" className="text-white">PNG</SelectItem>
                     <SelectItem value="WEBP" className="text-white">WEBP</SelectItem>
                   </SelectContent>
@@ -226,7 +226,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         )}
 
         {selectedMode !== 'backgroundRemoval' && (
-          <div className="p-4 border-b border-gray-700 py-[8px]">
+          <div className="p-4 border-b border-[#1f2a3a] py-[8px]">
             <CustomizationOptions 
               enabled={customPromptEnabled}
               onEnabledChange={onCustomPromptEnabledChange} 

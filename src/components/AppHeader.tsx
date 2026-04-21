@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FileType, RefreshCcw, PanelLeftClose, PanelLeftOpen, LogIn, CreditCard, Video, FileVideo, X } from 'lucide-react';
+import { FileType, RefreshCcw, PanelLeftClose, PanelLeftOpen, LogIn, CreditCard, Video, FileVideo, X, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
@@ -133,11 +133,11 @@ const AppHeader: React.FC<AppHeaderProps> = ({
 
   
   
-  return <header className="bg-[#1F1F1F] border-b border-gray-700">
+  return <header className="sticky top-0 z-30 bg-[#0a0a0f]/80 backdrop-blur-xl border-b border-[#1f2a3a]">
       <div className="flex items-center justify-between">
         <div className="flex items-center ml-4">
           <h1 onClick={navigateToHome} className="text-xl font-bold flex items-center cursor-pointer hover:opacity-80 transition-opacity">
-            <img src="/new-site-logo.png" alt="TimesCraft AI" className="h-12 w-auto mr-3 scale-125 origin-left" />
+            <img src="/new-site-logo.png" alt="TimesCraft AI" className="h-12 w-auto mr-3 scale-125 origin-left translate-y-[2px]" />
           </h1>
           
           {/* Sidebar toggle button - Modified to only show the icon */}
@@ -145,7 +145,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
             variant="ghost" 
             size="icon" 
             onClick={toggleSidebar}
-            className="ml-4 text-gray-300 hover:bg-gray-700/50 hover:text-white transition-colors"
+            className="ml-4 text-gray-300 hover:bg-[#0086FF]/10 hover:text-white border border-transparent hover:border-[#0086FF]/40"
             title={sidebarVisible ? "Hide Sidebar" : "Show Sidebar"}
           >
             {sidebarVisible ? 
@@ -159,7 +159,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
             variant="ghost"
             size="sm"
             onClick={handleRefresh}
-            className="ml-2 text-gray-300 hover:bg-gray-700/50 hover:text-white transition-colors"
+            className="ml-2 text-gray-300 hover:bg-[#0086FF]/10 hover:text-white border border-transparent hover:border-[#0086FF]/40"
             title="Refresh page"
           >
             <RefreshCcw className="h-4 w-4" />
@@ -172,21 +172,31 @@ const AppHeader: React.FC<AppHeaderProps> = ({
         <div className="flex-1"></div>
         
         <div className="flex items-center space-x-4 mr-4">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="text-gray-300 hover:bg-[#0086FF]/10 hover:text-white border border-transparent hover:border-[#0086FF]/40"
+            onClick={openWhatsAppSupport}
+          >
+            <Users className="h-4 w-4 mr-2" />
+            Community
+          </Button>
+
           {/* Show the pricing and login buttons for non-authenticated users */}
           {!user && (
             <>
               <Button 
                 variant="outline" 
                 size="sm" 
-                className="bg-white hover:bg-gray-100 text-black hover:text-black focus:text-black active:text-black font-medium border-white px-4 py-1 transform transition-transform duration-200 ease-out hover:scale-105 active:scale-95 hover:shadow-lg"
+                className="border-[#0086FF] text-[#dbeafe] hover:bg-[#0086FF]/10 px-4 py-1"
                 onClick={() => navigate('/pricing')}
               >
                 Pricing
               </Button>
               <Button 
-                variant="outline" 
+                variant="default" 
                 size="sm" 
-                className="bg-blue-600 hover:bg-blue-700 text-white border-blue-700 transition-all duration-300 hover:shadow-lg transform hover:-translate-y-1" 
+                className="text-white border-0" 
                 onClick={() => navigate('/auth')}
               >
                 <LogIn className="h-4 w-4 mr-1" />
@@ -202,7 +212,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
                 <Button 
                   variant="outline" 
                   size="sm" 
-                  className="bg-white hover:bg-gray-100 text-black hover:text-black focus:text-black active:text-black font-medium border-white px-4 py-1 transform transition-transform duration-200 ease-out hover:scale-105 active:scale-95 hover:shadow-lg"
+                  className="border-[#0086FF] text-[#dbeafe] hover:bg-[#0086FF]/10 px-4 py-1"
                   onClick={() => navigate('/pricing')}
                 >
                   Pricing
@@ -211,7 +221,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
               
               {/* Plan Badge for Premium Users */}
               {profile?.is_premium && (
-                <div className="bg-white text-black px-3 py-1 rounded-full text-xs font-bold shadow-lg border border-gray-300 uppercase">
+                <div className="bg-[#161b22] text-[#dbeafe] px-3 py-1 rounded-full text-xs font-bold shadow-lg border border-[#2d3f57] uppercase">
                   {profile.plan_type}
                 </div>
               )}
@@ -227,7 +237,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
                     </Avatar>
                   </div>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-96 p-0 bg-gray-900 border border-gray-800">
+                <DropdownMenuContent className="w-96 p-0 bg-[#161b22] border border-[#273244] shadow-[0_16px_40px_rgba(0,0,0,0.5)]">
                   <UserProfile />
                 </DropdownMenuContent>
               </DropdownMenu>
