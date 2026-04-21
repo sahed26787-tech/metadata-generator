@@ -213,16 +213,6 @@ const Index: React.FC = () => {
     }
   }, [aiProvider]);
   
-  // Remind users to set API key if not present
-  useEffect(() => {
-    if (!apiKey && !isLoading) {
-      toast.info(`Please set your ${aiProvider} API key to use the application`, {
-        duration: 5000,
-        id: 'api-key-reminder'
-      });
-    }
-  }, [apiKey, isLoading, aiProvider]);
-  
   if (isLoading) {
     return <div className="flex min-h-screen items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -718,7 +708,7 @@ const Index: React.FC = () => {
   const processingCount = images.filter(img => img.status === 'processing').length;
   const completedCount = images.filter(img => img.status === 'complete').length;
   const errorCount = images.filter(img => img.status === 'error').length;
-  const remainingCredits = profile?.is_premium ? '∞' : profile ? `${Math.max(0, 5000 - profile.credits_used)}` : '0';
+  const remainingCredits = profile?.is_premium ? '∞' : profile ? `${Math.max(0, profile.total_credits - profile.credits_used)}` : '0';
   
   return (
     <div className="bg-background flex flex-col min-h-screen text-foreground">
@@ -817,7 +807,7 @@ const Index: React.FC = () => {
                   <Button
                     onClick={handleProcessImages}
                     className="bg-gradient-to-r from-[#0086FF] to-[#003E81] hover:brightness-110 text-white px-8 py-2 rounded-xl flex items-center justify-center gap-2 shadow-[0_0_24px_rgba(0,134,255,0.4)]"
-                    disabled={isProcessing || isBatchProcessing || images.filter(img => img.status === 'pending').length === 0 || !apiKey}
+                    disabled={isProcessing || isBatchProcessing || images.filter(img => img.status === 'pending').length === 0 || !apiKey || !canGenerateMetadata}
                   >
                     {isProcessing || isBatchProcessing ? 
                       <Loader2 className="h-4 w-4 animate-spin mr-1" /> : 

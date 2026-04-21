@@ -45,7 +45,7 @@ const Auth: React.FC = () => {
           <div className="flex justify-center mb-8">
             <div className="flex items-center">
               <span className="text-3xl md:text-4xl font-bold text-foreground flex items-center">
-                PixcraftAI
+                Timescraftai
               </span>
             </div>
           </div>
@@ -53,7 +53,7 @@ const Auth: React.FC = () => {
           {/* Login Form */}
           <div className="bg-card rounded-2xl shadow-lg p-8 border border-border">
             <h2 className="text-lg md:text-xl font-semibold text-center mb-6 text-foreground">
-              Log In Or Sign Up to PixcraftAI
+              Log In Or Sign Up to Timescraftai
             </h2>
             
             <div className="space-y-5">

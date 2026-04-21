@@ -23,7 +23,7 @@ const AutomationScripts: React.FC = () => {
         {/* Main Heading Section */}
         <div className="text-center mb-16">
           <h1 className="text-3xl md:text-4xl lg:text-4xl font-bold text-[#1F71DC] mb-6 leading-tight">
-            PixcraftAI এর আলাদা সেবাসমূহ:
+            Timescraftai এর আলাদা সেবাসমূহ:
           </h1>
           <p className="text-lg md:text-xl text-white max-w-4xl mx-auto leading-relaxed">
             আপনার প্রয়োজন অনুযায়ী ব্যবহার করুন
@@ -32,17 +32,17 @@ const AutomationScripts: React.FC = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8 max-w-[1100px] mx-auto">
           
-          {/* First Box - Pixcraftai */}
+          {/* First Box - Timescraftai */}
           <Card className="bg-[#212121] border-gray-700 hover:border-gray-600 transition-all duration-300 hover:shadow-xl flex flex-col min-h-[440px]">
             <CardHeader className="text-center pb-2 px-4 pt-4">
               <div className="mx-auto mb-2 w-14 h-14 rounded-2xl flex items-center justify-center">
                 <img 
                   src="/images/pixcraftai-icon.svg" 
-                  alt="Pixcraftai Icon" 
+                  alt="Timescraftai Icon" 
                   className="w-14 h-14"
                 />
               </div>
-              <CardTitle className="text-xl md:text-2xl font-bold text-white mb-1">Pixcraftai</CardTitle>
+              <CardTitle className="text-xl md:text-2xl font-bold text-white mb-1">Timescraftai</CardTitle>
               <p className="text-white text-xs md:text-sm font-medium mt-6">আনলিমিটেড ইমেজ, এবং AI মডেল ব্যবহার করুন</p>
             </CardHeader>
             <CardContent className="flex flex-col flex-1 px-4 pb-4">

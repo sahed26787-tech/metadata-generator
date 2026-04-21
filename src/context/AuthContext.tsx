@@ -22,6 +22,7 @@ interface AuthContextType {
   getRandomApiKey: () => string;
   apiKey: string;
   updateApiKey: (key: string, provider?: 'Gemini' | 'Groq') => void;
+  refreshProfile: () => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -112,8 +113,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     // Check if user can generate metadata based on credits and premium status
     if (profile) {
-      // Always allow generating metadata regardless of credits or premium status
-      setCanGenerateMetadata(true);
+      // Only allow generating metadata if user has remaining credits
+      setCanGenerateMetadata(profile.remaining_credits > 0);
     } else {
       setCanGenerateMetadata(false);
     }
@@ -460,6 +461,50 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.setItem(storageKey, key);
   };
 
+  // Function to force refresh user profile
+  const refreshProfile = async () => {
+    if (!user || !supabase) return;
+    
+    try {
+      setIsLoading(true);
+      
+      // Use the get_user_profile RPC function
+      const { data: profileData, error: profileError } = await supabase
+        .rpc('get_user_profile', { p_user_id: user.id });
+      
+      if (profileError) {
+        console.error('Error refreshing profile:', profileError);
+        throw profileError;
+      }
+      
+      if (profileData && profileData.length > 0) {
+        const p = profileData[0];
+        const mappedProfile: UserProfile = {
+          id: p.profile_id,
+          email: p.profile_email,
+          plan_type: p.profile_plan_type,
+          total_credits: p.profile_total_credits,
+          credits_used: p.profile_credits_used,
+          remaining_credits: p.profile_remaining_credits,
+          credits_reset_type: p.profile_credits_reset_type,
+          is_premium: p.profile_is_premium,
+          plan_expires_at: p.profile_plan_expires_at,
+          created_at: p.profile_created_at,
+          updated_at: p.profile_updated_at
+        };
+        
+        // Force update the profile state
+        setProfile(mappedProfile);
+        console.log('Profile refreshed successfully:', mappedProfile);
+      }
+    } catch (error) {
+      console.error('Error in refreshProfile:', error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const value = {
     session,
     user,
@@ -474,7 +519,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     forceSignOut,
     getRandomApiKey,
     apiKey,
-    updateApiKey
+    updateApiKey,
+    refreshProfile
   };
 
   return (

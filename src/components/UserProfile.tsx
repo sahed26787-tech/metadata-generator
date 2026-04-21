@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
-import { LogOut, Crown, Clock, Key, Eye, EyeOff, Copy, Check } from 'lucide-react';
+import { LogOut, Crown, Clock, Key, Eye, EyeOff, Copy, Check, RefreshCw } from 'lucide-react';
 import ThemeToggle from '@/components/ThemeToggle';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
@@ -9,7 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { formatDistanceToNow } from 'date-fns';
 
 const UserProfile: React.FC = () => {
-  const { user, profile, signOut, apiKey, updateApiKey } = useAuth();
+  const { user, profile, signOut, apiKey, updateApiKey, refreshProfile } = useAuth();
   const { toast } = useToast();
   const [showApiKey, setShowApiKey] = useState(false);
   const [provider, setProvider] = useState<'Groq' | 'Gemini'>(
@@ -23,6 +23,8 @@ const UserProfile: React.FC = () => {
   );
   const [apiKeyValue, setApiKeyValue] = useState('');
   const [isCopied, setIsCopied] = useState(false);
+  const [clickCount, setClickCount] = useState(0);
+  const [lastClickTime, setLastClickTime] = useState(0);
 
   if (!user || !profile) return null;
 
@@ -108,6 +110,40 @@ const UserProfile: React.FC = () => {
     }
   };
 
+  const handleRefreshProfile = async () => {
+    try {
+      await refreshProfile();
+      toast({
+        title: "Profile Refreshed",
+        description: "Your profile information has been updated.",
+      });
+    } catch (error) {
+      toast({
+        title: "Refresh Failed",
+        description: "Failed to update profile information.",
+      });
+    }
+  };
+
+  const handleRefreshClick = () => {
+    const now = Date.now();
+    const timeSinceLastClick = now - lastClickTime;
+    
+    if (timeSinceLastClick < 300) { // Double click detected (300ms window)
+      // Hard refresh for double click
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('supabase.auth.token');
+        window.location.reload();
+      }
+    } else {
+      // Normal refresh for single click
+      handleRefreshProfile();
+    }
+    
+    setClickCount(clickCount + 1);
+    setLastClickTime(now);
+  };
+
   return (
     <div className="bg-background p-4 text-foreground font-sans">
       <div className="max-w-md mx-auto bg-card backdrop-blur-sm rounded-xl shadow-xl overflow-hidden border border-border">
@@ -125,7 +161,7 @@ const UserProfile: React.FC = () => {
               <div className="flex items-center text-xs text-primary mt-1">
                 <Crown className="h-3 w-3 mr-1 text-yellow-500" />
                 <span className="capitalize">{profile.plan_type} Plan</span>
-                {timeRemaining && profile.plan_type === 'standard' && (
+                {timeRemaining && (profile.plan_type === 'standard' || profile.plan_type === 'exclusive') && (
                   <span className="ml-2 flex items-center text-muted-foreground">
                     <Clock className="h-3 w-3 mr-1" />
                     Expires {timeRemaining}
@@ -136,6 +172,15 @@ const UserProfile: React.FC = () => {
               <span className="text-xs text-muted-foreground mt-1">Free Plan</span>
             )}
           </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleRefreshClick}
+            className="h-8 w-8 p-0 hover:bg-muted"
+            title="Single Click: Refresh | Double Click: Hard Refresh"
+          >
+            <RefreshCw className="h-4 w-4" />
+          </Button>
         </div>
 
         {/* Credits Remaining Section */}
