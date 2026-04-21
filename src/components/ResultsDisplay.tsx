@@ -1,14 +1,22 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { Download, Copy, X, Check, Film, FileType, CheckCircle, RefreshCw, Clock, FileIcon } from 'lucide-react';
+import { Download, Copy, X, Check, Film, FileType, CheckCircle, RefreshCw, Clock, FileIcon, ChevronDown } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuTrigger,
+  DropdownMenuLabel,
+  DropdownMenuSeparator
+} from '@/components/ui/dropdown-menu';
 import { ProcessedImage, formatImagesAsCSV, formatVideosAsCSV, downloadCSV, formatFileSize, removeSymbolsFromTitle, removeCommasFromDescription } from '@/utils/imageHelpers';
 import { toast } from 'sonner';
 import { GenerationMode } from '@/components/GenerationModeSelector';
 import { Card } from '@/components/ui/card';
 import { Platform } from '@/components/PlatformSelector';
-import { getCategoryNameById } from '@/utils/categorySelector';
+
 
 interface ResultsDisplayProps {
   images: ProcessedImage[];
@@ -17,8 +25,6 @@ interface ResultsDisplayProps {
   generationMode: GenerationMode;
   selectedPlatforms?: Platform[];
   onRegenerateImage?: (id: string) => void;
-  epsEnabled?: boolean;
-  onEpsEnabledChange?: (enabled: boolean) => void;
 }
 const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
   images,
@@ -26,15 +32,25 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
   onClearAll,
   generationMode,
   selectedPlatforms = ['AdobeStock'],
-  onRegenerateImage,
-  epsEnabled = false,
-  onEpsEnabledChange
+  onRegenerateImage
 }) => {
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [refreshKey, setRefreshKey] = useState<number>(0);
   const [lastCompletedId, setLastCompletedId] = useState<string | null>(null);
+  const [selectedFormat, setSelectedFormat] = useState<string>('original');
   const completedImagesRef = useRef<HTMLDivElement>(null);
   const completedImageRefs = useRef<{[key: string]: HTMLDivElement | null}>({});
+  
+  const formats = [
+    { label: 'Original', value: 'original' },
+    { label: '.eps', value: 'eps' },
+    { label: '.ai', value: 'ai' },
+    { label: '.psd', value: 'psd' },
+    { label: '.mp4', value: 'mp4' },
+    { label: '.jpg', value: 'jpg' },
+    { label: '.png', value: 'png' }
+  ];
+
   // Track when new images are completed
   useEffect(() => {
     const completedImages = images.filter(img => img.status === 'complete');
@@ -79,18 +95,18 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
     // Process videos if they exist
     if (videoImages.length > 0) {
       const isShutterstock = selectedPlatforms.length === 1 && selectedPlatforms[0] === 'Shutterstock';
-      const videoCsvContent = formatVideosAsCSV(videoImages, isShutterstock, epsEnabled);
+      const videoCsvContent = formatVideosAsCSV(videoImages, isShutterstock, selectedFormat);
       downloadCSV(videoCsvContent, 'video-metadata.csv', 'videos' as Platform);  // Fixed type issue
-      toast.success(`Video metadata CSV file downloaded${epsEnabled ? ' with EPS conversion' : ''}`);
+      toast.success(`Video metadata CSV file downloaded${selectedFormat !== 'original' ? ` with ${selectedFormat.toUpperCase()} format` : ''}`);
     }
 
     // Process regular images if they exist
     if (regularImages.length > 0) {
-      const csvContent = formatImagesAsCSV(regularImages, isFreepikOnly, isShutterstock, isAdobeStock, isVecteezy, isDepositphotos, is123RF, isAlamy, epsEnabled);
+      const csvContent = formatImagesAsCSV(regularImages, isFreepikOnly, isShutterstock, isAdobeStock, isVecteezy, isDepositphotos, is123RF, isAlamy, selectedFormat);
       // Pass the platform name for custom folder naming
       const selectedPlatform = selectedPlatforms.length === 1 ? selectedPlatforms[0] : undefined;
       downloadCSV(csvContent, 'image-metadata.csv', selectedPlatform);
-      toast.success(`Image metadata CSV file downloaded${epsEnabled ? ' with EPS conversion' : ''}`);
+      toast.success(`Image metadata CSV file downloaded${selectedFormat !== 'original' ? ` with ${selectedFormat.toUpperCase()} format` : ''}`);
     }
   };
   const downloadPromptText = (text: string, filename: string) => {
@@ -133,32 +149,33 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-medium">Generated Data</h2>
         <div className="flex items-center gap-4">
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div className="flex items-center space-x-2">
-                  <Switch
-                    id="eps-mode"
-                    checked={epsEnabled}
-                    onCheckedChange={onEpsEnabledChange}
-                    className="data-[state=checked]:bg-blue-500"
-                  />
-                  <label htmlFor="eps-mode" className="text-sm font-medium flex items-center gap-1 cursor-pointer">
-                    <FileIcon className={`h-4 w-4 ${epsEnabled ? 'text-blue-500' : ''}`} />
-                    <span className={epsEnabled ? 'text-blue-500 font-semibold' : ''}>EPS</span>
-                    {epsEnabled && <span className="text-xs text-blue-500 ml-1">(active)</span>}
-                  </label>
-                </div>
-              </TooltipTrigger>
-              <TooltipContent className="bg-gray-800 text-white border-gray-700">
-                <p>When enabled, automatically converts .jpg, .jpeg, .png, and .svg files to .eps format in the CSV output.</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="flex items-center gap-2 bg-gray-800 border-gray-700 text-gray-200 hover:bg-gray-700">
+                <FileIcon className="h-4 w-4 text-blue-500" />
+                <span>{selectedFormat === 'original' ? 'File format' : `.${selectedFormat}`}</span>
+                <ChevronDown className="h-3 w-3 opacity-50" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="bg-gray-900 border-gray-800 text-gray-200 w-40">
+              <DropdownMenuLabel className="text-blue-500 font-bold px-4 py-2">File format</DropdownMenuLabel>
+              <DropdownMenuSeparator className="bg-gray-800" />
+              {formats.map((format) => (
+                <DropdownMenuItem 
+                  key={format.value}
+                  onClick={() => setSelectedFormat(format.value)}
+                  className={`px-4 py-2 cursor-pointer hover:bg-blue-600 hover:text-white transition-colors ${selectedFormat === format.value ? 'bg-blue-600 text-white' : ''}`}
+                >
+                  {format.label}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+
           <div className="flex gap-2">
           {hasCompletedImages && generationMode === 'metadata' && <Button variant="outline" size="sm" onClick={handleDownloadCSV} className="flex items-center gap-1 bg-blue-600 hover:bg-blue-700 text-white border-none">
               <Download className="h-4 w-4" />
-              <span>Download All CSV{epsEnabled ? ' (.eps)' : ''}</span>
+              <span>Download All CSV{selectedFormat !== 'original' ? ` (.${selectedFormat})` : ''}</span>
             </Button>}
           {hasCompletedImages && generationMode === 'imageToPrompt' && completedImages.length > 1 && <Button variant="outline" size="sm" onClick={downloadAllPrompts} className="flex items-center gap-1 bg-blue-600 hover:bg-blue-700 text-white border-none">
               <Download className="h-4 w-4" />
@@ -288,28 +305,23 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                           <p className="text-white">{cleanTitle}</p>
                         </div>}
                       
-                      {/* Show description for platforms other than Freepik and AdobeStock */}
-                      {!isFreepikOnly && !isAdobeStock && <div>
+                      {/* Show description if it exists and is not N/A */}
+                      {image.result?.description && image.result.description !== 'N/A' && (
+                        <div>
                           <div className="flex justify-between items-center">
                             <h4 className="text-amber-500">Description:</h4>
                             <Button 
                               variant="ghost" 
                               size="sm" 
-                              onClick={() => handleCopyToClipboard(
-                                isVecteezy 
-                                  ? (image.result?.description ? removeCommasFromDescription(image.result.description) : '') 
-                                  : (image.result?.description || ''), 
-                                `description-${image.id}`
-                              )} 
+                              onClick={() => handleCopyToClipboard(image.result?.description || '', `description-${image.id}`)} 
                               className="h-6 px-2 flex items-center text-gray-400 hover:text-white"
                             >
                               {copiedId === `description-${image.id}` ? <CheckCircle className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                             </Button>
                           </div>
-                          {isVecteezy ? <div>
-                              <p className="text-white">{image.result?.description ? removeCommasFromDescription(image.result.description) : ''}</p>
-                            </div> : <p className="text-white">{image.result?.description || ''}</p>}
-                        </div>}
+                          <p className="text-white whitespace-pre-wrap mb-4">{image.result.description}</p>
+                        </div>
+                      )}
                       
                       <div>
                         <div className="flex justify-between items-center">
@@ -360,74 +372,9 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                         </div>
                       </div>
 
-                      {/* Show video category if applicable */}
-                      {image.result?.isVideo && <div>
-                          <div className="flex justify-between items-center">
-                            <h4 className="text-amber-500">Video Category:</h4>
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              onClick={() => handleCopyToClipboard(
-                                image.result.category ? `${image.result.category} - ${getCategoryNameById(image.result.category)}` : "Not categorized", 
-                                `category-${image.id}`
-                              )} 
-                              className="h-6 px-2 flex items-center text-gray-400 hover:text-white"
-                            >
-                              {copiedId === `category-${image.id}` ? <CheckCircle className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                            </Button>
-                          </div>
-                          <div className="flex items-center mt-1">
-                            <span className="bg-amber-600 text-white text-xs px-3 py-1 rounded-full">
-                              {image.result.category ? `${image.result.category} - ${getCategoryNameById(image.result.category)}` : "Not categorized"}
-                            </span>
-                          </div>
-                        </div>}
 
-                      {/* Show categories for AdobeStock */}
-                      {isAdobeStock && image.result?.categories && <div>
-                          <div className="flex justify-between items-center">
-                            <h4 className="text-amber-500">Category:</h4>
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              onClick={() => handleCopyToClipboard(
-                                image.result.categories.join(', '), 
-                                `adobestock-categories-${image.id}`
-                              )} 
-                              className="h-6 px-2 flex items-center text-gray-400 hover:text-white"
-                            >
-                              {copiedId === `adobestock-categories-${image.id}` ? <CheckCircle className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                            </Button>
-                          </div>
-                          <div className="flex flex-wrap gap-2 mt-2">
-                            {image.result.categories.map((category, index) => <span key={index} className="bg-purple-600 text-white text-xs px-3 py-1 rounded-full">
-                                {category}
-                              </span>)}
-                          </div>
-                        </div>}
 
-                      {/* Show categories for Shutterstock */}
-                      {isShutterstock && image.result?.categories && <div>
-                          <div className="flex justify-between items-center">
-                            <h4 className="text-amber-500">Categories:</h4>
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              onClick={() => handleCopyToClipboard(
-                                image.result.categories.join(', '), 
-                                `shutterstock-categories-${image.id}`
-                              )} 
-                              className="h-6 px-2 flex items-center text-gray-400 hover:text-white"
-                            >
-                              {copiedId === `shutterstock-categories-${image.id}` ? <CheckCircle className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                            </Button>
-                          </div>
-                          <div className="flex flex-wrap gap-2 mt-2">
-                            {image.result.categories.map((category, index) => <span key={index} className="bg-purple-600 text-white text-xs px-3 py-1 rounded-full">
-                                {category}
-                              </span>)}
-                          </div>
-                        </div>}
+
 
                       {isFreepikOnly && <>
                           <div>

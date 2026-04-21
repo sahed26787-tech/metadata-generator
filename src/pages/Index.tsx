@@ -106,7 +106,6 @@ const Index: React.FC = () => {
   const [isolatedOnTransparentBgEnabled, setIsolatedOnTransparentBgEnabled] = useState(false);
   const [silhouetteEnabled, setSilhouetteEnabled] = useState(false);
   const [singleWordKeywordsEnabled, setSingleWordKeywordsEnabled] = useState(false);
-  const [epsEnabled, setEpsEnabled] = useState(false);
   
   // Format time in min:sec format
   const formatTime = (seconds: number): string => {
@@ -211,12 +210,6 @@ const Index: React.FC = () => {
     const savedSingleWordKeywordsEnabled = localStorage.getItem('single-word-keywords-enabled');
     if (savedSingleWordKeywordsEnabled) {
       setSingleWordKeywordsEnabled(savedSingleWordKeywordsEnabled === 'true');
-    }
-    
-    // Load EPS setting from localStorage
-    const savedEpsEnabled = localStorage.getItem('eps-enabled');
-    if (savedEpsEnabled) {
-      setEpsEnabled(savedEpsEnabled === 'true');
     }
   }, [aiProvider]);
   
@@ -369,11 +362,6 @@ const Index: React.FC = () => {
   const handleSingleWordKeywordsEnabledChange = (enabled: boolean) => {
     setSingleWordKeywordsEnabled(enabled);
     localStorage.setItem('single-word-keywords-enabled', enabled.toString());
-  };
-  
-  const handleEpsEnabledChange = (enabled: boolean) => {
-    setEpsEnabled(enabled);
-    localStorage.setItem('eps-enabled', enabled.toString());
   };
   
   const handleUpgradePlan = () => {
@@ -858,8 +846,6 @@ const Index: React.FC = () => {
                   generationMode={generationMode}
                   selectedPlatforms={platforms}
                   onRegenerateImage={handleRegenerateImage}
-                  epsEnabled={epsEnabled}
-                  onEpsEnabledChange={handleEpsEnabledChange}
                 />
               </div>
               </>

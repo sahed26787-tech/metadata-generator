@@ -69,7 +69,7 @@ function buildPrompt(params: AnalysisOptions & { isFreepikOnly: boolean; isShutt
   }
 
   if (customPromptEnabled && customPrompt.trim()) {
-    prompt = `Analyze this image and generate metadata. ${customPrompt.trim()}`;
+    prompt = `Analyze this image and generate metadata. Follow these specific instructions: ${customPrompt.trim()}\n\n`;
     let formattingPrompt = '';
 
     if (prohibitedWordsEnabled && prohibitedWords.trim()) {
@@ -104,7 +104,7 @@ function buildPrompt(params: AnalysisOptions & { isFreepikOnly: boolean; isShutt
       formattingPrompt += `\n\nFormat your response as a JSON object with the fields "title" and "keywords" (as an array of at least ${minKeywords} terms).`;
     } else {
       if (originalIsVideo) {
-        formattingPrompt += `\n\nFormat your response as a JSON object with the fields "title", "keywords" (as an array of at least ${minKeywords} terms), and "category" (as a number from 1-10).`;
+        formattingPrompt += `\n\nFormat your response as a JSON object with the fields "title", "description", and "keywords" (as an array of at least ${minKeywords} terms).`;
       } else {
         formattingPrompt += `\n\nFormat your response as a JSON object with the fields "title", "description", and "keywords" (as an array of at least ${minKeywords} terms).`;
       }
@@ -136,16 +136,21 @@ function buildPrompt(params: AnalysisOptions & { isFreepikOnly: boolean; isShutt
     if (originalIsEps) {
       prompt = `${prohibitedWordsInstructions}${transparentBgInstructions}${isolatedOnTransparentBgInstructions}${silhouettePrompt}This is metadata extracted from an EPS file named "${originalFilename}". The metadata includes information like title, creator, creation date, document type, color information, and content details. Based on this information, generate appropriate metadata for this design file:`;
     } else if (originalIsVideo) {
-      prompt = `${prohibitedWordsInstructions}${transparentBgInstructions}${isolatedOnTransparentBgInstructions}${silhouettePrompt}This is a thumbnail from a video file named "${originalFilename}". Analyze this thumbnail and generate metadata suitable for a video:`;
+      prompt = `${prohibitedWordsInstructions}${transparentBgInstructions}${isolatedOnTransparentBgInstructions}${silhouettePrompt}This is a sequence of frames from a video file named "${originalFilename}" shown in a grid. Analyze these frames and generate metadata suitable for a video:
+1. A clear, descriptive title between ${minTitleWords}-${maxTitleWords} words that accurately describes the video's content and action. Don't use any symbols.
+2. A detailed description that's between ${minDescriptionWords}-${maxDescriptionWords} words, summarizing the video's content, style, and key elements observed across the frames.
+3. A list of ${minKeywords}-${maxKeywords} relevant, specific keywords (single words or short phrases) that someone might search for to find this video. Focus on subject, environment, lighting, and mood.`;
     }
     if (generationMode === 'imageToPrompt') {
       if (originalIsEps) {
         prompt = `${prohibitedWordsInstructions}${transparentBgInstructions}${isolatedOnTransparentBgInstructions}${silhouettePrompt}This is metadata extracted from an EPS file named "${originalFilename}". The metadata includes information like title, creator, document type (${epsMetadata?.documentType || 'Vector Design'}), and content details. Generate a detailed description of what this design file likely contains. \n\nImage Count: ${epsMetadata?.imageCount || 1}\nColors: ${epsMetadata?.colors?.join(', ') || 'Unknown'}\nFonts: ${epsMetadata?.fontInfo?.join(', ') || 'Unknown'}\n\nThe description should be at least 50 words but not more than 150 words. Important: Do not include phrases like "Vector EPS" or "EPS file" or "Vector file" in the description itself - just describe the content.`;
       } else if (originalIsVideo) {
-        prompt = `${prohibitedWordsInstructions}${transparentBgInstructions}${isolatedOnTransparentBgInstructions}${silhouettePrompt}This is a thumbnail from a video file named "${originalFilename}". Generate a detailed description of what this video appears to contain based on this frame. Include details about content, style, colors, movement, and composition. The description should be at least 50 words but not more than 150 words.`;
+        prompt = `${prohibitedWordsInstructions}${transparentBgInstructions}${isolatedOnTransparentBgInstructions}${silhouettePrompt}This is a sequence of frames from a video file named "${originalFilename}" shown in a grid. Generate a detailed description of what this video contains based on these frames. Analyze the motion, subject matter, and style across the sequence. The description should be at least 50 words but not more than 150 words.`;
       } else {
         prompt = `${prohibitedWordsInstructions}${transparentBgInstructions}${isolatedOnTransparentBgInstructions}${silhouettePrompt}Generate a detailed prompt description to recreate this image with an AI image generator. Include details about content, style, colors, lighting, and composition. The prompt should be at least 50 words but not more than 150 words.`;
       }
+    } else if (originalIsVideo) {
+      // Prompt is already set above for videos
     } else if (isFreepikOnly) {
       if (originalIsEps) {
         prompt = `${prohibitedWordsInstructions}${transparentBgInstructions}${isolatedOnTransparentBgInstructions}${silhouettePrompt}This is metadata extracted from an EPS file named "${originalFilename}". The metadata includes the following information:\n\nDocument Type: ${epsMetadata?.documentType || 'Vector Design'}\nImage Count: ${epsMetadata?.imageCount || 1}\nColors: ${epsMetadata?.colors?.join(', ') || 'Unknown'}\nFonts: ${epsMetadata?.fontInfo?.join(', ') || 'Unknown'}\n\nGenerate metadata for the Freepik platform:\n1. A clear, descriptive title between ${minTitleWords}-${maxTitleWords} words that accurately describes what's likely in this design file. The title should be relevant for stock image platforms. Don't use any symbols.\n2. Create an image generation prompt that describes this design file in 1-2 sentences (30-50 words). Important: Do not include phrases like "Vector EPS" or "EPS file" or "Vector file" in the prompt itself - just describe the content.\n3. Generate a detailed list of ${minKeywords}-${maxKeywords} relevant, specific keywords (single words or short phrases) that someone might search for to find this design. Focus on content, style, and technical aspects of the design.`;
@@ -165,27 +170,23 @@ function buildPrompt(params: AnalysisOptions & { isFreepikOnly: boolean; isShutt
         prompt = `${prohibitedWordsInstructions}${transparentBgInstructions}${isolatedOnTransparentBgInstructions}${silhouettePrompt}Analyze this image and generate metadata for Adobe Stock:\n1. A clear, descriptive title between ${minTitleWords}-${maxTitleWords} words. Don't use any symbols.\n2. A list of ${minKeywords}-${maxKeywords} relevant, specific keywords (single words or short phrases) that someone might search for to find this image.`;
       }
     } else {
-      if (originalIsVideo) {
-        prompt = `${prohibitedWordsInstructions}${transparentBgInstructions}${isolatedOnTransparentBgInstructions}${silhouettePrompt}This is a thumbnail from a video file named "${originalFilename}". Analyze this thumbnail and generate metadata suitable for a video:\n1. A clear, descriptive title between ${minTitleWords}-${maxTitleWords} words that accurately describes what's in the video. Don't use any symbols.\n2. A list of ${minKeywords}-${maxKeywords} relevant, specific keywords (single words or short phrases) that someone might search for to find this video.\n3. A category number between 1-10, where:\n   1=Animations, 2=Backgrounds, 3=Business, 4=Education, 5=Food, 6=Lifestyle, 7=Nature, 8=Presentations, 9=Technology, 10=Other`;
-      } else if (originalIsEps) {
+      if (originalIsEps) {
         prompt = `${prohibitedWordsInstructions}${transparentBgInstructions}${isolatedOnTransparentBgInstructions}${silhouettePrompt}This is metadata extracted from an EPS file named "${originalFilename}". The metadata includes the following information:\n\nDocument Type: ${epsMetadata?.documentType || 'Vector Design'}\nImage Count: ${epsMetadata?.imageCount || 1}\nColors: ${epsMetadata?.colors?.join(', ') || 'Unknown'}\nFonts: ${epsMetadata?.fontInfo?.join(', ') || 'Unknown'}\n\nGenerate appropriate metadata for this design file:\n1. A clear, descriptive title between ${minTitleWords}-${maxTitleWords} words that accurately describes what's likely in this design file. Don't use any symbols.\n2. A detailed description that's between ${minDescriptionWords}-${maxDescriptionWords} words. Important: Do not include phrases like "Vector EPS" or "EPS file" or "Vector file" in the description itself - just describe the content.\n3. A list of ${minKeywords}-${maxKeywords} relevant, specific keywords (single words or short phrases) that someone might search for to find this design.`;
       } else {
         prompt = `${prohibitedWordsInstructions}${transparentBgInstructions}${isolatedOnTransparentBgInstructions}${silhouettePrompt}Analyze this image and generate:\n1. A clear, descriptive title between ${minTitleWords}-${maxTitleWords} words. Don't use any symbols.\n2. A detailed description that's between ${minDescriptionWords}-${maxDescriptionWords} words.\n3. A list of ${minKeywords}-${maxKeywords} relevant, specific keywords (single words or short phrases) that someone might search for to find this image.`;
       }
     }
     if (generationMode !== 'imageToPrompt') {
-      if (isFreepikOnly) {
+      if (originalIsVideo) {
+        prompt += `\n\nFormat your response as a JSON object with the fields "title", "description", and "keywords" (as an array).`;
+      } else if (isFreepikOnly) {
         prompt += `\n\nFormat your response as a JSON object with the fields "title", "prompt", and "keywords" (as an array of at least ${minKeywords} terms).`;
       } else if (isShutterstock) {
         prompt += `\n\nFormat your response as a JSON object with the fields "description" and "keywords" (as an array).`;
       } else if (isAdobeStock) {
         prompt += `\n\nFormat your response as a JSON object with the fields "title" and "keywords" (as an array).`;
       } else {
-        if (originalIsVideo) {
-          prompt += `\n\nFormat your response as a JSON object with the fields "title", "keywords" (as an array), and "category" (as a number from 1-10).`;
-        } else {
-          prompt += `\n\nFormat your response as a JSON object with the fields "title", "description", and "keywords" (as an array).`;
-        }
+        prompt += `\n\nFormat your response as a JSON object with the fields "title", "description", and "keywords" (as an array).`;
       }
     }
   }
@@ -474,18 +475,6 @@ serve(async (req) => {
     }
     if (isAdobeStock) {
       result.categories = suggestCategoriesForAdobeStock(result.title || '', result.keywords || []);
-    }
-
-    // Handle video category
-    const originalIsVideo = options.originalIsVideo || false;
-    if (originalIsVideo) {
-      let videoCategory: number;
-      if (result.category && typeof result.category === 'number' && result.category >= 1 && result.category <= 21) {
-        videoCategory = result.category;
-      } else {
-        videoCategory = determineVideoCategory(result.title || '', result.description || '', result.keywords || []);
-      }
-      result.category = videoCategory;
     }
 
     // Handle Freepik specific

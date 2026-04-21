@@ -1,7 +1,6 @@
 import { Platform } from '@/components/PlatformSelector';
 import { removeSymbols } from './stringUtils';
 import { getRelevantFreepikKeywords } from './keywordGenerator';
-import { determineVideoCategory } from './categorySelector';
 
 export interface ProcessedImage {
   id: string;
@@ -17,7 +16,6 @@ export interface ProcessedImage {
     baseModel?: string;
     categories?: string[];
     isVideo?: boolean;
-    category?: number;
     isEps?: boolean;
   };
   error?: string;
@@ -35,7 +33,7 @@ export const formatImagesAsCSV = (
   isDepositphotos?: boolean,
   is123RF?: boolean,
   isAlamy?: boolean,
-  epsEnabled?: boolean
+  targetFormat?: string
 ): string => {
   const header = isFreepikOnly
     ? '"File name";"Title";"Keywords";"Prompt";"Base-Model"'
@@ -48,18 +46,11 @@ export const formatImagesAsCSV = (
   const rows = images
     .filter(img => img.status === 'complete' && img.result)
     .map(img => {
-      // Convert filename to EPS if enabled and it's an image file
+      // Convert filename to selected format if specified
       let filename = img.file.name;
-      if (epsEnabled) {
-        // Check if the file is a convertible image type
-        const lowerFilename = filename.toLowerCase();
-        if (lowerFilename.endsWith('.jpg') || 
-            lowerFilename.endsWith('.jpeg') || 
-            lowerFilename.endsWith('.png') || 
-            lowerFilename.endsWith('.svg')) {
-          // Replace the extension with .eps
-          filename = filename.substring(0, filename.lastIndexOf('.')) + '.eps';
-        }
+      if (targetFormat && targetFormat !== 'original') {
+        // Replace the extension with the selected format
+        filename = filename.substring(0, filename.lastIndexOf('.')) + (targetFormat.startsWith('.') ? targetFormat : `.${targetFormat}`);
       }
       
       const title = img.result?.title ? removeSymbolsFromTitle(img.result.title) : '';
@@ -85,11 +76,11 @@ export const formatImagesAsCSV = (
 /**
  * Format videos as CSV
  */
-export const formatVideosAsCSV = (videos: ProcessedImage[], isShutterstock?: boolean, epsEnabled?: boolean): string => {
+export const formatVideosAsCSV = (videos: ProcessedImage[], isShutterstock?: boolean, targetFormat?: string): string => {
   // Create CSV header row - Shutterstock requires specific format
   const header = isShutterstock 
     ? '"Filename","Description","Keywords"'
-    : '"Filename","Title","Keywords","Category"';
+    : '"Filename","Title","Description","Keywords"';
   
   // Process each video
   const rows = videos
@@ -98,17 +89,10 @@ export const formatVideosAsCSV = (videos: ProcessedImage[], isShutterstock?: boo
       // Ensure we have a filename
       let filename = video.file.name;
       
-      // Convert filename to EPS if enabled and it's an image file
-      if (epsEnabled) {
-        // Check if the file is a convertible image type
-        const lowerFilename = filename.toLowerCase();
-        if (lowerFilename.endsWith('.jpg') || 
-            lowerFilename.endsWith('.jpeg') || 
-            lowerFilename.endsWith('.png') || 
-            lowerFilename.endsWith('.svg')) {
-          // Replace the extension with .eps
-          filename = filename.substring(0, filename.lastIndexOf('.')) + '.eps';
-        }
+      // Convert filename to selected format if specified
+      if (targetFormat && targetFormat !== 'original') {
+        // Replace the extension with the selected format
+        filename = filename.substring(0, filename.lastIndexOf('.')) + (targetFormat.startsWith('.') ? targetFormat : `.${targetFormat}`);
       }
       
       // Clean title
@@ -121,21 +105,11 @@ export const formatVideosAsCSV = (videos: ProcessedImage[], isShutterstock?: boo
       const filteredKeywords = (video.result?.keywords || []).filter(keyword => !keyword.startsWith('❌'));
       const keywords = filteredKeywords.join(',');
       
-      // Determine category
-      // Use the existing category if available, otherwise determine it
-      // Filter out cut keywords for category determination
-      const filteredKeywordsForCategory = (video.result?.keywords || []).filter(keyword => !keyword.startsWith('❌'));
-      const category = video.result?.category || determineVideoCategory(
-        title,
-        description,
-        filteredKeywordsForCategory
-      );
-      
       // Format the row with proper CSV escaping
       // For Shutterstock, use the description and keywords without category
       return isShutterstock
         ? `"${escapeCSV(filename)}","${escapeCSV(description)}","${escapeCSV(keywords)}"`
-        : `"${escapeCSV(filename)}","${escapeCSV(title)}","${escapeCSV(keywords)}","${category}"`;
+        : `"${escapeCSV(filename)}","${escapeCSV(title)}","${escapeCSV(description)}","${escapeCSV(keywords)}"`;
     });
   
   // Combine header and rows

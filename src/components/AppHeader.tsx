@@ -207,17 +207,15 @@ const AppHeader: React.FC<AppHeaderProps> = ({
         
           {user && (
             <>
-              {/* Pricing button left of profile icon (hidden for premium users) */}
-              {!profile?.is_premium && (
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="border-[#0086FF] text-[#dbeafe] hover:bg-[#0086FF]/10 px-4 py-1"
-                  onClick={() => navigate('/pricing')}
-                >
-                  Pricing
-                </Button>
-              )}
+              {/* Pricing button left of profile icon (Always show for all plans) */}
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="border-[#0086FF] text-[#dbeafe] hover:bg-[#0086FF]/10 px-4 py-1"
+                onClick={() => navigate('/pricing')}
+              >
+                Pricing
+              </Button>
               
               {/* Plan Badge for Premium Users */}
               {profile?.is_premium && (

@@ -175,6 +175,136 @@ async function extractThumbnailUsingBlob(videoFile: File): Promise<File> {
 }
 
 /**
+ * Extracts multiple frames from a video and combines them into a single grid image
+ * This gives Gemini temporal context of the video without sending a large file
+ * @param videoFile - The video file to process
+ * @param frameCount - How many frames to extract (default: 5)
+ * @returns A Promise that resolves to a PNG File object of the grid
+ */
+export async function extractVideoFrameGrid(
+  videoFile: File,
+  frameCount: number = 5
+): Promise<File> {
+  return new Promise((resolve, reject) => {
+    try {
+      const video = document.createElement('video');
+      video.preload = 'metadata';
+      
+      video.onloadedmetadata = async () => {
+        try {
+          const duration = video.duration;
+          const frames: HTMLCanvasElement[] = [];
+          
+          // Calculate frame times (spaced out evenly)
+          // Avoid the very beginning (0s) and very end (duration)
+          const interval = duration / (frameCount + 1);
+          const frameTimes = Array.from({ length: frameCount }, (_, i) => (i + 1) * interval);
+          
+          // Extract each frame
+          for (const time of frameTimes) {
+            const frameCanvas = await captureFrameAtTime(video, time);
+            frames.push(frameCanvas);
+          }
+          
+          // Combine frames into a grid (e.g., if 5 frames, 1x5 or 2x3)
+          const gridCanvas = createFrameGrid(frames);
+          
+          // Convert to blob
+          gridCanvas.toBlob((blob) => {
+            if (!blob) {
+              reject(new Error('Failed to create video frame grid blob'));
+              return;
+            }
+            
+            const gridFile = new File([blob], `${videoFile.name.replace(/\.[^/.]+$/, '')}_grid.png`, {
+              type: 'image/png',
+              lastModified: Date.now(),
+            });
+            
+            resolve(gridFile);
+          }, 'image/png');
+        } catch (error) {
+          reject(error);
+        }
+      };
+      
+      video.onerror = () => reject(new Error('Failed to load video for grid extraction'));
+      
+      const objectUrl = URL.createObjectURL(videoFile);
+      video.src = objectUrl;
+      
+      // Cleanup
+      setTimeout(() => {
+        if (video.readyState === 0) {
+          reject(new Error('Video loading timed out for grid extraction'));
+        }
+      }, 15000);
+      
+    } catch (error) {
+      reject(error);
+    }
+  });
+}
+
+/**
+ * Helper to capture a frame at a specific time
+ */
+async function captureFrameAtTime(video: HTMLVideoElement, time: number): Promise<HTMLCanvasElement> {
+  return new Promise((resolve, reject) => {
+    const onSeeked = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = video.videoWidth || 640;
+      canvas.height = video.videoHeight || 360;
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        video.removeEventListener('seeked', onSeeked);
+        resolve(canvas);
+      } else {
+        reject(new Error('Could not get canvas context'));
+      }
+    };
+    
+    video.addEventListener('seeked', onSeeked);
+    video.currentTime = time;
+  });
+}
+
+/**
+ * Helper to create a grid from multiple frame canvases
+ */
+function createFrameGrid(frames: HTMLCanvasElement[]): HTMLCanvasElement {
+  const frameWidth = frames[0].width;
+  const frameHeight = frames[0].height;
+  const count = frames.length;
+  
+  // For 5 frames, we can do 1 row of 5, or 2 rows (3 and 2)
+  // Let's do a vertical stack or horizontal strip for simplicity, 
+  // or a more compact grid. Let's do a 2-column grid for better visibility.
+  const cols = Math.min(count, 2);
+  const rows = Math.ceil(count / cols);
+  
+  const gridCanvas = document.createElement('canvas');
+  gridCanvas.width = frameWidth * cols;
+  gridCanvas.height = frameHeight * rows;
+  
+  const ctx = gridCanvas.getContext('2d');
+  if (!ctx) throw new Error('Could not get grid canvas context');
+  
+  // Fill background with black to avoid gaps
+  ctx.fillStyle = '#000000';
+  ctx.fillRect(0, 0, gridCanvas.width, gridCanvas.height);
+  
+  frames.forEach((frame, index) => {
+    const col = index % cols;
+    const row = Math.floor(index / cols);
+    ctx.drawImage(frame, col * frameWidth, row * frameHeight);
+  });
+  
+  return gridCanvas;
+}
+
+/**
  * Checks if a file is a video
  */
 export function isVideoFile(file: File): boolean {

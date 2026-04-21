@@ -3,7 +3,7 @@ import { GenerationMode } from '@/components/GenerationModeSelector';
 import { getRelevantFreepikKeywords } from './keywordGenerator';
 import { suggestCategoriesForShutterstock, suggestCategoriesForAdobeStock, removeSymbolsFromTitle, reduceImageSize } from './imageHelpers';
 import { convertSvgToPng, isSvgFile } from './svgToPng';
-import { extractVideoThumbnail, isVideoFile } from './videoProcessor';
+import { extractVideoThumbnail, extractVideoFrameGrid, isVideoFile } from './videoProcessor';
 import { isEpsFile, extractEpsMetadata, createEpsMetadataRepresentation } from './epsMetadataExtractor';
 import type { EpsMetadata } from './epsMetadataExtractor';
 import { determineVideoCategory } from './categorySelector';
@@ -42,7 +42,6 @@ interface AnalysisResult {
   error?: string;
   filename?: string;
   isVideo?: boolean;
-  category?: number;
   isEps?: boolean;
   index?: number; // Added for individual processing
 }
@@ -79,7 +78,8 @@ export async function analyzeImageWithGemini(
       fileToProcess = createEpsMetadataRepresentation(epsMetadata);
     } else if (isVideoFile(imageFile)) {
       originalIsVideo = true;
-      fileToProcess = await extractVideoThumbnail(imageFile);
+      // Extract a grid of 6 frames (3x2) for better context
+      fileToProcess = await extractVideoFrameGrid(imageFile, 6);
     } else if (fileToProcess.type.startsWith('image/')) {
       try {
         fileToProcess = await reduceImageSize(fileToProcess);
@@ -127,7 +127,6 @@ export async function analyzeImageWithGemini(
       prompt: data.prompt,
       baseModel: data.baseModel,
       categories: data.categories,
-      category: data.category,
       filename: originalFilename,
       isVideo: originalIsVideo,
       isEps: originalIsEps,
@@ -214,9 +213,10 @@ async function legacyAnalyzeImageWithGemini(
     else if (isVideoFile(imageFile)) {
       try {
         originalIsVideo = true;
-        fileToProcess = await extractVideoThumbnail(imageFile);
+        // Extract a grid of 6 frames for better temporal context
+        fileToProcess = await extractVideoFrameGrid(imageFile, 6);
       } catch (extractionError) {
-        throw new Error('Failed to extract thumbnail from video: ' + (extractionError instanceof Error ? extractionError.message : 'Unknown error'));
+        throw new Error('Failed to extract frame grid from video: ' + (extractionError instanceof Error ? extractionError.message : 'Unknown error'));
       }
     }
     // For regular image files, reduce the size
