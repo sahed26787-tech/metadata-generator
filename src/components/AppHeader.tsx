@@ -137,7 +137,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
 
   
   
-  return <header className="sticky top-0 z-30 bg-background/80 backdrop-blur-xl border-b border-border">
+  return <header className="sticky top-0 z-[60] bg-background/80 backdrop-blur-xl border-b border-border">
       <div className="flex items-center justify-between h-16">
         <div className="flex items-center w-auto md:w-80 px-2 md:px-4 h-full justify-between mr-2 md:mr-4">
           <h1 onClick={navigateToHome} className="text-xl font-bold flex items-center cursor-pointer hover:opacity-80 transition-opacity">

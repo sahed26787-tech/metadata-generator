@@ -147,7 +147,7 @@ const Sidebar: React.FC<SidebarProps> = ({
       />
       
       <aside className={cn(
-        "bg-card border-r border-border flex flex-col h-screen transition-all duration-300 z-50",
+        "bg-card border-r border-border flex flex-col h-screen transition-all duration-300 z-50 md:z-40",
         "fixed inset-y-0 left-0 w-80 md:relative md:w-80",
         isVisible ? "translate-x-0" : "-translate-x-full md:translate-x-0"
       )}>
