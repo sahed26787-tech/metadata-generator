@@ -4,7 +4,7 @@ import { useAuth } from '@/context/AuthContext';
 
 const TermsOfService: React.FC = () => {
   const { profile } = useAuth();
-  const remainingCredits = profile?.is_premium ? '∞' : profile ? `${Math.max(0, 5 - profile.credits_used)}` : '0';
+  const remainingCredits = profile?.is_premium ? '∞' : profile ? `${Math.max(0, 15 - profile.credits_used)}` : '0';
 
   return (
     <div className="bg-[#171717] min-h-screen flex flex-col">

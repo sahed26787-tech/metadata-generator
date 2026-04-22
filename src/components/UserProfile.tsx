@@ -1,15 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
-import { LogOut, Crown, Clock, Key, Eye, EyeOff, Copy, Check, RefreshCw } from 'lucide-react';
+import { LogOut, Crown, Clock, Key, Eye, EyeOff, Copy, Check, BookOpen, CreditCard, MessageSquare, MessageCircle, Facebook, Youtube, Globe } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { formatDistanceToNow } from 'date-fns';
+import { useNavigate } from 'react-router-dom';
+import ThemeToggle from '@/components/ThemeToggle';
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem
+} from '@/components/ui/dropdown-menu';
 
 const UserProfile: React.FC = () => {
   const { user, profile, signOut, apiKey, updateApiKey, refreshProfile } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [showApiKey, setShowApiKey] = useState(false);
   const [provider, setProvider] = useState<'Groq' | 'Gemini'>(
     (typeof window !== 'undefined' && (localStorage.getItem('ai-provider') as 'Groq' | 'Gemini')) || 'Groq'
@@ -22,8 +31,6 @@ const UserProfile: React.FC = () => {
   );
   const [apiKeyValue, setApiKeyValue] = useState('');
   const [isCopied, setIsCopied] = useState(false);
-  const [clickCount, setClickCount] = useState(0);
-  const [lastClickTime, setLastClickTime] = useState(0);
 
   if (!user || !profile) return null;
 
@@ -109,40 +116,6 @@ const UserProfile: React.FC = () => {
     }
   };
 
-  const handleRefreshProfile = async () => {
-    try {
-      await refreshProfile();
-      toast({
-        title: "Profile Refreshed",
-        description: "Your profile information has been updated.",
-      });
-    } catch (error) {
-      toast({
-        title: "Refresh Failed",
-        description: "Failed to update profile information.",
-      });
-    }
-  };
-
-  const handleRefreshClick = () => {
-    const now = Date.now();
-    const timeSinceLastClick = now - lastClickTime;
-    
-    if (timeSinceLastClick < 300) { // Double click detected (300ms window)
-      // Hard refresh for double click
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem('supabase.auth.token');
-        window.location.reload();
-      }
-    } else {
-      // Normal refresh for single click
-      handleRefreshProfile();
-    }
-    
-    setClickCount(clickCount + 1);
-    setLastClickTime(now);
-  };
-
   return (
     <div className="bg-background p-4 text-foreground font-sans">
       <div className="max-w-md mx-auto bg-card backdrop-blur-sm rounded-xl shadow-xl overflow-hidden border border-border">
@@ -171,15 +144,6 @@ const UserProfile: React.FC = () => {
               <span className="text-xs text-muted-foreground mt-1">Free Plan</span>
             )}
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleRefreshClick}
-            className="h-8 w-8 p-0 hover:bg-muted"
-            title="Single Click: Refresh | Double Click: Hard Refresh"
-          >
-            <RefreshCw className="h-4 w-4" />
-          </Button>
         </div>
 
         {/* Credits Remaining Section */}
@@ -206,6 +170,64 @@ const UserProfile: React.FC = () => {
           {profile.credits_reset_type === 'monthly' && (
             <p className="text-xs text-muted-foreground mt-2">Resets monthly</p>
           )}
+        </div>
+
+        {/* Mobile Menu Items */}
+        <div className="p-2 border-b border-border grid grid-cols-1 gap-1 md:hidden">
+          <Button 
+            variant="ghost" 
+            className="w-full justify-start text-muted-foreground hover:text-foreground hover:bg-muted h-10 px-3"
+            onClick={() => navigate('/resources')}
+          >
+            <BookOpen className="h-4 w-4 mr-3" />
+            Resources
+          </Button>
+
+          <Button 
+            variant="ghost" 
+            className="w-full justify-start text-muted-foreground hover:text-foreground hover:bg-muted h-10 px-3"
+            onClick={() => navigate('/pricing')}
+          >
+            <CreditCard className="h-4 w-4 mr-3" />
+            Pricing
+          </Button>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button 
+                variant="ghost" 
+                className="w-full justify-start text-muted-foreground hover:text-foreground hover:bg-muted h-10 px-3"
+              >
+                <MessageSquare className="h-4 w-4 mr-3" />
+                Contact
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-48 bg-card border-border">
+              <DropdownMenuItem className="cursor-pointer" onClick={() => window.open("https://chat.whatsapp.com/FX3SIHK7Fec63XWh3P06jt", "_blank")}>
+                <MessageCircle className="h-4 w-4 mr-2 text-green-500" />
+                <span>WhatsApp</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem className="cursor-pointer" onClick={() => window.open("https://facebook.com", "_blank")}>
+                <Facebook className="h-4 w-4 mr-2 text-blue-600" />
+                <span>Facebook</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem className="cursor-pointer" onClick={() => window.open("https://facebook.com/page", "_blank")}>
+                <Globe className="h-4 w-4 mr-2 text-blue-400" />
+                <span>Page</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem className="cursor-pointer" onClick={() => window.open("https://youtube.com", "_blank")}>
+                <Youtube className="h-4 w-4 mr-2 text-red-600" />
+                <span>YouTube</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          <div className="flex items-center justify-between px-3 h-10">
+            <span className="text-sm text-muted-foreground flex items-center">
+              Theme Mode
+            </span>
+            <ThemeToggle />
+          </div>
         </div>
 
         {/* Logout Option */}

@@ -42,7 +42,7 @@ const Auth: React.FC = () => {
       </div>
       
       {/* Right section with form */}
-      <div className="w-full lg:w-1/2 flex flex-col justify-center items-center p-8 md:p-16">
+      <div className="w-full lg:w-1/2 flex flex-col justify-center items-center p-4 sm:p-8 md:p-16">
         <div className="w-full max-w-md">
           {/* Logo */}
           <div className="flex justify-center mb-8">
@@ -50,13 +50,13 @@ const Auth: React.FC = () => {
               <img 
                 src={theme === 'dark' ? "/logo-white.png" : "/logo-black.png"} 
                 alt="TimesCraft AI" 
-                className="h-12 w-auto" 
+                className="h-8 md:h-12 w-auto" 
               />
             </div>
           </div>
           
           {/* Login Form */}
-          <div className="bg-card rounded-2xl shadow-lg p-8 border border-border">
+          <div className="bg-card rounded-2xl shadow-lg p-6 md:p-8 border border-border">
             <h2 className="text-lg md:text-xl font-semibold text-center mb-6 text-foreground">
               Log In Or Sign Up to TimesCraftai
             </h2>

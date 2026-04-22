@@ -139,12 +139,12 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   
   return <header className="sticky top-0 z-30 bg-background/80 backdrop-blur-xl border-b border-border">
       <div className="flex items-center justify-between h-16">
-        <div className="flex items-center w-80 px-4 h-full justify-between mr-4">
+        <div className="flex items-center w-auto md:w-80 px-2 md:px-4 h-full justify-between mr-2 md:mr-4">
           <h1 onClick={navigateToHome} className="text-xl font-bold flex items-center cursor-pointer hover:opacity-80 transition-opacity">
             <img 
               src={theme === 'dark' ? "/logo-white.png" : "/logo-black.png"} 
               alt="TimesCraft AI" 
-              className="h-8 w-auto origin-left translate-y-[1px]" 
+              className="h-5 md:h-6 w-auto origin-left translate-y-[1px]" 
             />
           </h1>
           
@@ -153,7 +153,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
             variant="ghost" 
             size="icon" 
             onClick={toggleSidebar}
-            className="text-muted-foreground hover:bg-accent hover:text-foreground border border-transparent hover:border-border"
+            className="ml-2 text-muted-foreground hover:bg-accent hover:text-foreground border border-transparent hover:border-border"
             title={sidebarVisible ? "Hide Sidebar" : "Show Sidebar"}
           >
             {sidebarVisible ? 
@@ -166,56 +166,60 @@ const AppHeader: React.FC<AppHeaderProps> = ({
         {/* Empty center area */}
         <div className="flex-1"></div>
         
-        <div className="flex items-center space-x-4 mr-4">
-          <ThemeToggle />
+        <div className="flex items-center space-x-2 md:space-x-4 mr-2 md:mr-4">
+          <div className="hidden md:block">
+            <ThemeToggle />
+          </div>
           
           <Button 
             variant="ghost" 
             size="sm" 
-            className="text-muted-foreground hover:bg-accent hover:text-foreground border border-transparent hover:border-border"
+            className="hidden md:flex text-muted-foreground hover:bg-accent hover:text-foreground border border-transparent hover:border-border"
             onClick={() => navigate('/resources')}
           >
             <BookOpen className="h-4 w-4 mr-2" />
             Resources
           </Button>
 
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className="text-muted-foreground hover:bg-accent hover:text-foreground border border-transparent hover:border-border"
-              >
-                <MessageSquare className="h-4 w-4 mr-2" />
-                Contact
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48 bg-card border-border">
-              <DropdownMenuItem className="cursor-pointer" onClick={() => window.open("https://chat.whatsapp.com/FX3SIHK7Fec63XWh3P06jt", "_blank")}>
-                <MessageCircle className="h-4 w-4 mr-2 text-green-500" />
-                <span>WhatsApp</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem className="cursor-pointer" onClick={() => window.open("https://facebook.com", "_blank")}>
-                <Facebook className="h-4 w-4 mr-2 text-blue-600" />
-                <span>Facebook</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem className="cursor-pointer" onClick={() => window.open("https://facebook.com/page", "_blank")}>
-                <Globe className="h-4 w-4 mr-2 text-blue-400" />
-                <span>Page</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem className="cursor-pointer" onClick={() => window.open("https://youtube.com", "_blank")}>
-                <Youtube className="h-4 w-4 mr-2 text-red-600" />
-                <span>YouTube</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <div className="hidden md:block">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="text-muted-foreground hover:bg-accent hover:text-foreground border border-transparent hover:border-border"
+                >
+                  <MessageSquare className="h-4 w-4 mr-2" />
+                  Contact
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48 bg-card border-border">
+                <DropdownMenuItem className="cursor-pointer" onClick={() => window.open("https://chat.whatsapp.com/FX3SIHK7Fec63XWh3P06jt", "_blank")}>
+                  <MessageCircle className="h-4 w-4 mr-2 text-green-500" />
+                  <span>WhatsApp</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem className="cursor-pointer" onClick={() => window.open("https://facebook.com", "_blank")}>
+                  <Facebook className="h-4 w-4 mr-2 text-blue-600" />
+                  <span>Facebook</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem className="cursor-pointer" onClick={() => window.open("https://facebook.com/page", "_blank")}>
+                  <Globe className="h-4 w-4 mr-2 text-blue-400" />
+                  <span>Page</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem className="cursor-pointer" onClick={() => window.open("https://youtube.com", "_blank")}>
+                  <Youtube className="h-4 w-4 mr-2 text-red-600" />
+                  <span>YouTube</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
 
           {!user && (
             <>
               <Button 
                 variant="outline" 
                 size="sm" 
-                className="border-primary text-foreground hover:bg-accent px-4 py-1"
+                className="hidden md:flex border-primary text-foreground hover:bg-accent px-4 py-1"
                 onClick={() => navigate('/pricing')}
               >
                 Pricing
@@ -227,7 +231,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
                 onClick={() => navigate('/auth')}
               >
                 <LogIn className="h-4 w-4 mr-1" />
-                Login / Sign Up
+                <span className="hidden md:inline">Login / Sign Up</span>
               </Button>
             </>
           )}
@@ -238,7 +242,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
               <Button 
                 variant="outline" 
                 size="sm" 
-                className="border-primary text-foreground hover:bg-accent px-4 py-1"
+                className="hidden md:flex border-primary text-foreground hover:bg-accent px-4 py-1"
                 onClick={() => navigate('/pricing')}
               >
                 Pricing
@@ -246,7 +250,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
               
               {/* Plan Badge for Premium Users */}
               {profile?.is_premium && (
-                <div className="bg-secondary text-foreground px-3 py-1 rounded-full text-xs font-bold shadow-lg border border-border uppercase">
+                <div className="bg-secondary text-foreground px-2 md:px-3 py-1 rounded-full text-[10px] md:text-xs font-bold shadow-lg border border-border uppercase">
                   {profile.plan_type}
                 </div>
               )}
@@ -262,7 +266,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
                     </Avatar>
                   </div>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-96 p-0 bg-card border border-border shadow-[0_16px_40px_rgba(0,0,0,0.5)]">
+                <DropdownMenuContent className="w-[calc(100vw-2rem)] md:w-96 p-0 bg-card border border-border shadow-[0_16px_40px_rgba(0,0,0,0.5)] mr-4">
                   <UserProfile />
                 </DropdownMenuContent>
               </DropdownMenu>

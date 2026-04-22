@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Check, X, Circle, Square, Triangle, Copy } from 'lucide-react';
+import { Check, X, Copy } from 'lucide-react';
 import AppHeader from '@/components/AppHeader';
 import { toast } from 'sonner';
 import { useAuth } from '@/context/AuthContext';
@@ -8,20 +8,19 @@ import { useAuth } from '@/context/AuthContext';
 interface PricingItemProps {
   text: string;
   included: boolean;
-  highlight?: boolean;
 }
 
-const PricingItem: React.FC<PricingItemProps> = ({ text, included, highlight }) => {
+const PricingItem: React.FC<PricingItemProps> = ({ text, included }) => {
   return (
-    <li className={`flex items-center space-x-3 ${highlight ? 'bg-[#1F71DC]/15 border border-[#1F71DC]/30 rounded-md px-2 py-1 -mx-2' : ''}`}>
-      <div className="flex-shrink-0">
+    <li className="flex items-start space-x-3 py-1">
+      <div className="flex-shrink-0 mt-0.5">
         {included ? (
-          <Check className="w-4 h-4 text-green-500" />
+          <Check className="w-4 h-4 text-[#1F71DC]" />
         ) : (
-          <X className="w-4 h-4 text-muted-foreground" />
+          <X className="w-4 h-4 text-muted-foreground/40" />
         )}
       </div>
-      <span className={`text-sm ${included ? 'text-foreground' : 'text-muted-foreground'}`}>
+      <span className={`text-sm ${included ? 'text-foreground' : 'text-muted-foreground/60'}`}>
         {text}
       </span>
     </li>
@@ -94,240 +93,221 @@ const PricingPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground relative">
-      {/* Page Background */}
-      <div className="absolute inset-0 bg-background"></div>
+    <div className="min-h-screen bg-[#0A0A0B] text-foreground font-sans selection:bg-primary/30">
+      <AppHeader remainingCredits="0" apiKey="" onApiKeyChange={() => {}} />
       
-      <div className="relative z-10">
-        <AppHeader remainingCredits="0" apiKey="" onApiKeyChange={() => {}} />
-        
-        <div className="pt-10 pb-4 px-4 sm:px-6 lg:px-8">
-          <div className="max-w-7xl mx-auto">
-            {/* Header Section */}
-            <div className="text-center mb-6">
-              <h1 className="text-4xl font-semibold text-foreground mb-4">
-                Choose Your Plan
-              </h1>
+      <div className="pt-16 pb-20 px-4">
+        <div className="max-w-6xl mx-auto">
+          {/* Header Section */}
+          <div className="text-center mb-16">
+            <h1 className="text-5xl font-bold text-white mb-4 tracking-tight">
+              Choose Your Plan
+            </h1>
+            <p className="text-muted-foreground max-w-lg mx-auto leading-relaxed text-sm">
+              Pick the perfect plan for your workflow. Contact admin via WhatsApp to subscribe.
+            </p>
+          </div>
+          
+          {/* Pricing Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-10 max-w-5xl mx-auto">
+            
+            {/* Free Plan */}
+            <div className="bg-[#121214] border border-white/[0.05] rounded-2xl p-8 flex flex-col h-full transition-all duration-300 hover:border-white/[0.1] hover:bg-[#161618]">
+              <div className="mb-8">
+                <h3 className="text-lg font-bold text-white mb-2">Free</h3>
+                <div className="flex items-baseline mb-1">
+                  <span className="text-4xl font-bold text-white">0</span>
+                  <span className="text-lg text-muted-foreground ml-1">Tk</span>
+                </div>
+                <p className="text-xs text-muted-foreground">15 Credits for lifetime</p>
+                <div className="mt-3 px-2.5 py-0.5 bg-white/[0.05] rounded-full text-muted-foreground text-[10px] inline-block uppercase tracking-wider">
+                  Starter plan
+                </div>
+              </div>
+              
+              <ul className="space-y-3 mb-10 flex-grow">
+                <PricingItem text="15 Metadata Generations" included={true} />
+                <PricingItem text="03 Background Remove" included={true} />
+                <PricingItem text="Basic Image to Prompt" included={true} />
+                <PricingItem text="Custom Prompt" included={true} />
+                <PricingItem text="Standard Processing" included={true} />
+                <PricingItem text="Premium Support" included={false} />
+                <PricingItem text="All Future Features Available" included={false} />
+              </ul>
+              
+              <button 
+                disabled
+                className="w-full bg-white/[0.05] text-muted-foreground font-semibold py-3.5 rounded-xl transition-all duration-200 cursor-default"
+              >
+                Current Plan
+              </button>
             </div>
             
-            {/* Pricing Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto mt-12">
-              {/* Free Plan */}
-              <div className="relative group">
-                <div className="bg-card border border-border rounded-xl p-6 h-full transition-all duration-200 hover:border-muted-foreground/50">
-                  <div className="flex items-center space-x-3 mb-6">
-                    <div className="w-7 h-7 rounded-lg bg-muted flex items-center justify-center">
-                      <Circle className="w-4 h-4 text-muted-foreground" />
-                    </div>
-                    <h3 className="text-lg font-medium text-foreground">Free</h3>
-                  </div>
-                  
-                  <div className="mb-6">
-                    <div className="flex items-baseline mb-2">
-                      <span className="text-3xl font-bold text-foreground">0</span>
-                      <span className="text-lg text-muted-foreground ml-1">Tk</span>
-                    </div>
-                    <p className="text-sm text-muted-foreground">15 Credits for lifetime</p>
-                    <div className="mt-4 px-3 py-1 bg-muted rounded-full text-muted-foreground text-xs inline-block">
-                      Starter plan
-                    </div>
-                  </div>
-                  
-                  <ul className="space-y-2.5 mb-6">
-                    <PricingItem text="15 Metadata Generations" included={true} />
-                    <PricingItem text="03 Background Remove" included={true} />
-                    <PricingItem text="Basic Image to Prompt" included={true} />
-                    <PricingItem text="Custom Prompt" included={true} />
-                    <PricingItem text="Standard Processing" included={true} />
-                    <PricingItem text="Premium Support" included={false} />
-                    <PricingItem text="All Future Features Available" included={false} />
-                  </ul>
-                  
-                  <button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium py-2.5 rounded-lg transition-colors duration-200">
-                    Current Plan
-                  </button>
+            {/* Standard Plan */}
+            <div className="bg-[#121214] border border-[#1F71DC]/30 rounded-2xl p-8 flex flex-col h-full transition-all duration-300 hover:border-[#1F71DC]/50 hover:bg-[#161618] ring-1 ring-[#1F71DC]/10">
+              <div className="mb-8">
+                <h3 className="text-lg font-bold text-white mb-2">Standard</h3>
+                <div className="flex items-baseline mb-1">
+                  <span className="text-4xl font-bold text-white">250</span>
+                  <span className="text-lg text-muted-foreground ml-1">BDT/Month</span>
                 </div>
+                <p className="text-xs text-muted-foreground">5000 Credits</p>
               </div>
               
-              {/* Standard Plan */}
-              <div className="relative group">
-                <div className="bg-card border border-[#1F71DC] rounded-xl p-6 h-full transition-all duration-200 hover:border-[#1F71DC] hover:shadow-lg">
-                  <div className="flex items-center space-x-3 mb-6">
-                    <div className="w-7 h-7 rounded-lg bg-[#1F71DC]/20 flex items-center justify-center">
-                      <Triangle className="w-4 h-4 text-[#1F71DC]" />
-                    </div>
-                    <h3 className="text-lg font-medium text-foreground">Standard</h3>
-                  </div>
-                  
-                  <div className="mb-6">
-                    <div className="flex items-baseline mb-2">
-                      <span className="text-3xl font-bold text-foreground">250</span>
-                      <span className="text-lg text-muted-foreground ml-1">BDT/Month</span>
-                    </div>
-                    <p className="text-sm text-muted-foreground">5000 Credits</p>
-                  </div>
-                  
-                  <ul className="space-y-2.5 mb-6">
-                    <PricingItem text="5000 Metadata Generations" included={true} highlight={true} />
-                    <PricingItem text="1000 Image BG Remove" included={true} />
-                    <PricingItem text="Premium Image to Prompt" included={true} />
-                    <PricingItem text="Custom Prompt" included={true} />
-                    <PricingItem text="Fast Processing" included={true} />
-                    <PricingItem text="Premium Support" included={true} />
-                    <PricingItem text="All Future Features Available" included={true} />
-                  </ul>
-                  
-                  <button 
-                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium py-2.5 rounded-lg transition-colors duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
-                    onClick={() => openPaymentModal('standard')}
-                  >
-                    Upgrade to Standard
-                  </button>
-                </div>
-              </div>
+              <ul className="space-y-3 mb-10 flex-grow">
+                <PricingItem text="5000 Metadata Generations" included={true} />
+                <PricingItem text="1000 Image BG Remove" included={true} />
+                <PricingItem text="Premium Image to Prompt" included={true} />
+                <PricingItem text="Custom Prompt" included={true} />
+                <PricingItem text="Fast Processing" included={true} />
+                <PricingItem text="Premium Support" included={true} />
+                <PricingItem text="All Future Features Available" included={true} />
+              </ul>
               
-              {/* Exclusive Plan */}
-              <div className="relative group">
-                <div className="bg-card border border-border rounded-xl p-6 h-full transition-all duration-200 hover:border-muted-foreground/50">
-                  <div className="flex items-center space-x-3 mb-6">
-                    <div className="w-7 h-7 rounded-lg bg-muted flex items-center justify-center">
-                      <Square className="w-4 h-4 text-slate-400" />
-                    </div>
-                    <h3 className="text-lg font-medium text-foreground">Exclusive</h3>
-                  </div>
-                  
-                  <div className="mb-6">
-                    <div className="flex items-baseline mb-2">
-                      <span className="text-3xl font-bold text-foreground">700</span>
-                      <span className="text-lg text-muted-foreground ml-1">BDT/Lifetime</span>
-                    </div>
-                    <p className="text-sm text-muted-foreground">15000 Credits</p>
-                  </div>
-                  
-                  <ul className="space-y-2.5 mb-6">
-                    <PricingItem text="15000 Metadata Generations" included={true} highlight={true} />
-                    <PricingItem text="3000 Image BG Remove" included={true} />
-                    <PricingItem text="Premium Image to Prompt" included={true} />
-                    <PricingItem text="Custom Prompt" included={true} />
-                    <PricingItem text="Fast Processing" included={true} />
-                    <PricingItem text="Premium Support" included={true} />
-                    <PricingItem text="All Future Features Available" included={true} />
-                  </ul>
-                  
-                  <button 
-                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium py-2.5 rounded-lg transition-colors duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
-                    onClick={() => openPaymentModal('exclusive')}
-                  >
-                    Upgrade to Exclusive
-                  </button>
-                </div>
-              </div>
+              <button 
+                onClick={() => openPaymentModal('standard')}
+                className="w-full bg-[#1F71DC] hover:bg-[#1F71DC]/90 text-white font-bold py-3.5 rounded-xl transition-all duration-200 active:scale-[0.98] shadow-lg shadow-[#1F71DC]/20"
+              >
+                Upgrade to Standard
+              </button>
             </div>
+            
+            {/* Exclusive Plan */}
+            <div className="bg-[#121214] border border-white/[0.05] rounded-2xl p-8 flex flex-col h-full transition-all duration-300 hover:border-white/[0.1] hover:bg-[#161618]">
+              <div className="mb-8">
+                <h3 className="text-lg font-bold text-white mb-2">Exclusive</h3>
+                <div className="flex items-baseline mb-1">
+                  <span className="text-4xl font-bold text-white">700</span>
+                  <span className="text-lg text-muted-foreground ml-1">BDT/Lifetime</span>
+                </div>
+                <p className="text-xs text-muted-foreground">15000 Credits</p>
+              </div>
+              
+              <ul className="space-y-3 mb-10 flex-grow">
+                <PricingItem text="15000 Metadata Generations" included={true} />
+                <PricingItem text="3000 Image BG Remove" included={true} />
+                <PricingItem text="Premium Image to Prompt" included={true} />
+                <PricingItem text="Custom Prompt" included={true} />
+                <PricingItem text="Fast Processing" included={true} />
+                <PricingItem text="Premium Support" included={true} />
+                <PricingItem text="All Future Features Available" included={true} />
+              </ul>
+              
+              <button 
+                onClick={() => openPaymentModal('exclusive')}
+                className="w-full bg-white/[0.05] hover:bg-white/[0.08] text-white font-semibold py-3.5 rounded-xl transition-all duration-200 active:scale-[0.98]"
+              >
+                Upgrade to Exclusive
+              </button>
+            </div>
+          </div>
 
-            {activePlan && (
-              <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-                <div className="w-full max-w-sm max-h-[86vh] rounded-xl border border-border bg-card text-foreground shadow-2xl flex flex-col">
-                  <div className="flex items-center justify-between border-b border-border px-3 py-2.5">
-                    <h2 className="text-base font-semibold">Complete Your Payment</h2>
-                    <button
-                      className="text-muted-foreground hover:text-foreground transition-all duration-150 active:scale-95"
-                      onClick={() => setActivePlan(null)}
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
+          {activePlan && (
+            <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
+              <div className="w-full max-w-md max-h-[90vh] rounded-2xl border border-white/[0.1] bg-[#121214] text-foreground shadow-2xl flex flex-col overflow-hidden">
+                <div className="flex items-center justify-between border-b border-white/[0.05] px-6 py-4">
+                  <h2 className="text-lg font-bold text-white">Complete Your Payment</h2>
+                  <button
+                    className="text-muted-foreground hover:text-white transition-all duration-150 active:scale-90"
+                    onClick={() => setActivePlan(null)}
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
+                <div className="p-6 space-y-6 overflow-y-auto custom-scrollbar">
+                  <div className="rounded-xl bg-white/[0.03] border border-white/[0.05] p-4 flex items-center justify-between">
+                    <div>
+                      <p className="text-xs uppercase tracking-wider text-muted-foreground mb-1">Selected Plan</p>
+                      <p className="text-lg font-bold text-white">{activePlan.verifyTitle}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-xs uppercase tracking-wider text-muted-foreground mb-1">Amount</p>
+                      <p className="text-2xl font-bold text-[#1F71DC]">৳{activePlan.amount}</p>
+                    </div>
                   </div>
 
-                  <div className="p-3 space-y-2.5 overflow-y-auto pr-2">
-                    <div className="rounded-lg bg-muted border border-border p-2.5 flex items-center justify-between">
-                      <div>
-                        <p className="text-xs text-muted-foreground">Selected Plan</p>
-                        <p className="text-base font-semibold">{activePlan.verifyTitle}</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-xs text-muted-foreground">Amount</p>
-                        <p className="text-lg font-bold text-blue-500">৳{activePlan.amount}</p>
-                      </div>
-                    </div>
-
-                    <div>
-                      <p className="text-xs text-muted-foreground mb-1.5">Select payment method</p>
-                      <div className="grid grid-cols-2 gap-2">
-                        {(['bKash', 'Nagad', 'Rocket', 'Upay'] as PaymentMethod[]).map((method) => (
-                          <button
-                            key={method}
-                            onClick={() => setSelectedMethod(method)}
-                            className={`rounded-md px-3 py-1.5 text-xs font-semibold border transition-colors ${
-                              selectedMethod === method
-                                ? 'bg-[#1F71DC] border-[#1F71DC] text-primary-foreground'
-                                : 'bg-muted border-border text-muted-foreground hover:border-muted-foreground/50'
-                            } transition-transform duration-150 active:scale-95`}
-                          >
-                            {method}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className="rounded-lg bg-muted border border-border p-2.5">
-                      <p className="text-xs text-muted-foreground mb-1.5">Send to this number</p>
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="text-base font-bold tracking-wide">{walletNumberDisplay}</span>
+                  <div>
+                    <p className="text-xs uppercase tracking-wider text-muted-foreground mb-3 font-semibold">Select payment method</p>
+                    <div className="grid grid-cols-2 gap-3">
+                      {(['bKash', 'Nagad', 'Rocket', 'Upay'] as PaymentMethod[]).map((method) => (
                         <button
-                          onClick={handleCopyWallet}
-                          className="inline-flex items-center gap-1 rounded-md bg-primary text-primary-foreground px-2.5 py-1 text-xs font-semibold hover:bg-primary/90 transition-all duration-150 active:scale-95"
+                          key={method}
+                          onClick={() => setSelectedMethod(method)}
+                          className={`rounded-xl px-4 py-3 text-sm font-bold border transition-all ${
+                            selectedMethod === method
+                              ? 'bg-[#1F71DC] border-[#1F71DC] text-white shadow-lg shadow-[#1F71DC]/20'
+                              : 'bg-white/[0.02] border-white/[0.05] text-muted-foreground hover:border-white/[0.1]'
+                          } active:scale-95`}
                         >
-                          <Copy className="w-3.5 h-3.5" />
-                          Copy
+                          {method}
                         </button>
-                      </div>
+                      ))}
                     </div>
+                  </div>
 
-                    <div className="rounded-lg border border-yellow-500/30 bg-yellow-500/10 p-2.5 text-xs text-yellow-700 dark:text-yellow-200">
-                      <p className="font-semibold mb-1">Instructions</p>
-                      <ol className="list-decimal pl-4 space-y-0.5">
-                        <li>Select payment method</li>
-                        <li>Send money to {walletNumberDisplay}</li>
-                        <li>Copy your transaction ID (TrxID)</li>
-                        <li>Enter TrxID and click verify on WhatsApp</li>
-                      </ol>
+                  <div className="rounded-xl bg-white/[0.03] border border-white/[0.05] p-4">
+                    <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2 font-semibold">Send to this number</p>
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="text-xl font-bold text-white tracking-wider">{walletNumberDisplay}</span>
+                      <button
+                        onClick={handleCopyWallet}
+                        className="inline-flex items-center gap-2 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] text-white px-4 py-2 text-sm font-bold transition-all active:scale-95 border border-white/[0.05]"
+                      >
+                        <Copy className="w-4 h-4" />
+                        Copy
+                      </button>
                     </div>
+                  </div>
 
+                  <div className="rounded-xl border border-yellow-500/20 bg-yellow-500/[0.05] p-4 text-sm text-yellow-200/80 leading-relaxed">
+                    <p className="font-bold text-yellow-500 mb-2 text-base">Instructions</p>
+                    <ol className="list-decimal pl-5 space-y-1.5 font-medium">
+                      <li>Select payment method</li>
+                      <li>Send money to {walletNumberDisplay}</li>
+                      <li>Copy your transaction ID (TrxID)</li>
+                      <li>Enter TrxID and click verify on WhatsApp</li>
+                    </ol>
+                  </div>
+
+                  <div className="space-y-5">
                     <div>
-                      <label className="block text-xs text-muted-foreground mb-1">Transaction ID (TrxID) *</label>
+                      <label className="block text-xs uppercase tracking-wider text-muted-foreground mb-2 ml-1 font-semibold">Transaction ID (TrxID) *</label>
                       <input
                         value={trxId}
                         onChange={(e) => setTrxId(e.target.value)}
                         placeholder="Enter your TrxID"
-                        className="w-full rounded-md border border-border bg-muted px-3 py-1.5 text-sm text-foreground outline-none focus:border-blue-500"
+                        className="w-full rounded-xl border border-white/[0.05] bg-white/[0.02] px-4 py-3 text-base text-white outline-none focus:border-[#1F71DC]/50 transition-all placeholder:text-muted-foreground/30"
                       />
                     </div>
 
-                    <div className="rounded-lg border border-border bg-muted p-2.5">
-                      <p className="text-xs font-semibold mb-1.5">Customer Details</p>
-                      <p className="text-xs text-muted-foreground">Name: {customerName}</p>
-                      <p className="text-xs text-muted-foreground">Email: {user?.email || ''}</p>
-                      <div className="mt-2">
-                        <label className="block text-xs text-muted-foreground mb-1">Phone</label>
-                        <input
-                          value={phone}
-                          onChange={(e) => setPhone(e.target.value)}
-                          placeholder="01XXXXXXXXX"
-                          className="w-full rounded-md border border-border bg-background px-3 py-1.5 text-sm text-foreground outline-none focus:border-blue-500"
-                        />
+                    <div className="rounded-xl border border-white/[0.05] bg-white/[0.02] p-4">
+                      <p className="text-xs uppercase tracking-wider text-muted-foreground mb-3 font-semibold">Customer Details</p>
+                      <div className="space-y-2 mb-4">
+                        <p className="text-sm text-white/90"><span className="text-muted-foreground font-medium">Name:</span> {customerName}</p>
+                        <p className="text-sm text-white/90"><span className="text-muted-foreground font-medium">Email:</span> {user?.email || ''}</p>
                       </div>
+                      <label className="block text-xs uppercase tracking-wider text-muted-foreground mb-2 ml-1 font-semibold">Phone</label>
+                      <input
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                        placeholder="01XXXXXXXXX"
+                        className="w-full rounded-xl border border-white/[0.05] bg-[#0A0A0B] px-4 py-3 text-base text-white outline-none focus:border-[#1F71DC]/50 transition-all placeholder:text-muted-foreground/30"
+                      />
                     </div>
-
-                    <button
-                      onClick={handleVerifyOnWhatsApp}
-                      className="w-full rounded-md bg-green-500 hover:bg-green-600 text-white text-sm font-semibold py-2 transition-all duration-150 active:scale-95"
-                    >
-                      Verify on WhatsApp
-                    </button>
                   </div>
+
+                  <button
+                    onClick={handleVerifyOnWhatsApp}
+                    className="w-full rounded-xl bg-green-500 hover:bg-green-600 text-white text-base font-bold py-4 transition-all active:scale-[0.98] shadow-lg shadow-green-500/20 mb-2"
+                  >
+                    Verify on WhatsApp
+                  </button>
                 </div>
               </div>
-            )}
-          </div>
+            </div>
+          )
+        }
         </div>
       </div>
     </div>

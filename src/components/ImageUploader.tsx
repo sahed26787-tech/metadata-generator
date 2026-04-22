@@ -165,19 +165,19 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
         onClick={handleBrowseClick}
         data-testid="drop-zone"
       >
-        <div className="flex flex-col items-center justify-center p-12">
+        <div className="flex flex-col items-center justify-center p-6 md:p-12">
           {/* Upload Icon */}
-          <div className="bg-primary/15 border border-primary/35 p-4 rounded-full mb-6 cursor-pointer hover:bg-primary/20 transition-colors">
-            <Upload className="h-8 w-8 text-primary" />
+          <div className="bg-primary/15 border border-primary/35 p-3 md:p-4 rounded-full mb-4 md:mb-6 cursor-pointer hover:bg-primary/20 transition-colors">
+            <Upload className="h-6 w-6 md:h-8 md:w-8 text-primary" />
           </div>
           
           {/* Main Heading */}
-          <h3 className="text-2xl font-bold text-foreground mb-5 font-inter">Choose Files</h3>
+          <h3 className="text-xl md:text-2xl font-bold text-foreground mb-4 md:mb-5 font-inter">Choose Files</h3>
           
           {/* File Type Tabs */}
-          <div className="flex gap-2 mb-6">
+          <div className="flex gap-1.5 md:gap-2 mb-5 md:mb-6">
             <button 
-              className={`px-6 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
+              className={`px-4 md:px-6 py-1.5 md:py-2 rounded-full text-xs md:text-sm font-medium transition-all duration-300 ${
                 activeTab === 'JPG' 
                   ? 'bg-gradient-to-r from-[#0086FF] to-[#003E81] text-white shadow-[0_0_8px_rgba(0,134,255,0.25)]' 
                   : 'bg-secondary text-muted-foreground border border-border hover:bg-muted'
@@ -187,7 +187,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
               JPG
             </button>
             <button 
-              className={`px-6 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
+              className={`px-4 md:px-6 py-1.5 md:py-2 rounded-full text-xs md:text-sm font-medium transition-all duration-300 ${
                 activeTab === 'PNG' 
                   ? 'bg-gradient-to-r from-[#0086FF] to-[#003E81] text-white shadow-[0_0_8px_rgba(0,134,255,0.25)]' 
                   : 'bg-secondary text-muted-foreground border border-border hover:bg-muted'
@@ -197,7 +197,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
               PNG
             </button>
             <button 
-              className={`px-6 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
+              className={`px-4 md:px-6 py-1.5 md:py-2 rounded-full text-xs md:text-sm font-medium transition-all duration-300 ${
                 activeTab === 'Videos' 
                   ? 'bg-gradient-to-r from-[#0086FF] to-[#003E81] text-white shadow-[0_0_8px_rgba(0,134,255,0.25)]' 
                   : 'bg-secondary text-muted-foreground border border-border hover:bg-muted'
@@ -209,18 +209,18 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
           </div>
           
           {/* Privacy Section */}
-          <div className="flex items-center justify-center mb-2">
-            <Lock className="h-4 w-4 text-muted-foreground mr-2" />
-            <span className="text-muted-foreground text-sm">Privacy Statement</span>
+          <div className="flex items-center justify-center mb-1.5 md:mb-2">
+            <Lock className="h-3 w-3 md:h-4 md:w-4 text-muted-foreground mr-1.5 md:mr-2" />
+            <span className="text-muted-foreground text-xs md:text-sm">Privacy Statement</span>
           </div>
           
           {/* Privacy Description */}
-          <p className="text-muted-foreground text-sm text-center mb-4 max-w-md">
+          <p className="text-muted-foreground text-xs md:text-sm text-center mb-3 md:mb-4 max-w-md">
             Drag & drop files here, or browse
           </p>
           
           {/* Bottom Text */}
-          <p className="text-foreground text-sm font-medium">Process 500 images in a Single Action</p>
+          <p className="text-foreground text-xs md:text-sm font-medium">Process 500 images in a Single Action</p>
         </div>
         
         <input 

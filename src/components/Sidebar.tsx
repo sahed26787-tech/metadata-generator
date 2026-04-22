@@ -5,7 +5,8 @@ import CustomizationOptions from '@/components/CustomizationOptions';
 import UserProfile from '@/components/UserProfile';
 import { Platform } from './PlatformSelector';
 import { useText } from '@/hooks/useText';
-import { ChevronDown, ChevronRight, ImageIcon, Images } from 'lucide-react';
+import { ChevronDown, ChevronRight, ImageIcon, Images, X } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
@@ -131,13 +132,38 @@ const Sidebar: React.FC<SidebarProps> = ({
     setMetadataExpanded(!metadataExpanded);
   };
   
-  if (!isVisible) {
-    return null;
-  }
-  
-  return <aside className="w-80 bg-card border-r border-border flex flex-col h-screen">
-      <div className="flex-1 overflow-auto">
-        <div className="p-4 border-b border-border">
+  return (
+    <>
+      {/* Mobile overlay backdrop */}
+      <div 
+        className={cn(
+          "fixed inset-0 bg-black/50 z-40 md:hidden transition-opacity duration-300",
+          isVisible ? "opacity-100" : "opacity-0 pointer-events-none"
+        )}
+        onClick={() => {
+          const event = new CustomEvent('toggle-sidebar', { detail: { visible: false } });
+          window.dispatchEvent(event);
+        }}
+      />
+      
+      <aside className={cn(
+        "bg-card border-r border-border flex flex-col h-screen transition-all duration-300 z-50",
+        "fixed inset-y-0 left-0 w-80 md:relative md:w-80",
+        isVisible ? "translate-x-0" : "-translate-x-full md:translate-x-0"
+      )}>
+        <div className="flex-1 overflow-auto">
+          {/* Header with close button for mobile */}
+          <div className="md:hidden p-4 border-b border-border flex justify-between items-center bg-muted/50">
+            <h2 className="text-sm font-bold uppercase tracking-wider text-foreground">Menu</h2>
+            <Button variant="ghost" size="icon" onClick={() => {
+              const event = new CustomEvent('toggle-sidebar', { detail: { visible: false } });
+              window.dispatchEvent(event);
+            }}>
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+
+          <div className="p-4 border-b border-border">
           <GenerationModeSelector selectedMode={selectedMode} onModeChange={onModeChange} />
         </div>
         
@@ -248,7 +274,9 @@ const Sidebar: React.FC<SidebarProps> = ({
           </div>
         )}
       </div>
-    </aside>;
+    </aside>
+    </>
+  );
 };
 
 export default Sidebar;

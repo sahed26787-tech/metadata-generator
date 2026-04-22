@@ -71,9 +71,9 @@ const PlatformSelector: React.FC<PlatformSelectorProps> = ({
   };
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3 w-full">
       <h3 className="text-sm font-medium text-foreground text-center px-3 py-1 inline-block mb-2 w-full tracking-wide">PLATFORMS</h3>
-      <div className="flex flex-wrap gap-2 px-2">
+      <div className="flex flex-wrap justify-center gap-2 md:gap-3 px-2 max-w-full md:max-w-6xl mx-auto">
         {platforms.map(platform => {
           const isSelected = selectedPlatforms.includes(platform.id);
           // If selected, always use white icon. Otherwise use theme-based icon.
@@ -87,18 +87,23 @@ const PlatformSelector: React.FC<PlatformSelectorProps> = ({
                     type="button"
                     onClick={() => togglePlatform(platform.id)}
                     className={cn(
-                      "flex items-center justify-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 border",
+                      "flex items-center justify-center gap-2 px-3 md:px-4 py-1.5 md:py-2 rounded-full text-xs md:text-sm font-medium transition-all duration-200 border",
                       "hover:scale-[1.02]",
                       isSelected
                         ? "bg-gradient-to-r from-[#0086FF] to-[#003E81] border-[#2f8fff] text-white shadow-[0_0_8px_rgba(0,134,255,0.22)]"
-                        : "bg-secondary border-border text-muted-foreground hover:bg-muted hover:border-border"
+                        : "bg-secondary/50 dark:bg-[#1E1E21] border-border dark:border-[#2A2A2D] text-muted-foreground hover:bg-secondary dark:hover:bg-[#252528] hover:border-border dark:hover:border-[#353538]"
                     )}
                   >
-                    <div className="flex items-center justify-center w-5 h-5">
+                    <div className={cn(
+                      "flex items-center justify-center w-4 h-4 md:w-5 md:h-5 rounded-sm p-0.5 transition-colors",
+                      isSelected 
+                        ? "bg-white/20" 
+                        : "bg-muted dark:bg-[#3F3F42]/30"
+                    )}>
                       <img 
                         src={iconSrc} 
                         alt={platform.name} 
-                        className="h-5 w-5 object-contain"
+                        className="h-full w-full object-contain"
                       />
                     </div>
                     <span className={cn("whitespace-nowrap", isSelected ? "text-white" : "text-foreground")}>{platform.name}</span>

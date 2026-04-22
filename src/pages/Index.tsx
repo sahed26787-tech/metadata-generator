@@ -768,7 +768,7 @@ const Index: React.FC = () => {
               ) : (
                 <>
                   {generationMode !== 'imageToPrompt' && (
-                    <div className="flex flex-col mb-4 py-[22px] my-0 mx-0 px-0">
+                    <div className="flex flex-col mb-4 py-4 md:py-[22px] my-0 mx-0 px-0">
                       <div className="flex border-b border-border pb-4">
                         <PlatformSelector
                           selectedPlatforms={platforms}
@@ -779,13 +779,13 @@ const Index: React.FC = () => {
                   )}
               
               <div className="mt-6">
-                {user && profile && !profile.is_premium && profile.credits_used > 4.5 && (
+                {user && profile && !profile.is_premium && profile.credits_used > 14.5 && (
                   <div className="bg-amber-100 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-700 text-amber-800 dark:text-amber-200 p-3 rounded-md mb-4">
                     <div className="flex items-center">
                       <div className="mr-3 text-amber-500 dark:text-amber-400">⚠️</div>
                       <div>
-                        <p className="font-medium">You have {Math.max(0, 5 - profile.credits_used)} credits remaining</p>
-                        <p className="text-sm">Free users are limited to 5 lifetime credits. <a href="/pricing" className="text-amber-600 dark:text-amber-400 underline">Upgrade to Premium</a> for unlimited processing.</p>
+                        <p className="font-medium">You have {Math.max(0, 15 - profile.credits_used)} credits remaining</p>
+                        <p className="text-sm">Free users are limited to 15 lifetime credits. <a href="/pricing" className="text-amber-600 dark:text-amber-400 underline">Upgrade to Premium</a> for unlimited processing.</p>
                       </div>
                     </div>
                   </div>
