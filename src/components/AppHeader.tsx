@@ -1,14 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { FileType, RefreshCcw, PanelLeftClose, PanelLeftOpen, LogIn, CreditCard, Video, FileVideo, X, Users } from 'lucide-react';
+import { FileType, PanelLeftClose, PanelLeftOpen, LogIn, CreditCard, Video, FileVideo, X, Users, MessageSquare, BookOpen, MessageCircle, Facebook, Youtube, Globe } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import UserProfile from '@/components/UserProfile';
+import ThemeToggle from '@/components/ThemeToggle';
+import { useTheme } from 'next-themes';
 import { 
   DropdownMenu,
   DropdownMenuTrigger,
-  DropdownMenuContent
+  DropdownMenuContent,
+  DropdownMenuItem
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
@@ -25,6 +28,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
 }) => {
   const [sidebarVisible, setSidebarVisible] = useState(true);
   const navigate = useNavigate();
+  const { theme } = useTheme();
   const {
     user,
     profile,
@@ -134,18 +138,22 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   
   
   return <header className="sticky top-0 z-30 bg-background/80 backdrop-blur-xl border-b border-border">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center ml-4">
+      <div className="flex items-center justify-between h-16">
+        <div className="flex items-center w-80 px-4 h-full justify-between mr-4">
           <h1 onClick={navigateToHome} className="text-xl font-bold flex items-center cursor-pointer hover:opacity-80 transition-opacity">
-            <img src="/new-site-logo.png" alt="TimesCraft AI" className="h-12 w-auto mr-3 scale-125 origin-left translate-y-[2px]" />
+            <img 
+              src={theme === 'dark' ? "/logo-white.png" : "/logo-black.png"} 
+              alt="TimesCraft AI" 
+              className="h-8 w-auto origin-left translate-y-[1px]" 
+            />
           </h1>
           
-          {/* Sidebar toggle button - Modified to only show the icon */}
+          {/* Sidebar toggle button - Positioned at the end of sidebar width */}
           <Button 
             variant="ghost" 
             size="icon" 
             onClick={toggleSidebar}
-            className="ml-4 text-muted-foreground hover:bg-accent hover:text-foreground border border-transparent hover:border-border"
+            className="text-muted-foreground hover:bg-accent hover:text-foreground border border-transparent hover:border-border"
             title={sidebarVisible ? "Hide Sidebar" : "Show Sidebar"}
           >
             {sidebarVisible ? 
@@ -153,34 +161,55 @@ const AppHeader: React.FC<AppHeaderProps> = ({
               <PanelLeftOpen className="h-4 w-4" />
             }
           </Button>
-          
-          {/* Refresh button */}
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleRefresh}
-            className="ml-2 text-muted-foreground hover:bg-accent hover:text-foreground border border-transparent hover:border-border"
-            title="Refresh page"
-          >
-            <RefreshCcw className="h-4 w-4" />
-          </Button>
         </div>
         
         {/* Empty center area */}
         <div className="flex-1"></div>
         
         <div className="flex items-center space-x-4 mr-4">
+          <ThemeToggle />
+          
           <Button 
             variant="ghost" 
             size="sm" 
             className="text-muted-foreground hover:bg-accent hover:text-foreground border border-transparent hover:border-border"
-            onClick={openWhatsAppSupport}
+            onClick={() => navigate('/resources')}
           >
-            <Users className="h-4 w-4 mr-2" />
-            Community
+            <BookOpen className="h-4 w-4 mr-2" />
+            Resources
           </Button>
 
-          {/* Show the pricing and login buttons for non-authenticated users */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="text-muted-foreground hover:bg-accent hover:text-foreground border border-transparent hover:border-border"
+              >
+                <MessageSquare className="h-4 w-4 mr-2" />
+                Contact
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48 bg-card border-border">
+              <DropdownMenuItem className="cursor-pointer" onClick={() => window.open("https://chat.whatsapp.com/FX3SIHK7Fec63XWh3P06jt", "_blank")}>
+                <MessageCircle className="h-4 w-4 mr-2 text-green-500" />
+                <span>WhatsApp</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem className="cursor-pointer" onClick={() => window.open("https://facebook.com", "_blank")}>
+                <Facebook className="h-4 w-4 mr-2 text-blue-600" />
+                <span>Facebook</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem className="cursor-pointer" onClick={() => window.open("https://facebook.com/page", "_blank")}>
+                <Globe className="h-4 w-4 mr-2 text-blue-400" />
+                <span>Page</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem className="cursor-pointer" onClick={() => window.open("https://youtube.com", "_blank")}>
+                <Youtube className="h-4 w-4 mr-2 text-red-600" />
+                <span>YouTube</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
           {!user && (
             <>
               <Button 

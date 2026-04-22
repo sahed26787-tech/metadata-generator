@@ -5,7 +5,10 @@ import { Loader2 } from 'lucide-react';
 import { GoogleLoginButton } from '@/components/GoogleLoginButton';
 import { toast } from 'sonner';
 
+import { useTheme } from 'next-themes';
+
 const Auth: React.FC = () => {
+  const { theme } = useTheme();
   const {
     user,
     isLoading
@@ -44,16 +47,18 @@ const Auth: React.FC = () => {
           {/* Logo */}
           <div className="flex justify-center mb-8">
             <div className="flex items-center">
-              <span className="text-3xl md:text-4xl font-bold text-foreground flex items-center">
-                Timescraftai
-              </span>
+              <img 
+                src={theme === 'dark' ? "/logo-white.png" : "/logo-black.png"} 
+                alt="TimesCraft AI" 
+                className="h-12 w-auto" 
+              />
             </div>
           </div>
           
           {/* Login Form */}
           <div className="bg-card rounded-2xl shadow-lg p-8 border border-border">
             <h2 className="text-lg md:text-xl font-semibold text-center mb-6 text-foreground">
-              Log In Or Sign Up to Timescraftai
+              Log In Or Sign Up to TimesCraftai
             </h2>
             
             <div className="space-y-5">

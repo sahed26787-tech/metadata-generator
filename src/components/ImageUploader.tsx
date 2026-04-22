@@ -16,7 +16,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
   isProcessing
 }) => {
   const [isDragging, setIsDragging] = useState(false);
-  const [activeTab, setActiveTab] = useState<'JPG' | 'PNG' | 'webp'>('JPG');
+  const [activeTab, setActiveTab] = useState<'JPG' | 'PNG' | 'Videos'>('JPG');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const processFiles = useCallback(async (files: FileList) => {
@@ -145,7 +145,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
     }
   }, [isProcessing]);
 
-  const handleTabClick = useCallback((tab: 'JPG' | 'PNG' | 'webp', e: React.MouseEvent) => {
+  const handleTabClick = useCallback((tab: 'JPG' | 'PNG' | 'Videos', e: React.MouseEvent) => {
     e.stopPropagation();
     setActiveTab(tab);
   }, []);
@@ -179,7 +179,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
             <button 
               className={`px-6 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
                 activeTab === 'JPG' 
-                  ? 'bg-gradient-to-r from-[#0086FF] to-[#003E81] text-white shadow-[0_0_16px_rgba(0,134,255,0.5)]' 
+                  ? 'bg-gradient-to-r from-[#0086FF] to-[#003E81] text-white shadow-[0_0_8px_rgba(0,134,255,0.25)]' 
                   : 'bg-secondary text-muted-foreground border border-border hover:bg-muted'
               }`}
               onClick={(e) => handleTabClick('JPG', e)}
@@ -189,7 +189,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
             <button 
               className={`px-6 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
                 activeTab === 'PNG' 
-                  ? 'bg-gradient-to-r from-[#0086FF] to-[#003E81] text-white shadow-[0_0_16px_rgba(0,134,255,0.5)]' 
+                  ? 'bg-gradient-to-r from-[#0086FF] to-[#003E81] text-white shadow-[0_0_8px_rgba(0,134,255,0.25)]' 
                   : 'bg-secondary text-muted-foreground border border-border hover:bg-muted'
               }`}
               onClick={(e) => handleTabClick('PNG', e)}
@@ -198,13 +198,13 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
             </button>
             <button 
               className={`px-6 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
-                activeTab === 'webp' 
-                  ? 'bg-gradient-to-r from-[#0086FF] to-[#003E81] text-white shadow-[0_0_16px_rgba(0,134,255,0.5)]' 
+                activeTab === 'Videos' 
+                  ? 'bg-gradient-to-r from-[#0086FF] to-[#003E81] text-white shadow-[0_0_8px_rgba(0,134,255,0.25)]' 
                   : 'bg-secondary text-muted-foreground border border-border hover:bg-muted'
               }`}
-              onClick={(e) => handleTabClick('webp', e)}
+              onClick={(e) => handleTabClick('Videos', e)}
             >
-              webp
+              Videos
             </button>
           </div>
           
@@ -216,7 +216,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
           
           {/* Privacy Description */}
           <p className="text-muted-foreground text-sm text-center mb-4 max-w-md">
-            We process your files directly on your device. All data is automatically removed after metadata extraction.
+            Drag & drop files here, or browse
           </p>
           
           {/* Bottom Text */}

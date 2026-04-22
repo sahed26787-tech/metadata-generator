@@ -150,7 +150,7 @@ export default {
 				},
 				'scroll-highlight': {
 					'0%': { transform: 'translateY(0)', boxShadow: '0 0 0 rgba(74, 222, 128, 0)' },
-					'50%': { transform: 'translateY(0)', boxShadow: '0 0 15px rgba(74, 222, 128, 0.6)' },
+					'50%': { transform: 'translateY(0)', boxShadow: '0 0 8px rgba(74, 222, 128, 0.3)' },
 					'100%': { transform: 'translateY(0)', boxShadow: '0 0 0 rgba(74, 222, 128, 0)' }
 				}
 			},
@@ -174,8 +174,8 @@ export default {
 				'glass': '0 4px 30px rgba(0, 0, 0, 0.1)',
 				'glass-strong': '0 8px 32px rgba(0, 0, 0, 0.1)',
 				'glass-hover': '0 8px 32px rgba(0, 0, 0, 0.15)',
-				'glow-blue': '0 0 15px rgba(65, 145, 255, 0.6)',
-				'glow-purple': '0 0 15px rgba(155, 135, 245, 0.6)',
+				'glow-blue': '0 0 8px rgba(65, 145, 255, 0.3)',
+				'glow-purple': '0 0 8px rgba(155, 135, 245, 0.3)',
 			}
 		}
 	},

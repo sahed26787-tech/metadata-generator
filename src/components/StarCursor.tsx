@@ -166,11 +166,11 @@ const StarCursor: React.FC = () => {
           }}
         >
           {/* Enhanced bubble appearance with improved glow */}
-          <div
+            <div
             className="w-full h-full rounded-full"
             style={{
               backgroundColor: star.color,
-              boxShadow: `0 0 ${star.size * 1.2}px ${star.color}`, // Reduced glow for performance
+              boxShadow: `0 0 ${star.size * 0.6}px ${star.color}`, // Reduced glow for performance and user preference
               filter: `blur(${star.size/10}px)`, // Less blur for performance
               border: theme === 'dark' 
                 ? '0.5px solid rgba(255,255,255,0.4)' 

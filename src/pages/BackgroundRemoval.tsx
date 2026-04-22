@@ -342,18 +342,19 @@ const BackgroundRemoval: React.FC<BackgroundRemovalProps> = ({
   return (
     <div className="w-full h-full p-6">
           {mode === 'single' && (
-            <div className="max-w-4xl mx-auto space-y-6">
+            <div className="space-y-6">
               {/* Upload Area */}
               {tasks.length === 0 && (
                 <div 
-                  className="border-2 border-dashed border-primary/60 rounded-xl p-16 text-center hover:border-primary transition-all duration-300 cursor-pointer bg-card shadow-sm hover:shadow-md group"
+                  className="border-2 border-dashed border-primary/60 rounded-xl p-20 text-center hover:border-primary transition-all duration-300 cursor-pointer bg-card shadow-sm hover:shadow-md group max-w-5xl mx-auto"
                   onClick={() => fileInputRef.current?.click()}
                 >
-                  <div className="bg-primary/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-primary/20 transition-colors">
-                    <Upload className="w-8 h-8 text-primary" />
+                  <div className="bg-primary/10 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:bg-primary/20 transition-colors">
+                    <Upload className="w-10 h-10 text-primary" />
                   </div>
-                  <p className="text-xl font-semibold text-foreground mb-2">Click to upload an image</p>
-                  <p className="text-sm text-muted-foreground">JPG, PNG, WEBP supported</p>
+                  <p className="text-2xl font-bold text-foreground mb-3">Click to upload an image</p>
+                  <p className="text-sm text-muted-foreground mb-4">JPG, PNG, WEBP supported</p>
+                  <p className="text-foreground text-sm font-medium">Process 500 images in a Single Action</p>
                   <input
                     ref={fileInputRef}
                     type="file"
@@ -445,18 +446,18 @@ const BackgroundRemoval: React.FC<BackgroundRemovalProps> = ({
           {mode === 'batch' && (
             <div className="space-y-6">
               {/* Upload & Progress Header */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <input
-                    ref={batchFileInputRef}
-                    type="file"
-                    accept="image/jpeg,image/png,image/webp"
-                    multiple
-                    onChange={handleBatchUpload}
-                    className="hidden"
-                  />
+              {tasks.length > 0 && (
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <input
+                      ref={batchFileInputRef}
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      multiple
+                      onChange={handleBatchUpload}
+                      className="hidden"
+                    />
 
-                  {tasks.length > 0 && (
                     <Button
                       onClick={processBatch}
                       disabled={isProcessing || tasks.filter(t => t.status === 'pending').length === 0}
@@ -468,31 +469,31 @@ const BackgroundRemoval: React.FC<BackgroundRemovalProps> = ({
                         <><ImageIcon className="w-4 h-4 mr-2" />Process All</>
                       )}
                     </Button>
-                  )}
 
-                  {tasks.length > 0 && !isProcessing && (
+                    {!isProcessing && (
+                      <Button
+                        onClick={clearAll}
+                        variant="outline"
+                        className="border-border text-muted-foreground"
+                      >
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        Clear All
+                      </Button>
+                    )}
+                  </div>
+
+                  {doneCount > 0 && (
                     <Button
-                      onClick={clearAll}
+                      onClick={downloadAllAsZip}
                       variant="outline"
-                      className="border-border text-muted-foreground"
+                      className="border-purple-600 text-purple-600 hover:bg-purple-600 hover:text-white"
                     >
-                      <Trash2 className="w-4 h-4 mr-2" />
-                      Clear All
+                      <FileArchive className="w-4 h-4 mr-2" />
+                      Download All as ZIP
                     </Button>
                   )}
                 </div>
-
-                {doneCount > 0 && (
-                  <Button
-                    onClick={downloadAllAsZip}
-                    variant="outline"
-                    className="border-purple-600 text-purple-600 hover:bg-purple-600 hover:text-white"
-                  >
-                    <FileArchive className="w-4 h-4 mr-2" />
-                    Download All as ZIP
-                  </Button>
-                )}
-              </div>
+              )}
 
               {/* Progress Bar */}
               {tasks.length > 0 && (
@@ -508,14 +509,14 @@ const BackgroundRemoval: React.FC<BackgroundRemovalProps> = ({
               {/* Empty State */}
               {tasks.length === 0 && (
                 <div 
-                  className="border-2 border-dashed border-primary/60 rounded-xl p-20 text-center hover:border-primary transition-all duration-300 cursor-pointer bg-card shadow-sm hover:shadow-md group"
+                  className="border-2 border-dashed border-primary/60 rounded-xl p-20 text-center hover:border-primary transition-all duration-300 cursor-pointer bg-card shadow-sm hover:shadow-md group max-w-5xl mx-auto"
                   onClick={() => batchFileInputRef.current?.click()}
                 >
                   <div className="bg-primary/10 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:bg-primary/20 transition-colors">
                     <Images className="w-10 h-10 text-primary" />
                   </div>
-                  <p className="text-2xl font-bold text-foreground mb-3">Upload multiple images</p>
-                  <p className="text-sm text-muted-foreground mb-4">Select multiple JPG, PNG, or WEBP files</p>
+                  <p className="text-2xl font-bold text-foreground mb-3">Click to upload an image</p>
+                  <p className="text-sm text-muted-foreground mb-4">JPG, PNG, WEBP supported</p>
                   <p className="text-foreground text-sm font-medium">Process 500 images in a Single Action</p>
                 </div>
               )}

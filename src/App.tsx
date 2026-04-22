@@ -11,6 +11,7 @@ import NotFound from "./pages/NotFound";
 import Pricing from "./pages/Pricing";
 import AutomationScripts from "./pages/AutomationScripts";
 import Documents from "./pages/Documents";
+import Resources from "./pages/Resources";
 import TermsOfService from "./pages/TermsOfService";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import PaymentSuccess from "./pages/PaymentSuccess";
@@ -45,6 +46,7 @@ const App = () => (
                 <Route path="/pricing" element={<Pricing />} />
                 <Route path="/Services" element={<AutomationScripts />} />
                 <Route path="/documents" element={<Documents />} />
+                <Route path="/resources" element={<Resources />} />
                 <Route path="/background-removal" element={<Navigate to="/bg-remover" replace />} />
                 <Route path="/terms" element={<TermsOfService />} />
                 <Route path="/privacy" element={<PrivacyPolicy />} />

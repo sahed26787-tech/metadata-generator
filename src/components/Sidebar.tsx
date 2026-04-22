@@ -179,7 +179,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                 <Button
                   variant={bgRemovalMode === 'single' ? 'default' : 'outline'}
                   onClick={() => onBgRemovalModeChange?.('single')}
-                  className={bgRemovalMode === 'single' ? 'bg-gradient-to-r from-[#0086FF] to-[#003E81] shadow-[0_0_18px_rgba(0,134,255,0.55)] border-0' : 'bg-secondary border-border text-foreground hover:bg-muted'}
+                  className={bgRemovalMode === 'single' ? 'bg-gradient-to-r from-[#0086FF] to-[#003E81] shadow-[0_0_9px_rgba(0,134,255,0.27)] border-0' : 'bg-secondary border-border text-foreground hover:bg-muted'}
                 >
                   <ImageIcon className="w-4 h-4 mr-2" />
                   Single
@@ -187,7 +187,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                 <Button
                   variant={bgRemovalMode === 'batch' ? 'default' : 'outline'}
                   onClick={() => onBgRemovalModeChange?.('batch')}
-                  className={bgRemovalMode === 'batch' ? 'bg-gradient-to-r from-[#0086FF] to-[#003E81] shadow-[0_0_18px_rgba(0,134,255,0.55)] border-0' : 'bg-secondary border-border text-foreground hover:bg-muted'}
+                  className={bgRemovalMode === 'batch' ? 'bg-gradient-to-r from-[#0086FF] to-[#003E81] shadow-[0_0_9px_rgba(0,134,255,0.27)] border-0' : 'bg-secondary border-border text-foreground hover:bg-muted'}
                 >
                   <Images className="w-4 h-4 mr-2" />
                   Batch

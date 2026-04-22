@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { LogOut, Crown, Clock, Key, Eye, EyeOff, Copy, Check, RefreshCw } from 'lucide-react';
-import ThemeToggle from '@/components/ThemeToggle';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
@@ -207,14 +206,6 @@ const UserProfile: React.FC = () => {
           {profile.credits_reset_type === 'monthly' && (
             <p className="text-xs text-muted-foreground mt-2">Resets monthly</p>
           )}
-        </div>
-
-        {/* Theme Selection Section */}
-        <div className="p-5 border-b border-border">
-          <div className="flex items-center justify-between">
-            <h3 className="text-sm font-semibold text-muted-foreground">Theme Selection</h3>
-            <ThemeToggle />
-          </div>
         </div>
 
         {/* Logout Option */}
