@@ -393,12 +393,6 @@ const Index: React.FC = () => {
       return;
     }
     
-    if (!apiKey) {
-      toast.error(`Please enter your ${aiProvider} API key first`);
-      setIsBatchProcessing(false);
-      setIsProcessing(false);
-      return;
-    }
     
     // Check if user has enough credits for all images in this batch
     const batchImageCount = currentBatch.length;
@@ -807,7 +801,7 @@ const Index: React.FC = () => {
                   <Button
                     onClick={handleProcessImages}
                     className="bg-gradient-to-r from-[#0086FF] to-[#003E81] hover:brightness-110 text-white px-8 py-2 rounded-xl flex items-center justify-center gap-2 shadow-[0_0_24px_rgba(0,134,255,0.4)]"
-                    disabled={isProcessing || isBatchProcessing || images.filter(img => img.status === 'pending').length === 0 || !apiKey || !canGenerateMetadata}
+                    disabled={isProcessing || isBatchProcessing || images.filter(img => img.status === 'pending').length === 0 || !canGenerateMetadata}
                   >
                     {isProcessing || isBatchProcessing ? 
                       <Loader2 className="h-4 w-4 animate-spin mr-1" /> : 

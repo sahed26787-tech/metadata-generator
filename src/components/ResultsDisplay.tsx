@@ -94,30 +94,19 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
 
     // Process videos if they exist
     if (videoImages.length > 0) {
-      // For multiple platforms, download video CSV for each platform
-      selectedPlatforms.forEach(platform => {
-        const isShutterstock = platform === 'Shutterstock';
-        const videoCsvContent = formatVideosAsCSV(videoImages, isShutterstock, selectedFormat);
-        downloadCSV(videoCsvContent, 'video-metadata.csv', platform);
-      });
-      toast.success(`Video metadata CSV files downloaded for ${selectedPlatforms.length} platform(s)${selectedFormat !== 'original' ? ` with ${selectedFormat.toUpperCase()} format` : ''}`);
+      const isShutterstock = selectedPlatforms.length === 1 && selectedPlatforms[0] === 'Shutterstock';
+      const videoCsvContent = formatVideosAsCSV(videoImages, isShutterstock, selectedFormat);
+      downloadCSV(videoCsvContent, 'video-metadata.csv', 'videos' as Platform);  // Fixed type issue
+      toast.success(`Video metadata CSV file downloaded${selectedFormat !== 'original' ? ` with ${selectedFormat.toUpperCase()} format` : ''}`);
     }
 
-    // Process regular images - generate separate CSV for each selected platform
+    // Process regular images if they exist
     if (regularImages.length > 0) {
-      selectedPlatforms.forEach(platform => {
-        const isFreepikOnly = platform === 'Freepik';
-        const isShutterstock = platform === 'Shutterstock';
-        const isAdobeStock = platform === 'AdobeStock';
-        const isVecteezy = platform === 'Vecteezy';
-        const isDepositphotos = platform === 'Depositphotos';
-        const is123RF = platform === '123RF';
-        const isAlamy = platform === 'Alamy';
-        
-        const csvContent = formatImagesAsCSV(regularImages, isFreepikOnly, isShutterstock, isAdobeStock, isVecteezy, isDepositphotos, is123RF, isAlamy, selectedFormat);
-        downloadCSV(csvContent, 'image-metadata.csv', platform);
-      });
-      toast.success(`Image metadata CSV files downloaded for ${selectedPlatforms.length} platform(s)${selectedFormat !== 'original' ? ` with ${selectedFormat.toUpperCase()} format` : ''}`);
+      const csvContent = formatImagesAsCSV(regularImages, isFreepikOnly, isShutterstock, isAdobeStock, isVecteezy, isDepositphotos, is123RF, isAlamy, selectedFormat);
+      // Pass the platform name for custom folder naming
+      const selectedPlatform = selectedPlatforms.length === 1 ? selectedPlatforms[0] : undefined;
+      downloadCSV(csvContent, 'image-metadata.csv', selectedPlatform);
+      toast.success(`Image metadata CSV file downloaded${selectedFormat !== 'original' ? ` with ${selectedFormat.toUpperCase()} format` : ''}`);
     }
   };
   const downloadPromptText = (text: string, filename: string) => {
