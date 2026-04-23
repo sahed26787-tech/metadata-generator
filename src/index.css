@@ -1,7 +1,5 @@
 
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -56,10 +54,11 @@
 @layer base {
   * {
     @apply border-border;
+    font-family: 'TASA Orbiter', 'Inter', sans-serif !important;
   }
   body {
     @apply bg-background text-foreground overflow-x-hidden;
-    font-family: 'Inter', sans-serif;
+    font-family: 'TASA Orbiter', 'Inter', sans-serif !important;
   }
 }
 

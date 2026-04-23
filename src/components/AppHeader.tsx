@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
+import { cn } from '@/lib/utils';
 import UserProfile from '@/components/UserProfile';
 import ThemeToggle from '@/components/ThemeToggle';
 import { useTheme } from 'next-themes';
@@ -167,15 +168,9 @@ const AppHeader: React.FC<AppHeaderProps> = ({
         <div className="flex-1"></div>
         
         <div className="flex items-center space-x-2 md:space-x-4 mr-2 md:mr-4">
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="hidden md:flex text-muted-foreground hover:bg-accent hover:text-foreground border border-transparent hover:border-border"
-            onClick={() => window.open("https://youtube.com", "_blank")}
-          >
-            <Video className="h-4 w-4 mr-2" />
-            Learn
-          </Button>
+          <div className="hidden md:block">
+            <ThemeToggle />
+          </div>
 
           <Button 
             variant="ghost" 
@@ -187,9 +182,15 @@ const AppHeader: React.FC<AppHeaderProps> = ({
             Resources
           </Button>
 
-          <div className="hidden md:block">
-            <ThemeToggle />
-          </div>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="hidden md:flex text-muted-foreground hover:bg-accent hover:text-foreground border border-transparent hover:border-border"
+            onClick={() => window.open("https://youtube.com", "_blank")}
+          >
+            <Video className="h-4 w-4 mr-2" />
+            Learn
+          </Button>
 
           <div className="hidden md:block">
             <DropdownMenu>
@@ -262,16 +263,12 @@ const AppHeader: React.FC<AppHeaderProps> = ({
                 Pricing
               </Button>
               
-              {/* Plan Badge for Premium Users */}
-              {profile?.is_premium && (
-                <div className="bg-secondary text-foreground px-2 md:px-3 py-1 rounded-full text-[10px] md:text-xs font-bold shadow-lg border border-border uppercase">
-                  {profile.plan_type}
-                </div>
-              )}
-              
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <div className="h-8 w-8 rounded-full flex items-center justify-center cursor-pointer overflow-hidden">
+                  <div className={cn(
+                    "h-8 w-8 rounded-full flex items-center justify-center cursor-pointer overflow-hidden transition-all duration-300",
+                    profile?.is_premium && "ring-2 ring-[#0086FF] ring-offset-2 ring-offset-background shadow-[0_0_10px_rgba(0,134,255,0.4)]"
+                  )}>
                     <Avatar className="h-8 w-8">
                       <AvatarImage src={getProfilePicture()} alt={user.email} />
                       <AvatarFallback className="bg-gradient-to-r from-blue-500 to-purple-500 text-white font-medium">

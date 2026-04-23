@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { Plus, Upload, Lock } from 'lucide-react';
+import { Plus, Upload, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { ProcessedImage, createImagePreview, generateId, isValidImageType, isValidFileSize, formatFileSize, reduceImageSize } from '@/utils/imageHelpers';
 import { isVideoFile } from '@/utils/videoProcessor';
@@ -16,71 +16,77 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
   isProcessing
 }) => {
   const [isDragging, setIsDragging] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const [activeTab, setActiveTab] = useState<'JPG' | 'PNG' | 'Videos'>('JPG');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const processFiles = useCallback(async (files: FileList) => {
     const fileArray = Array.from(files);
     const processedImages: ProcessedImage[] = [];
+    setIsUploading(true);
     
-    for (const file of fileArray) {
-      try {
-        if (!isValidFileSize(file)) {
-          toast.error(`File ${file.name} is too large. Maximum size is 50MB.`);
-          continue;
+    try {
+      for (const file of fileArray) {
+        try {
+          if (!isValidFileSize(file)) {
+            toast.error(`File ${file.name} is too large. Maximum size is 50MB.`);
+            continue;
+          }
+
+          let processedImage: ProcessedImage;
+
+          if (isVideoFile(file)) {
+            const objectUrl = URL.createObjectURL(file);
+            processedImage = {
+              id: generateId(),
+              file,
+              name: file.name,
+              size: file.size,
+              type: 'video',
+              url: objectUrl,
+              previewUrl: objectUrl,
+              status: 'pending'
+            };
+          } else if (isEpsFile(file)) {
+            const objectUrl = URL.createObjectURL(file);
+            processedImage = {
+              id: generateId(),
+              file,
+              name: file.name,
+              size: file.size,
+              type: 'eps',
+              url: objectUrl,
+              previewUrl: objectUrl,
+              status: 'pending'
+            };
+          } else if (isValidImageType(file)) {
+            const reducedFile = await reduceImageSize(file);
+            const previewUrl = await createImagePreview(file);
+            processedImage = {
+              id: generateId(),
+              file,
+              reducedFile,
+              previewUrl,
+              status: 'pending'
+            };
+          } else {
+            toast.error(`File ${file.name} is not a supported format.`);
+            continue;
+          }
+
+          processedImages.push(processedImage);
+        } catch (error) {
+          console.error('Error processing file:', file.name, error);
+          toast.error(`Error processing ${file.name}`);
         }
-
-        let processedImage: ProcessedImage;
-
-        if (isVideoFile(file)) {
-          const objectUrl = URL.createObjectURL(file);
-          processedImage = {
-            id: generateId(),
-            file,
-            name: file.name,
-            size: file.size,
-            type: 'video',
-            url: objectUrl,
-            previewUrl: objectUrl,
-            status: 'pending'
-          };
-        } else if (isEpsFile(file)) {
-          const objectUrl = URL.createObjectURL(file);
-          processedImage = {
-            id: generateId(),
-            file,
-            name: file.name,
-            size: file.size,
-            type: 'eps',
-            url: objectUrl,
-            previewUrl: objectUrl,
-            status: 'pending'
-          };
-        } else if (isValidImageType(file)) {
-          const reducedFile = await reduceImageSize(file);
-          const previewUrl = await createImagePreview(file);
-          processedImage = {
-            id: generateId(),
-            file,
-            reducedFile,
-            previewUrl,
-            status: 'pending'
-          };
-        } else {
-          toast.error(`File ${file.name} is not a supported format.`);
-          continue;
-        }
-
-        processedImages.push(processedImage);
-      } catch (error) {
-        console.error('Error processing file:', file.name, error);
-        toast.error(`Error processing ${file.name}`);
       }
-    }
 
-    if (processedImages.length > 0) {
-      onImagesSelected(processedImages);
-      toast.success(`Successfully processed ${processedImages.length} file(s)`);
+      if (processedImages.length > 0) {
+        onImagesSelected(processedImages);
+        toast.success(`Successfully processed ${processedImages.length} file(s)`);
+      }
+    } finally {
+      setIsUploading(false);
     }
   }, [onImagesSelected]);
 
@@ -151,9 +157,9 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
   }, []);
 
   return (
-    <div className="max-w-[650px] mx-auto">
+    <div className="max-w-[850px] mx-auto w-full">
       <div 
-        className={`relative overflow-hidden rounded-2xl border-2 border-dashed border-primary/60 shadow-lg transition-all duration-300 cursor-pointer bg-card ${
+        className={`relative overflow-hidden rounded-3xl border-2 border-dashed border-primary/60 shadow-lg transition-all duration-300 cursor-pointer bg-card ${
           isDragging 
             ? 'transform scale-[1.01] shadow-glow-blue border-primary' 
             : 'hover:border-primary hover:shadow-md'
@@ -165,62 +171,71 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
         onClick={handleBrowseClick}
         data-testid="drop-zone"
       >
-        <div className="flex flex-col items-center justify-center p-6 md:p-12">
-          {/* Upload Icon */}
-          <div className="bg-primary/15 border border-primary/35 p-3 md:p-4 rounded-full mb-4 md:mb-6 cursor-pointer hover:bg-primary/20 transition-colors">
-            <Upload className="h-6 w-6 md:h-8 md:w-8 text-primary" />
-          </div>
-          
-          {/* Main Heading */}
-          <h3 className="text-xl md:text-2xl font-bold text-foreground mb-4 md:mb-5 font-inter">Choose Files</h3>
-          
-          {/* File Type Tabs */}
-          <div className="flex gap-1.5 md:gap-2 mb-5 md:mb-6">
-            <button 
-              className={`px-4 md:px-6 py-1.5 md:py-2 rounded-full text-xs md:text-sm font-medium transition-all duration-300 ${
-                activeTab === 'JPG' 
-                  ? 'bg-gradient-to-r from-[#0086FF] to-[#003E81] text-white shadow-[0_0_8px_rgba(0,134,255,0.25)]' 
-                  : 'bg-secondary text-muted-foreground border border-border hover:bg-muted'
-              }`}
-              onClick={(e) => handleTabClick('JPG', e)}
-            >
-              JPG
-            </button>
-            <button 
-              className={`px-4 md:px-6 py-1.5 md:py-2 rounded-full text-xs md:text-sm font-medium transition-all duration-300 ${
-                activeTab === 'PNG' 
-                  ? 'bg-gradient-to-r from-[#0086FF] to-[#003E81] text-white shadow-[0_0_8px_rgba(0,134,255,0.25)]' 
-                  : 'bg-secondary text-muted-foreground border border-border hover:bg-muted'
-              }`}
-              onClick={(e) => handleTabClick('PNG', e)}
-            >
-              PNG
-            </button>
-            <button 
-              className={`px-4 md:px-6 py-1.5 md:py-2 rounded-full text-xs md:text-sm font-medium transition-all duration-300 ${
-                activeTab === 'Videos' 
-                  ? 'bg-gradient-to-r from-[#0086FF] to-[#003E81] text-white shadow-[0_0_8px_rgba(0,134,255,0.25)]' 
-                  : 'bg-secondary text-muted-foreground border border-border hover:bg-muted'
-              }`}
-              onClick={(e) => handleTabClick('Videos', e)}
-            >
-              Videos
-            </button>
-          </div>
-          
-          {/* Privacy Section */}
-          <div className="flex items-center justify-center mb-1.5 md:mb-2">
-            <Lock className="h-3 w-3 md:h-4 md:w-4 text-muted-foreground mr-1.5 md:mr-2" />
-            <span className="text-muted-foreground text-xs md:text-sm">Privacy Statement</span>
-          </div>
-          
-          {/* Privacy Description */}
-          <p className="text-muted-foreground text-xs md:text-sm text-center mb-3 md:mb-4 max-w-md">
-            Drag & drop files here, or browse
-          </p>
-          
-          {/* Bottom Text */}
-          <p className="text-foreground text-xs md:text-sm font-medium">Process 500 images in a Single Action</p>
+        <div className="flex flex-col items-center justify-center p-10 md:p-20 min-h-[350px]">
+          {isUploading ? (
+            <div className="flex flex-col items-center justify-center space-y-4">
+              <div className="relative">
+                <div className="h-16 w-16 md:h-20 md:w-20 rounded-full border-4 border-primary/20 border-t-primary animate-spin"></div>
+                <Loader2 className="h-8 w-8 md:h-10 md:w-10 text-primary absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 animate-pulse" />
+              </div>
+              <div className="text-center">
+                <h3 className="text-xl md:text-2xl font-bold text-foreground mb-2">Uploading Files...</h3>
+                <p className="text-muted-foreground text-sm md:text-base">Please wait while we process your images</p>
+              </div>
+            </div>
+          ) : (
+            <>
+              {/* Upload Icon */}
+              <div className="bg-primary/15 border border-primary/35 p-3 md:p-4 rounded-full mb-4 md:mb-6 cursor-pointer hover:bg-primary/20 transition-colors">
+                <Upload className="h-6 w-6 md:h-8 md:w-8 text-primary" />
+              </div>
+              
+              {/* Main Heading */}
+              <h3 className="text-xl md:text-2xl font-bold text-foreground mb-4 md:mb-5 font-inter">Choose Files</h3>
+              
+              {/* File Type Tabs */}
+              <div className="flex gap-1.5 md:gap-2 mb-5 md:mb-6">
+                <button 
+                  className={`px-4 md:px-6 py-1.5 md:py-2 rounded-full text-xs md:text-sm font-medium transition-all duration-300 ${
+                    activeTab === 'JPG' 
+                      ? 'bg-gradient-to-r from-[#0086FF] to-[#003E81] text-white shadow-[0_0_8px_rgba(0,134,255,0.25)]' 
+                      : 'bg-secondary text-muted-foreground border border-border hover:bg-muted'
+                  }`}
+                  onClick={(e) => handleTabClick('JPG', e)}
+                >
+                  JPG
+                </button>
+                <button 
+                  className={`px-4 md:px-6 py-1.5 md:py-2 rounded-full text-xs md:text-sm font-medium transition-all duration-300 ${
+                    activeTab === 'PNG' 
+                      ? 'bg-gradient-to-r from-[#0086FF] to-[#003E81] text-white shadow-[0_0_8px_rgba(0,134,255,0.25)]' 
+                      : 'bg-secondary text-muted-foreground border border-border hover:bg-muted'
+                  }`}
+                  onClick={(e) => handleTabClick('PNG', e)}
+                >
+                  PNG
+                </button>
+                <button 
+                  className={`px-4 md:px-6 py-1.5 md:py-2 rounded-full text-xs md:text-sm font-medium transition-all duration-300 ${
+                    activeTab === 'Videos' 
+                      ? 'bg-gradient-to-r from-[#0086FF] to-[#003E81] text-white shadow-[0_0_8px_rgba(0,134,255,0.25)]' 
+                      : 'bg-secondary text-muted-foreground border border-border hover:bg-muted'
+                  }`}
+                  onClick={(e) => handleTabClick('Videos', e)}
+                >
+                  Videos
+                </button>
+              </div>
+              
+              {/* Privacy Description */}
+              <p className="text-muted-foreground text-xs md:text-sm text-center mb-3 md:mb-4 max-w-md">
+                Drag & drop files here, or browse
+              </p>
+              
+              {/* Bottom Text */}
+              <p className="text-foreground text-xs md:text-sm font-medium">Process 500 images in a Single Action</p>
+            </>
+          )}
         </div>
         
         <input 

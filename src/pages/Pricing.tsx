@@ -39,11 +39,13 @@ interface PaidPlanConfig {
 
 const PricingPage: React.FC = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const [activePlan, setActivePlan] = useState<PaidPlanConfig | null>(null);
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethod>('bKash');
   const [trxId, setTrxId] = useState('');
   const [phone, setPhone] = useState('');
+
+  const currentPlanType = profile?.plan_type?.toLowerCase() || 'free';
 
   const walletNumberDisplay = '+880 1610-632737';
   const walletNumberRaw = '8801610632737';
@@ -93,14 +95,14 @@ const PricingPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#0A0A0B] text-foreground font-sans selection:bg-primary/30">
+    <div className="min-h-screen bg-background text-foreground font-sans selection:bg-primary/30">
       <AppHeader remainingCredits="0" apiKey="" onApiKeyChange={() => {}} />
       
       <div className="pt-16 pb-20 px-4">
         <div className="max-w-6xl mx-auto">
           {/* Header Section */}
           <div className="text-center mb-16">
-            <h1 className="text-5xl font-bold text-white mb-4 tracking-tight">
+            <h1 className="text-5xl font-bold text-foreground mb-4 tracking-tight">
               Choose Your Plan
             </h1>
             <p className="text-muted-foreground max-w-lg mx-auto leading-relaxed text-sm">
@@ -112,15 +114,15 @@ const PricingPage: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-10 max-w-5xl mx-auto">
             
             {/* Free Plan */}
-            <div className="bg-[#121214] border border-white/[0.05] rounded-2xl p-8 flex flex-col h-full transition-all duration-300 hover:border-white/[0.1] hover:bg-[#161618]">
+            <div className="bg-card border border-border rounded-2xl p-8 flex flex-col h-full transition-all duration-300 hover:border-primary/20 hover:bg-accent/5">
               <div className="mb-8">
-                <h3 className="text-lg font-bold text-white mb-2">Free</h3>
+                <h3 className="text-lg font-bold text-foreground mb-2">Free</h3>
                 <div className="flex items-baseline mb-1">
-                  <span className="text-4xl font-bold text-white">0</span>
+                  <span className="text-4xl font-bold text-foreground">0</span>
                   <span className="text-lg text-muted-foreground ml-1">Tk</span>
                 </div>
                 <p className="text-xs text-muted-foreground">15 Credits for lifetime</p>
-                <div className="mt-3 px-2.5 py-0.5 bg-white/[0.05] rounded-full text-muted-foreground text-[10px] inline-block uppercase tracking-wider">
+                <div className="mt-3 px-2.5 py-0.5 bg-muted rounded-full text-muted-foreground text-[10px] inline-block uppercase tracking-wider">
                   Starter plan
                 </div>
               </div>
@@ -137,18 +139,24 @@ const PricingPage: React.FC = () => {
               
               <button 
                 disabled
-                className="w-full bg-white/[0.05] text-muted-foreground font-semibold py-3.5 rounded-xl transition-all duration-200 cursor-default"
+                className={`w-full font-semibold py-3.5 rounded-xl transition-all duration-200 cursor-default ${
+                  currentPlanType === 'free' 
+                    ? 'bg-primary/10 text-primary border border-primary/20' 
+                    : 'bg-muted text-muted-foreground'
+                }`}
               >
-                Current Plan
+                {currentPlanType === 'free' ? 'Current Plan' : 'Free Plan'}
               </button>
             </div>
             
             {/* Standard Plan */}
-            <div className="bg-[#121214] border border-[#1F71DC]/30 rounded-2xl p-8 flex flex-col h-full transition-all duration-300 hover:border-[#1F71DC]/50 hover:bg-[#161618] ring-1 ring-[#1F71DC]/10">
+            <div className={`bg-card rounded-2xl p-8 flex flex-col h-full transition-all duration-300 hover:bg-accent/5 border ${
+              currentPlanType === 'standard' ? 'border-primary shadow-[0_0_20px_rgba(31,113,220,0.15)] ring-2 ring-primary/20' : 'border-primary/30'
+            }`}>
               <div className="mb-8">
-                <h3 className="text-lg font-bold text-white mb-2">Standard</h3>
+                <h3 className="text-lg font-bold text-foreground mb-2">Standard</h3>
                 <div className="flex items-baseline mb-1">
-                  <span className="text-4xl font-bold text-white">250</span>
+                  <span className="text-4xl font-bold text-foreground">250</span>
                   <span className="text-lg text-muted-foreground ml-1">BDT/Month</span>
                 </div>
                 <p className="text-xs text-muted-foreground">5000 Credits</p>
@@ -165,19 +173,26 @@ const PricingPage: React.FC = () => {
               </ul>
               
               <button 
-                onClick={() => openPaymentModal('standard')}
-                className="w-full bg-[#1F71DC] hover:bg-[#1F71DC]/90 text-white font-bold py-3.5 rounded-xl transition-all duration-200 active:scale-[0.98] shadow-lg shadow-[#1F71DC]/20"
+                onClick={() => currentPlanType !== 'standard' && openPaymentModal('standard')}
+                disabled={currentPlanType === 'standard'}
+                className={`w-full font-bold py-3.5 rounded-xl transition-all duration-200 active:scale-[0.98] shadow-lg ${
+                  currentPlanType === 'standard'
+                    ? 'bg-primary/10 text-primary border border-primary/20 cursor-default shadow-none'
+                    : 'bg-primary hover:bg-primary/90 text-primary-foreground shadow-primary/20'
+                }`}
               >
-                Upgrade to Standard
+                {currentPlanType === 'standard' ? 'Current Plan' : 'Upgrade to Standard'}
               </button>
             </div>
             
             {/* Exclusive Plan */}
-            <div className="bg-[#121214] border border-white/[0.05] rounded-2xl p-8 flex flex-col h-full transition-all duration-300 hover:border-white/[0.1] hover:bg-[#161618]">
+            <div className={`bg-card rounded-2xl p-8 flex flex-col h-full transition-all duration-300 hover:bg-accent/5 border ${
+              currentPlanType === 'exclusive' ? 'border-primary shadow-[0_0_20px_rgba(31,113,220,0.15)] ring-2 ring-primary/20' : 'border-border'
+            }`}>
               <div className="mb-8">
-                <h3 className="text-lg font-bold text-white mb-2">Exclusive</h3>
+                <h3 className="text-lg font-bold text-foreground mb-2">Exclusive</h3>
                 <div className="flex items-baseline mb-1">
-                  <span className="text-4xl font-bold text-white">700</span>
+                  <span className="text-4xl font-bold text-foreground">700</span>
                   <span className="text-lg text-muted-foreground ml-1">BDT/Lifetime</span>
                 </div>
                 <p className="text-xs text-muted-foreground">15000 Credits</p>
@@ -194,21 +209,26 @@ const PricingPage: React.FC = () => {
               </ul>
               
               <button 
-                onClick={() => openPaymentModal('exclusive')}
-                className="w-full bg-white/[0.05] hover:bg-white/[0.08] text-white font-semibold py-3.5 rounded-xl transition-all duration-200 active:scale-[0.98]"
+                onClick={() => currentPlanType !== 'exclusive' && openPaymentModal('exclusive')}
+                disabled={currentPlanType === 'exclusive'}
+                className={`w-full font-semibold py-3.5 rounded-xl transition-all duration-200 active:scale-[0.98] border ${
+                  currentPlanType === 'exclusive'
+                    ? 'bg-primary/10 text-primary border-primary/20 cursor-default'
+                    : 'bg-secondary hover:bg-secondary/80 text-secondary-foreground border-border'
+                }`}
               >
-                Upgrade to Exclusive
+                {currentPlanType === 'exclusive' ? 'Current Plan' : 'Upgrade to Exclusive'}
               </button>
             </div>
           </div>
 
           {activePlan && (
-            <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
-              <div className="w-full max-w-md max-h-[90vh] rounded-2xl border border-white/[0.1] bg-[#121214] text-foreground shadow-2xl flex flex-col overflow-hidden">
-                <div className="flex items-center justify-between border-b border-white/[0.05] px-6 py-4">
-                  <h2 className="text-lg font-bold text-white">Complete Your Payment</h2>
+            <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-md flex items-center justify-center p-4">
+              <div className="w-full max-w-md max-h-[90vh] rounded-2xl border border-border bg-card text-card-foreground shadow-2xl flex flex-col overflow-hidden">
+                <div className="flex items-center justify-between border-b border-border px-6 py-4">
+                  <h2 className="text-lg font-bold text-foreground">Complete Your Payment</h2>
                   <button
-                    className="text-muted-foreground hover:text-white transition-all duration-150 active:scale-90"
+                    className="text-muted-foreground hover:text-foreground transition-all duration-150 active:scale-90"
                     onClick={() => setActivePlan(null)}
                   >
                     <X className="w-5 h-5" />
@@ -216,14 +236,14 @@ const PricingPage: React.FC = () => {
                 </div>
 
                 <div className="p-6 space-y-6 overflow-y-auto custom-scrollbar">
-                  <div className="rounded-xl bg-white/[0.03] border border-white/[0.05] p-4 flex items-center justify-between">
+                  <div className="rounded-xl bg-muted/30 border border-border p-4 flex items-center justify-between">
                     <div>
                       <p className="text-xs uppercase tracking-wider text-muted-foreground mb-1">Selected Plan</p>
-                      <p className="text-lg font-bold text-white">{activePlan.verifyTitle}</p>
+                      <p className="text-lg font-bold text-foreground">{activePlan.verifyTitle}</p>
                     </div>
                     <div className="text-right">
                       <p className="text-xs uppercase tracking-wider text-muted-foreground mb-1">Amount</p>
-                      <p className="text-2xl font-bold text-[#1F71DC]">৳{activePlan.amount}</p>
+                      <p className="text-2xl font-bold text-primary">৳{activePlan.amount}</p>
                     </div>
                   </div>
 
@@ -236,8 +256,8 @@ const PricingPage: React.FC = () => {
                           onClick={() => setSelectedMethod(method)}
                           className={`rounded-xl px-4 py-3 text-sm font-bold border transition-all ${
                             selectedMethod === method
-                              ? 'bg-[#1F71DC] border-[#1F71DC] text-white shadow-lg shadow-[#1F71DC]/20'
-                              : 'bg-white/[0.02] border-white/[0.05] text-muted-foreground hover:border-white/[0.1]'
+                              ? 'bg-primary border-primary text-primary-foreground shadow-lg shadow-primary/20'
+                              : 'bg-muted/20 border-border text-muted-foreground hover:border-primary/50'
                           } active:scale-95`}
                         >
                           {method}
@@ -246,13 +266,13 @@ const PricingPage: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="rounded-xl bg-white/[0.03] border border-white/[0.05] p-4">
+                  <div className="rounded-xl bg-muted/30 border border-border p-4">
                     <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2 font-semibold">Send to this number</p>
                     <div className="flex items-center justify-between gap-3">
-                      <span className="text-xl font-bold text-white tracking-wider">{walletNumberDisplay}</span>
+                      <span className="text-xl font-bold text-foreground tracking-wider">{walletNumberDisplay}</span>
                       <button
                         onClick={handleCopyWallet}
-                        className="inline-flex items-center gap-2 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] text-white px-4 py-2 text-sm font-bold transition-all active:scale-95 border border-white/[0.05]"
+                        className="inline-flex items-center gap-2 rounded-xl bg-secondary hover:bg-secondary/80 text-secondary-foreground px-4 py-2 text-sm font-bold transition-all active:scale-95 border border-border"
                       >
                         <Copy className="w-4 h-4" />
                         Copy
@@ -260,8 +280,8 @@ const PricingPage: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="rounded-xl border border-yellow-500/20 bg-yellow-500/[0.05] p-4 text-sm text-yellow-200/80 leading-relaxed">
-                    <p className="font-bold text-yellow-500 mb-2 text-base">Instructions</p>
+                  <div className="rounded-xl border border-yellow-500/20 bg-yellow-500/10 p-4 text-sm text-yellow-600 dark:text-yellow-200/80 leading-relaxed">
+                    <p className="font-bold text-yellow-600 dark:text-yellow-500 mb-2 text-base">Instructions</p>
                     <ol className="list-decimal pl-5 space-y-1.5 font-medium">
                       <li>Select payment method</li>
                       <li>Send money to {walletNumberDisplay}</li>
@@ -277,22 +297,22 @@ const PricingPage: React.FC = () => {
                         value={trxId}
                         onChange={(e) => setTrxId(e.target.value)}
                         placeholder="Enter your TrxID"
-                        className="w-full rounded-xl border border-white/[0.05] bg-white/[0.02] px-4 py-3 text-base text-white outline-none focus:border-[#1F71DC]/50 transition-all placeholder:text-muted-foreground/30"
+                        className="w-full rounded-xl border border-border bg-background px-4 py-3 text-base text-foreground outline-none focus:border-primary/50 transition-all placeholder:text-muted-foreground/30"
                       />
                     </div>
 
-                    <div className="rounded-xl border border-white/[0.05] bg-white/[0.02] p-4">
+                    <div className="rounded-xl border border-border bg-muted/20 p-4">
                       <p className="text-xs uppercase tracking-wider text-muted-foreground mb-3 font-semibold">Customer Details</p>
                       <div className="space-y-2 mb-4">
-                        <p className="text-sm text-white/90"><span className="text-muted-foreground font-medium">Name:</span> {customerName}</p>
-                        <p className="text-sm text-white/90"><span className="text-muted-foreground font-medium">Email:</span> {user?.email || ''}</p>
+                        <p className="text-sm text-foreground/90"><span className="text-muted-foreground font-medium">Name:</span> {customerName}</p>
+                        <p className="text-sm text-foreground/90"><span className="text-muted-foreground font-medium">Email:</span> {user?.email || ''}</p>
                       </div>
                       <label className="block text-xs uppercase tracking-wider text-muted-foreground mb-2 ml-1 font-semibold">Phone</label>
                       <input
                         value={phone}
                         onChange={(e) => setPhone(e.target.value)}
                         placeholder="01XXXXXXXXX"
-                        className="w-full rounded-xl border border-white/[0.05] bg-[#0A0A0B] px-4 py-3 text-base text-white outline-none focus:border-[#1F71DC]/50 transition-all placeholder:text-muted-foreground/30"
+                        className="w-full rounded-xl border border-border bg-background px-4 py-3 text-base text-foreground outline-none focus:border-primary/50 transition-all placeholder:text-muted-foreground/30"
                       />
                     </div>
                   </div>

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useMemo } from 'react';
 import { toast } from 'sonner';
 import { 
   Upload, Download, 
@@ -14,7 +14,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
 
-// Types
+// --- Types ---
 interface RemovalTask {
   id: string;
   file: File;
@@ -23,6 +23,82 @@ interface RemovalTask {
   resultUrl?: string;
   error?: string;
 }
+
+// --- Memoized Card Component for Performance ---
+
+const RemovalTaskCard = React.memo(({ 
+  task, 
+  isProcessing, 
+  isCurrentTask, 
+  onRemove, 
+  onDownload 
+}: { 
+  task: RemovalTask; 
+  isProcessing: boolean; 
+  isCurrentTask: boolean;
+  onRemove: (id: string) => void;
+  onDownload: (url: string, filename: string) => void;
+}) => {
+  const StatusBadge = ({ status }: { status: RemovalTask['status'] }) => {
+    switch (status) {
+      case 'pending':
+        return <Badge variant="outline" className="text-yellow-500 border-yellow-500 text-[10px] h-5">Pending</Badge>;
+      case 'processing':
+        return <Badge className="bg-blue-600 text-[10px] h-5"><Loader2 className="w-3 h-3 mr-1 animate-spin" />Processing</Badge>;
+      case 'done':
+        return <Badge className="bg-green-600 text-[10px] h-5"><CheckCircle2 className="w-3 h-3 mr-1" />Done</Badge>;
+      case 'failed':
+        return <Badge variant="destructive" className="text-[10px] h-5"><AlertCircle className="w-3 h-3 mr-1" />Failed</Badge>;
+    }
+  };
+
+  return (
+    <Card className={`bg-card border-border overflow-hidden transition-all duration-200 group ${isCurrentTask ? 'ring-2 ring-primary shadow-lg scale-[1.02]' : ''}`}>
+      <div className="relative aspect-square bg-secondary/20">
+        <img 
+          src={task.status === 'done' && task.resultUrl ? task.resultUrl : task.preview} 
+          alt={task.file.name}
+          className="w-full h-full object-cover"
+          loading="lazy"
+        />
+        <button
+          onClick={() => onRemove(task.id)}
+          disabled={isProcessing}
+          className="absolute top-2 right-2 p-1 bg-red-600/80 hover:bg-red-600 rounded text-white opacity-0 group-hover:opacity-100 transition-opacity"
+        >
+          <X className="w-3 h-3" />
+        </button>
+        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+          {task.status === 'done' && task.resultUrl && (
+            <Button
+              size="sm"
+              onClick={() => onDownload(task.resultUrl!, `bg-removed-${task.file.name}`)}
+              className="bg-green-600 hover:bg-green-700 h-8 w-8 p-0"
+            >
+              <Download className="w-4 h-4" />
+            </Button>
+          )}
+        </div>
+      </div>
+      <CardContent className="p-2.5">
+        <p className="text-[10px] text-muted-foreground truncate mb-1.5" title={task.file.name}>
+          {task.file.name}
+        </p>
+        <div className="flex items-center justify-between">
+          <StatusBadge status={task.status} />
+          {task.status === 'failed' && (
+            <button
+              onClick={() => toast.error(task.error || 'Unknown error')}
+              className="text-red-400 hover:text-red-300"
+            >
+              <AlertCircle className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  );
+});
 
 type ProcessingMode = 'single' | 'batch';
 
@@ -128,6 +204,11 @@ const BackgroundRemoval: React.FC<BackgroundRemovalProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const batchFileInputRef = useRef<HTMLInputElement>(null);
 
+  // Memoized derived data
+  const doneCount = useMemo(() => tasks.filter(t => t.status === 'done').length, [tasks]);
+  const totalCount = useMemo(() => tasks.length, [tasks]);
+  const progress = useMemo(() => totalCount > 0 ? (doneCount / totalCount) * 100 : 0, [doneCount, totalCount]);
+
   // Handle single file upload
   const handleSingleUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -191,15 +272,15 @@ const BackgroundRemoval: React.FC<BackgroundRemovalProps> = ({
   }, []);
 
   // Remove a task
-  const removeTask = (id: string) => {
+  const removeTask = useCallback((id: string) => {
     setTasks(prev => prev.filter(t => t.id !== id));
-  };
+  }, []);
 
   // Clear all tasks
-  const clearAll = () => {
+  const clearAll = useCallback(() => {
     setTasks([]);
     setCurrentTaskIndex(0);
-  };
+  }, []);
 
   // Process single image
   const processSingle = async () => {
@@ -321,285 +402,214 @@ const BackgroundRemoval: React.FC<BackgroundRemovalProps> = ({
     toast.success('ZIP file downloaded!');
   };
 
-  // Status badge component
-  const StatusBadge = ({ status }: { status: RemovalTask['status'] }) => {
-    switch (status) {
-      case 'pending':
-        return <Badge variant="outline" className="text-yellow-500 border-yellow-500">Pending</Badge>;
-      case 'processing':
-        return <Badge className="bg-blue-600"><Loader2 className="w-3 h-3 mr-1 animate-spin" />Processing</Badge>;
-      case 'done':
-        return <Badge className="bg-green-600"><CheckCircle2 className="w-3 h-3 mr-1" />Done</Badge>;
-      case 'failed':
-        return <Badge variant="destructive"><AlertCircle className="w-3 h-3 mr-1" />Failed</Badge>;
+  const handleDownloadSingle = useCallback(downloadImage, []);
+
+  const handleUploadClick = () => {
+    if (mode === 'single') {
+      fileInputRef.current?.click();
+    } else {
+      batchFileInputRef.current?.click();
     }
   };
 
-  const doneCount = tasks.filter(t => t.status === 'done').length;
-  const totalCount = tasks.length;
-  const progress = totalCount > 0 ? (doneCount / totalCount) * 100 : 0;
-
   return (
     <div className="w-full h-full p-4 md:p-6">
-          {mode === 'single' && (
-            <div className="space-y-6">
-              {/* Upload Area */}
-              {tasks.length === 0 && (
-                <div 
-                  className="border-2 border-dashed border-primary/60 rounded-xl p-8 md:p-20 text-center hover:border-primary transition-all duration-300 cursor-pointer bg-card shadow-sm hover:shadow-md group max-w-5xl mx-auto"
-                  onClick={() => fileInputRef.current?.click()}
-                >
-                  <div className="bg-primary/15 border border-primary/35 w-16 h-16 md:w-20 md:h-20 rounded-full flex items-center justify-center mx-auto mb-4 md:mb-6 group-hover:bg-primary/20 transition-colors">
-                    <Upload className="w-8 h-8 md:w-10 md:h-10 text-primary" />
-                  </div>
-                  <h3 className="text-xl md:text-2xl font-bold text-foreground mb-4 md:mb-5 font-inter">Click to upload an image</h3>
-                  
-                  <div className="flex items-center justify-center mb-1.5 md:mb-2">
-                    <AlertCircle className="h-3 w-3 md:h-4 md:w-4 text-muted-foreground mr-1.5 md:mr-2" />
-                    <span className="text-muted-foreground text-xs md:text-sm">JPG, PNG, WEBP supported</span>
-                  </div>
-                  
-                  <p className="text-muted-foreground text-xs md:text-sm text-center mb-3 md:mb-4 max-w-md mx-auto">
-                    Drag & drop files here, or browse
-                  </p>
-                  
-                  <p className="text-foreground text-xs md:text-sm font-medium">Process 500 images in a Single Action</p>
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/jpeg,image/png,image/webp"
-                    onChange={handleSingleUpload}
-                    className="hidden"
+      {/* Hidden Inputs - Moved to top to prevent layout shifts */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        onChange={handleSingleUpload}
+        className="hidden"
+      />
+      <input
+        ref={batchFileInputRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        multiple
+        onChange={handleBatchUpload}
+        className="hidden"
+      />
+
+      <div className="space-y-6">
+        {/* Common Upload Area */}
+        {tasks.length === 0 && (
+          <div 
+            className="border-2 border-dashed border-primary/60 rounded-xl p-8 md:p-20 text-center hover:border-primary transition-all duration-300 cursor-pointer bg-card shadow-sm hover:shadow-md group max-w-5xl mx-auto"
+            onClick={handleUploadClick}
+          >
+            <div className="bg-primary/15 border border-primary/35 w-16 h-16 md:w-20 md:h-20 rounded-full flex items-center justify-center mx-auto mb-4 md:mb-6 group-hover:bg-primary/20 transition-colors">
+              {mode === 'single' ? (
+                <Upload className="w-8 h-8 md:w-10 md:h-10 text-primary" />
+              ) : (
+                <Images className="w-10 h-10 text-primary" />
+              )}
+            </div>
+            <h3 className="text-xl md:text-2xl font-bold text-foreground mb-4 md:mb-5 font-inter">
+              {mode === 'single' ? 'Click to upload an image' : 'Click to upload images'}
+            </h3>
+            
+            <div className="flex items-center justify-center mb-1.5 md:mb-2">
+              <AlertCircle className="h-3 w-3 md:h-4 md:w-4 text-muted-foreground mr-1.5 md:mr-2" />
+              <span className="text-muted-foreground text-xs md:text-sm">JPG, PNG, WEBP supported</span>
+            </div>
+            
+            <p className="text-muted-foreground text-xs md:text-sm text-center mb-3 md:mb-4 max-w-md mx-auto">
+              Drag & drop files here, or browse
+            </p>
+            
+            <p className="text-foreground text-xs md:text-sm font-medium">Process 500 images in a Single Action</p>
+          </div>
+        )}
+
+        {/* Single Mode Content */}
+        {mode === 'single' && tasks.length > 0 && (
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Left: Always show original */}
+              <Card className="bg-card border-border overflow-hidden">
+                <CardContent className="p-3 md:p-4">
+                  <p className="text-xs md:text-sm text-muted-foreground mb-2">Original</p>
+                  <img 
+                    src={tasks[0].preview}
+                    alt="Original"
+                    className="w-full h-48 md:h-64 object-contain bg-background rounded"
+                    loading="lazy"
                   />
-                </div>
-              )}
+                </CardContent>
+              </Card>
 
-              {/* Preview & Result */}
-              {tasks.length > 0 && (
-                <div className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {/* Left: Always show original */}
-                    <Card className="bg-card border-border overflow-hidden">
-                      <CardContent className="p-3 md:p-4">
-                        <p className="text-xs md:text-sm text-muted-foreground mb-2">Original</p>
-                        <img 
-                          src={tasks[0].preview}
-                          alt="Original"
-                          className="w-full h-48 md:h-64 object-contain bg-background rounded"
-                        />
-                      </CardContent>
-                    </Card>
-
-                    {/* Right: show result/placeholder */}
-                    <Card className="bg-card border-border overflow-hidden">
-                      <CardContent className="p-3 md:p-4">
-                        <p className="text-xs md:text-sm text-muted-foreground mb-2">Result</p>
-                        {tasks[0].status === 'done' && tasks[0].resultUrl ? (
-                          <img 
-                            src={tasks[0].resultUrl}
-                            alt="Result"
-                            className="w-full h-48 md:h-64 object-contain bg-background rounded"
-                          />
-                        ) : tasks[0].status === 'processing' ? (
-                          <div className="w-full h-48 md:h-64 flex items-center justify-center bg-background rounded">
-                            <Loader2 className="w-8 h-8 text-primary animate-spin" />
-                          </div>
-                        ) : (
-                          <div className="w-full h-48 md:h-64 flex items-center justify-center bg-background rounded text-muted-foreground text-xs md:text-sm text-center px-4">
-                            {tasks[0].status === 'failed' ? 'Failed to process' : 'Click Remove Background to start'}
-                          </div>
-                        )}
-                      </CardContent>
-                    </Card>
-                  </div>
-
-                  {/* Action Buttons */}
-                  <div className="flex flex-col sm:flex-row justify-center gap-3 md:gap-4">
-                    <Button
-                      onClick={processSingle}
-                      disabled={tasks[0].status === 'processing' || tasks[0].status === 'done'}
-                      className="bg-primary hover:bg-primary/90 w-full sm:w-auto"
-                    >
-                      {tasks[0].status === 'processing' ? (
-                        <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Processing...</>
-                      ) : (
-                        <>Remove Background</>
-                      )}
-                    </Button>
-
-                    {tasks[0].status === 'done' && tasks[0].resultUrl && (
-                      <Button
-                        onClick={() => downloadImage(tasks[0].resultUrl!, `bg-removed-${tasks[0].file.name}`)}
-                        variant="outline"
-                        className="border-green-600 text-green-600 hover:bg-green-600 hover:text-white w-full sm:w-auto"
-                      >
-                        <Download className="w-4 h-4 mr-2" />
-                        Download PNG
-                      </Button>
-                    )}
-
-                    <Button
-                      onClick={() => setTasks([])}
-                      variant="outline"
-                      className="border-border text-muted-foreground w-full sm:w-auto"
-                    >
-                      <Trash2 className="w-4 h-4 mr-2" />
-                      Clear
-                    </Button>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-
-          {mode === 'batch' && (
-            <div className="space-y-6">
-              {/* Hidden Inputs for Batch Mode */}
-              <input
-                ref={batchFileInputRef}
-                type="file"
-                accept="image/jpeg,image/png,image/webp"
-                multiple
-                onChange={handleBatchUpload}
-                className="hidden"
-              />
-
-              {/* Upload & Progress Header */}
-              {tasks.length > 0 && (
-                <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                  <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3 md:gap-4 w-full sm:w-auto">
-                    <Button
-                      onClick={processBatch}
-                      size="sm"
-                      disabled={isProcessing || tasks.filter(t => t.status === 'pending').length === 0}
-                      className="bg-green-600 hover:bg-green-700 text-white flex-1 sm:flex-none"
-                    >
-                      {isProcessing ? (
-                        <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Processing...</>
-                      ) : (
-                        <><ImageIcon className="w-4 h-4 mr-2" />Process All</>
-                      )}
-                    </Button>
-
-                    {!isProcessing && (
-                      <Button
-                        onClick={clearAll}
-                        variant="outline"
-                        size="sm"
-                        className="border-border text-muted-foreground flex-1 sm:flex-none"
-                      >
-                        <Trash2 className="w-4 h-4 mr-2" />
-                        Clear All
-                      </Button>
-                    )}
-                  </div>
-
-                  {doneCount > 0 && (
-                    <Button
-                      onClick={downloadAllAsZip}
-                      variant="outline"
-                      size="sm"
-                      className="border-purple-600 text-purple-600 hover:bg-purple-600 hover:text-white w-full sm:w-auto"
-                    >
-                      <FileArchive className="w-4 h-4 mr-2" />
-                      Download All as ZIP
-                    </Button>
+              {/* Right: show result/placeholder */}
+              <Card className="bg-card border-border overflow-hidden">
+                <CardContent className="p-3 md:p-4">
+                  <p className="text-xs md:text-sm text-muted-foreground mb-2">Result</p>
+                  {tasks[0].status === 'done' && tasks[0].resultUrl ? (
+                    <img 
+                      src={tasks[0].resultUrl}
+                      alt="Result"
+                      className="w-full h-48 md:h-64 object-contain bg-background rounded"
+                      loading="lazy"
+                    />
+                  ) : tasks[0].status === 'processing' ? (
+                    <div className="w-full h-48 md:h-64 flex items-center justify-center bg-background rounded">
+                      <Loader2 className="w-8 h-8 text-primary animate-spin" />
+                    </div>
+                  ) : (
+                    <div className="w-full h-48 md:h-64 flex items-center justify-center bg-background rounded text-muted-foreground text-xs md:text-sm text-center px-4">
+                      {tasks[0].status === 'failed' ? 'Failed to process' : 'Click Remove Background to start'}
+                    </div>
                   )}
-                </div>
-              )}
+                </CardContent>
+              </Card>
+            </div>
 
-              {/* Progress Bar */}
-              {tasks.length > 0 && (
-                <div className="space-y-2">
-                  <div className="flex justify-between text-xs md:text-sm">
-                    <span className="text-muted-foreground">Progress</span>
-                    <span className="text-foreground">{doneCount} / {totalCount} completed</span>
-                  </div>
-                  <Progress value={progress} className="h-2 bg-secondary" />
-                </div>
-              )}
+            {/* Action Buttons */}
+            <div className="flex flex-col sm:flex-row justify-center gap-3 md:gap-4">
+              <Button
+                onClick={processSingle}
+                disabled={tasks[0].status === 'processing' || tasks[0].status === 'done'}
+                className="bg-primary hover:bg-primary/90 w-full sm:w-auto"
+              >
+                {tasks[0].status === 'processing' ? (
+                  <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Processing...</>
+                ) : (
+                  <>Remove Background</>
+                )}
+              </Button>
 
-              {/* Empty State */}
-              {tasks.length === 0 && (
-                <div 
-                  className="border-2 border-dashed border-primary/60 rounded-xl p-8 md:p-20 text-center hover:border-primary transition-all duration-300 cursor-pointer bg-card shadow-sm hover:shadow-md group max-w-5xl mx-auto"
-                  onClick={() => batchFileInputRef.current?.click()}
+              {tasks[0].status === 'done' && tasks[0].resultUrl && (
+                <Button
+                  onClick={() => downloadImage(tasks[0].resultUrl!, `bg-removed-${tasks[0].file.name}`)}
+                  variant="outline"
+                  className="border-green-600 text-green-600 hover:bg-green-600 hover:text-white w-full sm:w-auto"
                 >
-                  <div className="bg-primary/15 border border-primary/35 w-16 h-16 md:w-20 md:h-20 rounded-full flex items-center justify-center mx-auto mb-4 md:mb-6 group-hover:bg-primary/20 transition-colors">
-                    <Images className="w-10 h-10 text-primary" />
-                  </div>
-                  <h3 className="text-xl md:text-2xl font-bold text-foreground mb-4 md:mb-5 font-inter">Click to upload images</h3>
-                  
-                  <div className="flex items-center justify-center mb-1.5 md:mb-2">
-                    <AlertCircle className="h-3 w-3 md:h-4 md:w-4 text-muted-foreground mr-1.5 md:mr-2" />
-                    <span className="text-muted-foreground text-xs md:text-sm">JPG, PNG, WEBP supported</span>
-                  </div>
-                  
-                  <p className="text-muted-foreground text-xs md:text-sm text-center mb-3 md:mb-4 max-w-md mx-auto">
-                    Drag & drop files here, or browse
-                  </p>
-                  
-                  <p className="text-foreground text-xs md:text-sm font-medium">Process 500 images in a Single Action</p>
-                </div>
+                  <Download className="w-4 h-4 mr-2" />
+                  Download PNG
+                </Button>
               )}
 
-              {/* Grid of Cards */}
-              {tasks.length > 0 && (
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                  {tasks.map((task, index) => (
-                    <Card 
-                      key={task.id} 
-                      className={`bg-card border-border overflow-hidden ${
-                        isProcessing && currentTaskIndex === index ? 'ring-2 ring-primary' : ''
-                      }`}
-                    >
-                      <div className="relative aspect-square">
-                        <img 
-                          src={task.status === 'done' && task.resultUrl ? task.resultUrl : task.preview} 
-                          alt={task.file.name}
-                          className="w-full h-full object-cover"
-                        />
-                        <button
-                          onClick={() => removeTask(task.id)}
-                          disabled={isProcessing}
-                          className="absolute top-2 right-2 p-1 bg-red-600 rounded text-white opacity-0 hover:opacity-100 group-hover:opacity-100 transition-opacity"
-                        >
-                          <X className="w-3 h-3" />
-                        </button>
-                        <div className="absolute inset-0 bg-black/50 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center">
-                          {task.status === 'done' && task.resultUrl && (
-                            <Button
-                              size="sm"
-                              onClick={() => downloadImage(task.resultUrl!, `bg-removed-${task.file.name}`)}
-                              className="bg-green-600 hover:bg-green-700"
-                            >
-                              <Download className="w-4 h-4" />
-                            </Button>
-                          )}
-                        </div>
-                      </div>
-                      <CardContent className="p-3">
-                        <p className="text-xs text-muted-foreground truncate mb-2" title={task.file.name}>
-                          {task.file.name}
-                        </p>
-                        <div className="flex items-center justify-between">
-                          <StatusBadge status={task.status} />
-                          {task.status === 'failed' && (
-                            <button
-                              onClick={() => toast.error(task.error || 'Unknown error')}
-                              className="text-red-400 hover:text-red-300"
-                            >
-                              <AlertCircle className="w-4 h-4" />
-                            </button>
-                          )}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
+              <Button
+                onClick={() => setTasks([])}
+                variant="outline"
+                className="border-border text-muted-foreground w-full sm:w-auto"
+              >
+                <Trash2 className="w-4 h-4 mr-2" />
+                Clear
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* Batch Mode Content */}
+        {mode === 'batch' && tasks.length > 0 && (
+          <div className="space-y-6">
+            {/* Upload & Progress Header */}
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3 w-full sm:w-auto">
+                <Button
+                  onClick={processBatch}
+                  size="sm"
+                  disabled={isProcessing || tasks.filter(t => t.status === 'pending').length === 0}
+                  className="bg-green-600 hover:bg-green-700 text-white flex-1 sm:flex-none"
+                >
+                  {isProcessing ? (
+                    <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Processing...</>
+                  ) : (
+                    <><ImageIcon className="w-4 h-4 mr-2" />Generate all</>
+                  )}
+                </Button>
+
+                {!isProcessing && (
+                  <Button
+                    onClick={clearAll}
+                    variant="outline"
+                    size="sm"
+                    className="border-border text-muted-foreground flex-1 sm:flex-none"
+                  >
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Clear All
+                  </Button>
+                )}
+              </div>
+
+              {doneCount > 0 && (
+                <Button
+                    onClick={downloadAllAsZip}
+                    variant="outline"
+                    size="sm"
+                    className="border-primary text-primary hover:bg-primary hover:text-primary-foreground w-full sm:w-auto"
+                  >
+                    <FileArchive className="w-4 h-4 mr-2" />
+                    Download All as ZIP
+                  </Button>
               )}
             </div>
-          )}
+
+            {/* Progress Bar */}
+            <div className="space-y-2">
+              <div className="flex justify-between text-xs md:text-sm">
+                <span className="text-muted-foreground">Progress</span>
+                <span className="text-foreground">{doneCount} / {totalCount} completed</span>
+              </div>
+              <Progress value={progress} className="h-2 bg-secondary" />
+            </div>
+
+            {/* Grid of Cards - Using Memoized Component */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 md:gap-4">
+              {tasks.map((task, index) => (
+                <RemovalTaskCard 
+                  key={task.id}
+                  task={task}
+                  isProcessing={isProcessing}
+                  isCurrentTask={isProcessing && currentTaskIndex === index}
+                  onRemove={removeTask}
+                  onDownload={handleDownloadSingle}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

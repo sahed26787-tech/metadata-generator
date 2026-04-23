@@ -807,7 +807,7 @@ const Index: React.FC = () => {
                       <Loader2 className="h-4 w-4 animate-spin mr-1" /> : 
                       <Play className="h-4 w-4 mr-1" />
                     }
-                    <span>Process All</span>
+                    <span>Generate all</span>
                   </Button>
                 </div>
               )}

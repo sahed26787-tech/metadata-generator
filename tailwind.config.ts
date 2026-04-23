@@ -65,8 +65,8 @@ export default {
 				}
 			},
 			fontFamily: {
-				sans: ['Inter', 'sans-serif'],
-				display: ['Inter', 'SF Pro Display', 'sans-serif'],
+				sans: ['TASA Orbiter', 'Inter', 'sans-serif'],
+				display: ['TASA Orbiter', 'Inter', 'SF Pro Display', 'sans-serif'],
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
