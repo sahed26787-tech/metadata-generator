@@ -22,12 +22,15 @@ const FeatureToggle: React.FC<FeatureToggleProps> = ({
   footer
 }) => {
   return <div className="space-y-1 pt-1 border-t border-border">
-      <div className="flex justify-between items-center py-3">
+      <div 
+        className="flex justify-between items-center py-3 cursor-pointer select-none" 
+        onClick={() => onEnabledChange(!enabled)}
+      >
         <div className="flex items-center flex-1">
           {/* Simplified layout without info icon */}
           <h3 className="text-sm font-medium text-foreground uppercase tracking-wide">{title}</h3>
         </div>
-        <div className="w-12">
+        <div className="w-12" onClick={(e) => e.stopPropagation()}>
           <Switch checked={enabled} onCheckedChange={onEnabledChange} className="ml-auto" />
         </div>
       </div>

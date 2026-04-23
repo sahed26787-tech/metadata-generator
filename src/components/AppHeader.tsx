@@ -167,10 +167,16 @@ const AppHeader: React.FC<AppHeaderProps> = ({
         <div className="flex-1"></div>
         
         <div className="flex items-center space-x-2 md:space-x-4 mr-2 md:mr-4">
-          <div className="hidden md:block">
-            <ThemeToggle />
-          </div>
-          
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="hidden md:flex text-muted-foreground hover:bg-accent hover:text-foreground border border-transparent hover:border-border"
+            onClick={() => window.open("https://youtube.com", "_blank")}
+          >
+            <Video className="h-4 w-4 mr-2" />
+            Learn
+          </Button>
+
           <Button 
             variant="ghost" 
             size="sm" 
@@ -180,6 +186,10 @@ const AppHeader: React.FC<AppHeaderProps> = ({
             <BookOpen className="h-4 w-4 mr-2" />
             Resources
           </Button>
+
+          <div className="hidden md:block">
+            <ThemeToggle />
+          </div>
 
           <div className="hidden md:block">
             <DropdownMenu>
@@ -197,6 +207,10 @@ const AppHeader: React.FC<AppHeaderProps> = ({
                 <DropdownMenuItem className="cursor-pointer" onClick={() => window.open("https://chat.whatsapp.com/FX3SIHK7Fec63XWh3P06jt", "_blank")}>
                   <MessageCircle className="h-4 w-4 mr-2 text-green-500" />
                   <span>WhatsApp</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem className="cursor-pointer" onClick={() => window.open("https://discord.com", "_blank")}>
+                  <MessageSquare className="h-4 w-4 mr-2 text-indigo-500" />
+                  <span>Discord</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem className="cursor-pointer" onClick={() => window.open("https://facebook.com", "_blank")}>
                   <Facebook className="h-4 w-4 mr-2 text-blue-600" />

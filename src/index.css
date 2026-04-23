@@ -58,8 +58,24 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground overflow-x-hidden;
     font-family: 'Inter', sans-serif;
+  }
+}
+
+/* Sidebar layout helper */
+.main-content {
+  @apply transition-all duration-300;
+  margin-left: 320px; /* Width of the sidebar (80) */
+}
+
+body.sidebar-hidden .main-content {
+  margin-left: 0;
+}
+
+@media (max-width: 768px) {
+  .main-content {
+    margin-left: 0 !important;
   }
 }
 

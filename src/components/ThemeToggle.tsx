@@ -14,19 +14,23 @@ const ThemeToggle: React.FC = () => {
   return (
     <div 
       onClick={toggleTheme}
-      className="relative flex items-center bg-secondary border border-border h-8 w-16 rounded-full cursor-pointer p-1 transition-all duration-300 hover:border-primary/50"
+      className="relative flex items-center bg-secondary border border-border h-8 w-16 rounded-full cursor-pointer transition-all duration-300 hover:border-primary/50"
     >
       {/* Moving background slider */}
       <div 
-        className={`absolute h-6 w-6 rounded-full bg-primary shadow-sm transition-all duration-300 ease-in-out ${
+        className={`absolute top-1 left-1 h-6 w-6 rounded-full bg-primary shadow-sm transition-all duration-300 ease-in-out ${
           theme === 'dark' ? 'translate-x-8' : 'translate-x-0'
         }`}
       />
       
       {/* Icons container */}
-      <div className="relative flex items-center justify-between w-full px-1 z-10">
-        <Sun className={`h-4 w-4 transition-colors duration-300 ${theme === 'light' ? 'text-primary-foreground' : 'text-muted-foreground'}`} />
-        <Moon className={`h-4 w-4 transition-colors duration-300 ${theme === 'dark' ? 'text-primary-foreground' : 'text-muted-foreground'}`} />
+      <div className="relative flex items-center w-full h-full z-10">
+        <div className="w-1/2 flex justify-center items-center">
+          <Sun className={`h-4 w-4 transition-colors duration-300 ${theme === 'light' ? 'text-primary-foreground' : 'text-muted-foreground'}`} />
+        </div>
+        <div className="w-1/2 flex justify-center items-center">
+          <Moon className={`h-4 w-4 transition-colors duration-300 ${theme === 'dark' ? 'text-primary-foreground' : 'text-muted-foreground'}`} />
+        </div>
       </div>
     </div>
   );

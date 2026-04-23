@@ -756,7 +756,7 @@ const Index: React.FC = () => {
           onBgOutputFormatChange={setBgOutputFormat}
         />
         
-        <main className="flex-1 p-6 overflow-auto bg-background">
+        <main className="flex-1 p-6 overflow-auto bg-background main-content">
           <div className="max-w-5xl mx-auto">
             <div className="mb-6">
               {generationMode === 'backgroundRemoval' ? (
