@@ -319,6 +319,53 @@ serve(async (req) => {
     const generationMode = options.generationMode || 'metadata';
     const originalIsEps = options.originalIsEps || false;
     const requiresVision = !originalIsEps;
+    
+    const minTitleWords = options.minTitleWords || 8;
+    const maxTitleWords = options.maxTitleWords || 15;
+    const minKeywords = options.minKeywords || 20;
+    const maxKeywords = options.maxKeywords || 35;
+    const minDescriptionWords = options.minDescriptionWords || 30;
+    const maxDescriptionWords = options.maxDescriptionWords || 40;
+
+    const metadataSystemPrompt = `You are a stock photography metadata expert (Adobe Stock, Shutterstock, Freepik). Output English only. 
+
+ANALYSIS STEPS: 
+1. Classify: (A) photo/3D, (B) physical object silhouette, (C) flat icon/pictogram, (D) vector pattern. 
+2. Name the literal subject. UI vocabulary (slider, button, icon) ONLY for type (C). Never call physical objects UI controls. 
+3. Note style (photo, vector, silhouette, flat icon, etc.) and background (transparent/white/colored). 
+4. If <70% sure of subject, describe by shape/category — never mislabel. 
+
+OUTPUT (JSON only, no markdown): 
+{ 
+  "title": "${minTitleWords}-${maxTitleWords} words, sentence case, [subject] + [style/color/setting]", 
+  "keywords": ["${minKeywords}-${maxKeywords} unique lowercase keywords: ~40% subject+synonyms, ~25% style/format, ~20% mood/concept, ~15% use-case"], 
+  "description": "${minDescriptionWords}-${maxDescriptionWords} words, factual, mentions subject, no fluff" 
+} 
+
+RULES: 
+- Hyphenated = 1 word. Ranges are strict. 
+- Every keyword must be visible in image. No duplicates. 
+- If silhouette/transparent/white background mentioned in user prompt, include those words in title + keywords + description. 
+- Title and keywords must reference the same subject.`;
+
+    const imageToPromptSystemPrompt = `You are a Professional AI Prompt Engineer and Expert Photographer specializing in Reverse Engineering images. Your goal is to generate a prompt that recreates the input image with 99% accuracy in Midjourney, Leonardo AI, and Stable Diffusion.
+
+ANALYSIS PROTOCOL:
+1. SUBJECT: Identify every micro-detail (texture, skin pores, hair strands, material properties).
+2. LIGHTING: Precise light source, quality (soft, harsh), color temperature, and cinematic effects (Rim lighting, Global Illumination, Volumetric).
+3. CAMERA/LENS: Lens focal length (e.g., 85mm Macro, 35mm wide), aperture (f/1.8), perspective, and specific camera body (Sony A7R IV, Hasselblad).
+4. COMPOSITION: Depth of field, framing (Rule of thirds, centered), and eye-level.
+5. STYLE/MEDIUM: Classify medium (Hyper-realistic photo, 3D Octane render, Unreal Engine 5, Digital editorial).
+6. COLOR: Specific palette, saturation, and grading (Teal & Orange, Pastel, High contrast).
+
+PROMPT STRUCTURE:
+[Subject Description] + [Detailed Environment/Background] + [Technical Photography Specs: Lens, Camera, Aperture] + [Lighting & Mood] + [Style & Rendering Engine] + [High-Quality Tags].
+
+RULES:
+- Use technical photography terminology.
+- Avoid storytelling; use descriptive, high-impact phrases.
+- Ensure 99% similarity by focusing on texture and lighting.
+- Output ONLY the prompt text. No JSON, no markdown, no intro/outro.`;
 
     // Call DeepInfra API
     const response = await fetch("https://api.deepinfra.com/v1/openai/chat/completions", {
@@ -334,8 +381,8 @@ serve(async (req) => {
           {
             role: "system",
             content: generationMode === 'imageToPrompt' 
-              ? "You are a helpful assistant. Provide a detailed description of the image for AI image generation. Return only the description text, no JSON formatting."
-              : "You are a helpful assistant that returns JSON according to instructions when asked."
+              ? imageToPromptSystemPrompt
+              : metadataSystemPrompt
           },
           {
             role: "user",
@@ -347,8 +394,8 @@ serve(async (req) => {
               : `${prompt}\n\nEPS Metadata:\n${image}`
           }
         ],
-        temperature: 1,
-        top_p: 1,
+        temperature: 0.3,
+        top_p: 0.9,
         stream: false,
       }),
     });

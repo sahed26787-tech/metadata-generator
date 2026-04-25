@@ -309,13 +309,13 @@ export const suggestCategoriesForAdobeStock = (title: string, keywords: string[]
 };
 
 /**
- * Reduces the size and dimensions of an image file to improve processing speed
+ * Reduces the size and dimensions of an image file to improve processing speed while maintaining quality for AI analysis
  * @param file Original image file
- * @param quality Quality percentage (1-100)
- * @param targetWidth Target width in pixels (default 200px)
+ * @param quality Quality percentage (1-100) - increased for better AI recognition
+ * @param targetWidth Target width in pixels (default 1024px for good AI vision)
  * @returns A promise that resolves to a new File with reduced size
  */
-export async function reduceImageSize(file: File, quality: number = 20, targetWidth: number = 200): Promise<File> {
+export async function reduceImageSize(file: File, quality: number = 80, targetWidth: number = 1024): Promise<File> {
   // Skip reduction for non-image files or SVG files
   if (!file.type.startsWith('image/') || file.type === 'image/svg+xml') {
     return file;
@@ -331,22 +331,22 @@ export async function reduceImageSize(file: File, quality: number = 20, targetWi
         img.src = event.target?.result as string;
         
         img.onload = () => {
-          // Calculate new dimensions - target 10% of original dimensions (90% reduction)
-          // but not larger than targetWidth
-          let newWidth = Math.min(Math.round(img.width * 0.1), targetWidth);
-          let newHeight = Math.round(img.height * (newWidth / img.width));
-          
-          // Ensure dimensions are at least 200x200 if original is larger
-          if (img.width > 200 && img.height > 200) {
-            newWidth = Math.max(newWidth, 200);
-            newHeight = Math.max(newHeight, 200);
-          } else {
-            // For smaller images, keep them as is or reduce slightly
-            newWidth = Math.min(img.width, 200);
-            newHeight = Math.min(img.height, 200);
+          // Calculate new dimensions - target width while maintaining aspect ratio
+          let newWidth = img.width;
+          let newHeight = img.height;
+
+          if (img.width > targetWidth) {
+            newWidth = targetWidth;
+            newHeight = Math.round(img.height * (targetWidth / img.width));
           }
           
-          console.log(`Reducing image dimensions: ${img.width}x${img.height} -> ${newWidth}x${newHeight}`);
+          // Ensure dimensions are at least 512px if original is larger, for better AI analysis
+          if (img.width > 512 && newWidth < 512) {
+            newWidth = 512;
+            newHeight = Math.round(img.height * (512 / img.width));
+          }
+          
+          console.log(`Optimizing image dimensions for AI: ${img.width}x${img.height} -> ${newWidth}x${newHeight}`);
           
           // Create canvas for resizing
           const canvas = document.createElement('canvas');
@@ -360,12 +360,12 @@ export async function reduceImageSize(file: File, quality: number = 20, targetWi
             return;
           }
           
-          // Use low quality settings for drawing to maximize compression
+          // Use high quality settings for AI analysis
           ctx.imageSmoothingEnabled = true;
-          ctx.imageSmoothingQuality = 'low'; // Use low quality for better compression
+          ctx.imageSmoothingQuality = 'high';
           ctx.drawImage(img, 0, 0, newWidth, newHeight);
           
-          // Convert to blob with reduced quality
+          // Convert to blob with better quality
           canvas.toBlob(
             (blob) => {
               if (!blob) {
@@ -373,9 +373,9 @@ export async function reduceImageSize(file: File, quality: number = 20, targetWi
                 return;
               }
               
-              // Create new file with same name but reduced size
+              // Create new file with same name but optimized for AI
               const newFile = new File([blob], file.name, {
-                type: 'image/jpeg', // Convert to JPEG for better compression
+                type: 'image/jpeg', // JPEG is generally better for vision models
                 lastModified: file.lastModified,
               });
               
@@ -383,39 +383,18 @@ export async function reduceImageSize(file: File, quality: number = 20, targetWi
               const newSizeKB = newFile.size / 1024;
               const reductionPercent = Math.round((1 - (newFile.size / file.size)) * 100);
               
-              console.log(`Reduced image size: ${file.name} - Original: ${originalSizeKB.toFixed(2)} KB, New: ${newSizeKB.toFixed(2)} KB (${reductionPercent}% reduction)`);
+              console.log(`Optimized image size for AI: ${file.name} - Original: ${originalSizeKB.toFixed(2)} KB, New: ${newSizeKB.toFixed(2)} KB (${reductionPercent}% reduction)`);
               
-              // Target size is around 200KB
-              const targetSizeKB = 200;
+              // Target size for AI vision is around 500KB - 1MB
+              const maxTargetSizeKB = 1024; // 1MB is safe for most APIs and maintains great detail
               
-              // If file is still too large (>200KB), try more aggressive compression
-              if (newSizeKB > targetSizeKB) {
-                console.log(`File still too large (${newSizeKB.toFixed(2)} KB). Applying more aggressive compression...`);
+              // Only if file is extremely large (>1MB), apply a second pass
+              if (newSizeKB > maxTargetSizeKB) {
+                console.log(`File still large (${newSizeKB.toFixed(2)} KB). Applying balanced compression...`);
                 
-                // Try again with even smaller dimensions and lower quality
-                const smallerCanvas = document.createElement('canvas');
-                const smallerWidth = Math.round(newWidth * 0.7); // Further reduce to 70% of already reduced size
-                const smallerHeight = Math.round(newHeight * 0.7);
-                
-                smallerCanvas.width = smallerWidth;
-                smallerCanvas.height = smallerHeight;
-                
-                const smallerCtx = smallerCanvas.getContext('2d');
-                if (!smallerCtx) {
-                  // If this fails, return the first attempt
-                  resolve(newFile);
-                  return;
-                }
-                
-                smallerCtx.imageSmoothingEnabled = true;
-                smallerCtx.imageSmoothingQuality = 'low';
-                smallerCtx.drawImage(img, 0, 0, smallerWidth, smallerHeight);
-                
-                // Convert to blob with very low quality
-                smallerCanvas.toBlob(
+                canvas.toBlob(
                   (smallerBlob) => {
                     if (!smallerBlob) {
-                      // If this fails, return the first attempt
                       resolve(newFile);
                       return;
                     }
@@ -425,23 +404,12 @@ export async function reduceImageSize(file: File, quality: number = 20, targetWi
                       lastModified: file.lastModified,
                     });
                     
-                    const finalSizeKB = finalFile.size / 1024;
-                    const finalReductionPercent = Math.round((1 - (finalFile.size / file.size)) * 100);
-                    
-                    console.log(`Second-pass reduction: ${file.name} - Original: ${originalSizeKB.toFixed(2)} KB, New: ${finalSizeKB.toFixed(2)} KB (${finalReductionPercent}% reduction)`);
-                    
-                    // Use the smaller file
-                    if (finalFile.size < newFile.size) {
-                      resolve(finalFile);
-                    } else {
-                      resolve(newFile);
-                    }
+                    resolve(finalFile);
                   },
                   'image/jpeg',
-                  0.2 // Very low quality (20%)
+                  0.6 // Reduce quality slightly more to 60% for very large files
                 );
               } else {
-                // Reduction was sufficient, return the file
                 resolve(newFile);
               }
             },
@@ -451,18 +419,18 @@ export async function reduceImageSize(file: File, quality: number = 20, targetWi
         };
         
         img.onerror = () => {
-          console.warn(`Could not load image for reduction: ${file.name}`);
-          resolve(file); // Return original if we can't process it
+          console.warn(`Could not load image for optimization: ${file.name}`);
+          resolve(file);
         };
       };
       
       reader.onerror = () => {
-        console.warn(`Could not read file for reduction: ${file.name}`);
-        resolve(file); // Return original if we can't read it
+        console.warn(`Could not read file for optimization: ${file.name}`);
+        resolve(file);
       };
     } catch (error) {
-      console.error('Error reducing image size:', error);
-      resolve(file); // Return original on error
+      console.error('Error optimizing image for AI:', error);
+      resolve(file);
     }
   });
 }
