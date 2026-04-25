@@ -199,6 +199,7 @@ const BackgroundRemoval: React.FC<BackgroundRemovalProps> = ({
   const [tasks, setTasks] = useState<RemovalTask[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [currentTaskIndex, setCurrentTaskIndex] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
   
   // Refs
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -210,8 +211,8 @@ const BackgroundRemoval: React.FC<BackgroundRemovalProps> = ({
   const progress = useMemo(() => totalCount > 0 ? (doneCount / totalCount) * 100 : 0, [doneCount, totalCount]);
 
   // Handle single file upload
-  const handleSingleUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+  const handleSingleFiles = useCallback((files: File[]) => {
+    const file = files[0];
     if (!file) return;
 
     if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
@@ -232,9 +233,13 @@ const BackgroundRemoval: React.FC<BackgroundRemovalProps> = ({
     reader.readAsDataURL(file);
   }, []);
 
-  // Handle batch file upload
-  const handleBatchUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSingleUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
+    handleSingleFiles(files);
+  }, [handleSingleFiles]);
+
+  // Handle batch file upload
+  const handleBatchFiles = useCallback((files: File[]) => {
     if (files.length === 0) return;
 
     if (files.length > 500) {
@@ -270,6 +275,56 @@ const BackgroundRemoval: React.FC<BackgroundRemovalProps> = ({
       reader.readAsDataURL(file);
     });
   }, []);
+
+  const handleBatchUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    handleBatchFiles(files);
+  }, [handleBatchFiles]);
+
+  // Drag and drop handlers
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  }, []);
+
+  const handleDragEnter = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX;
+    const y = e.clientY;
+    
+    if (x < rect.left || x >= rect.right || y < rect.top || y >= rect.bottom) {
+      setIsDragging(false);
+    }
+  }, []);
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+
+    if (isProcessing) {
+      toast.error('Please wait for the current process to finish');
+      return;
+    }
+
+    const files = Array.from(e.dataTransfer.files);
+    if (files.length > 0) {
+      if (mode === 'single') {
+        handleSingleFiles(files);
+      } else {
+        handleBatchFiles(files);
+      }
+    }
+  }, [mode, isProcessing, handleSingleFiles, handleBatchFiles]);
 
   // Remove a task
   const removeTask = useCallback((id: string) => {
@@ -413,7 +468,24 @@ const BackgroundRemoval: React.FC<BackgroundRemovalProps> = ({
   };
 
   return (
-    <div className="w-full h-full p-4 md:p-6">
+    <div 
+      className="w-full h-full p-4 md:p-6"
+      onDragOver={handleDragOver}
+      onDragEnter={handleDragEnter}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+    >
+      {/* Visual Overlay for Dragging State */}
+      {isDragging && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-primary/10 backdrop-blur-sm border-4 border-dashed border-primary m-4 rounded-2xl pointer-events-none">
+          <div className="bg-background/90 p-6 rounded-xl shadow-2xl flex flex-col items-center animate-in zoom-in duration-200">
+            <Upload className="w-12 h-12 text-primary mb-4 animate-bounce" />
+            <p className="text-xl font-bold text-foreground">Drop images to upload</p>
+            <p className="text-sm text-muted-foreground mt-1">JPG, PNG, or WEBP</p>
+          </div>
+        </div>
+      )}
+
       {/* Hidden Inputs - Moved to top to prevent layout shifts */}
       <input
         ref={fileInputRef}
@@ -435,7 +507,11 @@ const BackgroundRemoval: React.FC<BackgroundRemovalProps> = ({
         {/* Common Upload Area */}
         {tasks.length === 0 && (
           <div 
-            className="border-2 border-dashed border-primary/60 rounded-xl p-8 md:p-20 text-center hover:border-primary transition-all duration-300 cursor-pointer bg-card shadow-sm hover:shadow-md group max-w-5xl mx-auto"
+            className={`border-2 border-dashed rounded-xl p-8 md:p-20 text-center transition-all duration-300 cursor-pointer bg-card shadow-sm group max-w-5xl mx-auto ${
+              isDragging 
+                ? 'border-primary bg-primary/5 scale-[1.02] shadow-lg' 
+                : 'border-primary/60 hover:border-primary hover:shadow-md'
+            }`}
             onClick={handleUploadClick}
           >
             <div className="bg-primary/15 border border-primary/35 w-16 h-16 md:w-20 md:h-20 rounded-full flex items-center justify-center mx-auto mb-4 md:mb-6 group-hover:bg-primary/20 transition-colors">
