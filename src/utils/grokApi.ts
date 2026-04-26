@@ -335,22 +335,10 @@ export async function analyzeImagesInBatchWithGroq(
   _apiKey: string, // Kept for compatibility, not used
   options: AnalysisOptions = {}
 ): Promise<AnalysisResult[]> {
-  let MAX_BATCH_SIZE = 10;
-  const totalSizeMB = imageFiles.reduce((sum, file) => sum + file.size / (1024 * 1024), 0);
-  if (totalSizeMB > 20) {
-    MAX_BATCH_SIZE = 5;
-  } else if (totalSizeMB > 10) {
-    MAX_BATCH_SIZE = 8;
-  }
-  const largeFiles = imageFiles.filter(file => file.size > 2 * 1024 * 1024).length;
-  if (largeFiles > 5) {
-    MAX_BATCH_SIZE = Math.min(MAX_BATCH_SIZE, 3);
-  }
-  // Process all images in parallel (concurrently) for maximum speed
+  // Files are already preprocessed during upload; avoid repeating expensive client-side reduction here.
   const processPromises = imageFiles.map(async (file, index) => {
     try {
-      const reducedFile = await reduceImageSize(file);
-      const result = await analyzeImageWithGroq(reducedFile, _apiKey, options);
+      const result = await analyzeImageWithGroq(file, _apiKey, options);
       result.index = index;
       result.filename = file.name;
       return result;

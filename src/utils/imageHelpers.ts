@@ -186,12 +186,15 @@ export const escapeCSV = (field: string): string => {
  * Create a preview for an image file
  */
 export const createImagePreview = (file: File): Promise<string> => {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result as string);
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
+  return Promise.resolve(URL.createObjectURL(file));
+};
+
+/**
+ * Revoke blob-based preview URLs to prevent memory leaks
+ */
+export const revokePreviewUrl = (previewUrl?: string): void => {
+  if (!previewUrl || !previewUrl.startsWith('blob:')) return;
+  URL.revokeObjectURL(previewUrl);
 };
 
 /**
@@ -230,7 +233,7 @@ export const isValidImageType = (file: File): boolean => {
  * Check if the file size is within limits
  */
 export const isValidFileSize = (file: File): boolean => {
-  const MAX_SIZE = 10 * 1024 * 1024 * 1024; // 10GB
+  const MAX_SIZE = 50 * 1024 * 1024; // 50MB
   return file.size <= MAX_SIZE;
 };
 

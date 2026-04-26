@@ -869,36 +869,12 @@ export async function analyzeImagesInBatch(
   _apiKey: string, // Kept for compatibility, not used
   options: AnalysisOptions = {}
 ): Promise<AnalysisResult[]> {
-  // Adjust batch size based on file sizes to prevent API errors
-  let MAX_BATCH_SIZE = 10; // Reduce default batch size to avoid rate limits
-  
-  // Calculate total size of all files
-  const totalSizeMB = imageFiles.reduce((sum, file) => sum + file.size / (1024 * 1024), 0);
-  console.log(`Total size of all files: ${totalSizeMB.toFixed(2)} MB`);
-  
-  // Adjust batch size based on total file size
-  if (totalSizeMB > 20) {
-    MAX_BATCH_SIZE = 5; // Smaller batch for very large uploads
-    console.log(`Large upload detected (${totalSizeMB.toFixed(2)} MB). Reducing batch size to ${MAX_BATCH_SIZE}`);
-  } else if (totalSizeMB > 10) {
-    MAX_BATCH_SIZE = 8; // Medium batch for moderate uploads
-    console.log(`Medium upload detected (${totalSizeMB.toFixed(2)} MB). Reducing batch size to ${MAX_BATCH_SIZE}`);
-  }
-  
-  // Further reduce batch size if there are many large files
-  const largeFiles = imageFiles.filter(file => file.size > 2 * 1024 * 1024).length;
-  if (largeFiles > 5) {
-    MAX_BATCH_SIZE = Math.min(MAX_BATCH_SIZE, 3);
-    console.log(`Many large files detected (${largeFiles} files > 2MB). Reducing batch size to ${MAX_BATCH_SIZE}`);
-  }
-  
-  // Process all images in parallel (concurrently) for maximum speed
-  console.log(`Processing ${imageFiles.length} files in parallel for maximum speed`);
+  // Files are already preprocessed during upload; avoid repeating expensive client-side reduction here.
+  console.log(`Processing ${imageFiles.length} files in parallel`);
   
   const processPromises = imageFiles.map(async (file, index) => {
     try {
-      const reducedFile = await reduceImageSize(file);
-      const result = await analyzeImageWithGemini(reducedFile, _apiKey, options);
+      const result = await analyzeImageWithGemini(file, _apiKey, options);
       result.index = index;
       result.filename = file.name;
       return result;

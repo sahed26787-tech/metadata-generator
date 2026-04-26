@@ -4,7 +4,7 @@ import ImageUploader from '@/components/ImageUploader';
 import ResultsDisplay from '@/components/ResultsDisplay';
 import ThemeToggle from '@/components/ThemeToggle';
 import { Button } from '@/components/ui/button';
-import { ProcessedImage, createImagePreview, generateId, isValidImageType, isValidFileSize } from '@/utils/imageHelpers';
+import { ProcessedImage, revokePreviewUrl } from '@/utils/imageHelpers';
 import { isVideoFile } from '@/utils/videoProcessor';
 import { isSvgFile } from '@/utils/svgToPng';
 import { isEpsFile } from '@/utils/epsMetadataExtractor';
@@ -72,6 +72,7 @@ const Index: React.FC = () => {
   const [elapsedTime, setElapsedTime] = useState(0);
   const [completionTime, setCompletionTime] = useState<string | null>(null);
   const timerIntervalRef = useRef<number | null>(null);
+  const imagesRef = useRef<ProcessedImage[]>([]);
   
   // Batch processing states
   const [batchSize] = useState(5); // Fixed batch size of 5
@@ -149,8 +150,15 @@ const Index: React.FC = () => {
       if (timerIntervalRef.current !== null) {
         window.clearInterval(timerIntervalRef.current);
       }
+      imagesRef.current.forEach((img) => {
+        revokePreviewUrl(img.previewUrl);
+      });
     };
   }, []);
+
+  useEffect(() => {
+    imagesRef.current = images;
+  }, [images]);
   
   useEffect(() => {
     const saved = localStorage.getItem('ai-provider');
@@ -242,6 +250,10 @@ const Index: React.FC = () => {
   
   const handleRemoveImage = (id: string) => {
     setImages(prev => {
+      const removedImage = prev.find(img => img.id === id);
+      if (removedImage) {
+        revokePreviewUrl(removedImage.previewUrl);
+      }
       const updatedImages = prev.filter(img => img.id !== id);
       
       // Recalculate batches after removing an image
@@ -257,6 +269,9 @@ const Index: React.FC = () => {
   };
   
   const handleClearAll = () => {
+    images.forEach((img) => {
+      revokePreviewUrl(img.previewUrl);
+    });
     setImages([]);
     setCompletionTime(null);
     setBatches([]);
@@ -419,10 +434,6 @@ const Index: React.FC = () => {
         } : img
       ));
       
-      // Check for special file types
-      const hasSvgFiles = currentBatch.some(img => isSvgFile(img.file));
-      const hasVideoFiles = currentBatch.some(img => isVideoFile(img.file));
-      
       // Create options object for the API call
       const options = {
         titleLength,
@@ -473,6 +484,12 @@ const Index: React.FC = () => {
         console.log('Batch processing results:', batchResults);
         
         // Match results with original images by both filename and index
+        const updatesByImageId = new Map<string, {
+          status: 'complete' | 'error';
+          result?: ProcessedImage['result'];
+          error?: string;
+        }>();
+
         for (let i = 0; i < currentBatch.length; i++) {
           const image = currentBatch[i];
           
@@ -506,9 +523,8 @@ const Index: React.FC = () => {
           }
           
           if (result) {
-            setImages(prev => prev.map(img => img.id === image.id ? {
-              ...img,
-              status: result.error ? 'error' as const : 'complete' as const,
+            updatesByImageId.set(image.id, {
+              status: result.error ? 'error' : 'complete',
               result: result.error ? undefined : {
                 title: result.title || '',
                 description: result.description || '',
@@ -538,17 +554,23 @@ const Index: React.FC = () => {
                 })
               },
               error: result.error
-            } : img));
+            });
           } else {
             // If no result was found for this image, mark it as error
             console.error(`No result found for image: ${image.file.name}`);
-            
-            setImages(prev => prev.map(img => img.id === image.id ? {
-              ...img,
-              status: 'error' as const,
+
+            updatesByImageId.set(image.id, {
+              status: 'error',
               error: 'No metadata generated for this image in the batch response'
-            } : img));
+            });
           }
+        }
+
+        if (updatesByImageId.size > 0) {
+          setImages(prev => prev.map(img => {
+            const update = updatesByImageId.get(img.id);
+            return update ? { ...img, ...update } : img;
+          }));
         }
       } catch (batchError) {
         console.error('Batch processing failed, falling back to individual processing:', batchError);

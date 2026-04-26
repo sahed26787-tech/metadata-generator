@@ -503,7 +503,11 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
       {generationMode === 'imageToPrompt' && hasCompletedImages && (
         <div className="grid grid-cols-1 gap-6" ref={completedImagesRef}>
           {completedImages.map(image => (
-            <div key={image.id} ref={el => completedImageRefs.current[image.id] = el}>
+            <div
+              key={image.id}
+              ref={el => completedImageRefs.current[image.id] = el}
+              style={{ contentVisibility: 'auto', containIntrinsicSize: '500px' }}
+            >
               <CompletedImageToPromptCard 
                 image={image}
                 isLastCompleted={lastCompletedId === image.id}
@@ -519,7 +523,11 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
       {generationMode === 'metadata' && hasCompletedImages && (
         <div className="overflow-auto" ref={completedImagesRef}>
           {completedImages.map(image => (
-            <div key={image.id} ref={el => completedImageRefs.current[image.id] = el}>
+            <div
+              key={image.id}
+              ref={el => completedImageRefs.current[image.id] = el}
+              style={{ contentVisibility: 'auto', containIntrinsicSize: '650px' }}
+            >
               <CompletedMetadataCard
                 image={image}
                 isLastCompleted={lastCompletedId === image.id}
@@ -539,12 +547,13 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
       {pendingImages.length > 0 && (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {pendingImages.map(image => (
-            <PendingImageCard 
-              key={image.id}
-              image={image}
-              onRemove={onRemoveImage}
-              onRegenerate={onRegenerateImage}
-            />
+            <div key={image.id} style={{ contentVisibility: 'auto', containIntrinsicSize: '120px' }}>
+              <PendingImageCard
+                image={image}
+                onRemove={onRemoveImage}
+                onRegenerate={onRegenerateImage}
+              />
+            </div>
           ))}
         </div>
       )}
