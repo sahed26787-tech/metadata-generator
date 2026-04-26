@@ -81,13 +81,19 @@ const LazyPreviewImage: React.FC<{
 }> = ({ src, alt, className }) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [isVisible, setIsVisible] = useState(false);
+  const [hasLoaded, setHasLoaded] = useState(false);
 
   useEffect(() => {
     const element = containerRef.current;
     if (!element) return;
 
     const observer = new IntersectionObserver(
-      ([entry]) => setIsVisible(entry.isIntersecting),
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+          observer.disconnect(); // Once visible, load the image and stop observing
+        }
+      },
       { root: null, rootMargin: '300px 0px', threshold: 0.01 }
     );
     observer.observe(element);
@@ -95,11 +101,18 @@ const LazyPreviewImage: React.FC<{
   }, []);
 
   return (
-    <div ref={containerRef} className="min-h-[96px]">
-      {isVisible ? (
-        <img src={src} alt={alt} className={className} loading="lazy" />
-      ) : (
-        <div className="h-full min-h-[96px] w-full animate-pulse bg-secondary/40 rounded" />
+    <div ref={containerRef} className="min-h-[96px] h-full w-full relative">
+      {isVisible && (
+        <img 
+          src={src} 
+          alt={alt} 
+          className={`${className} ${hasLoaded ? 'opacity-100' : 'opacity-0'} transition-opacity duration-300`} 
+          loading="lazy" 
+          onLoad={() => setHasLoaded(true)}
+        />
+      )}
+      {(!isVisible || !hasLoaded) && (
+        <div className="absolute inset-0 h-full min-h-[96px] w-full animate-pulse bg-secondary/40 rounded" />
       )}
     </div>
   );
@@ -660,16 +673,14 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
           className="max-h-[72vh] overflow-auto"
           containerRef={completedImagesRef}
           render={(image) => (
-            <div key={image.id} style={{ contentVisibility: 'auto', containIntrinsicSize: '500px' }}>
-              <LazyMount placeholderHeight={500} keepMounted={false}>
-                <CompletedImageToPromptCard 
-                  image={image}
-                  isLastCompleted={lastCompletedId === image.id}
-                  onCopy={handleCopyToClipboard}
-                  onDownload={downloadPromptText}
-                  copiedId={copiedId}
-                />
-              </LazyMount>
+            <div key={image.id} className="mb-6">
+              <CompletedImageToPromptCard 
+                image={image}
+                isLastCompleted={lastCompletedId === image.id}
+                onCopy={handleCopyToClipboard}
+                onDownload={downloadPromptText}
+                copiedId={copiedId}
+              />
             </div>
           )}
         />
@@ -682,20 +693,18 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
           className="max-h-[72vh] overflow-auto"
           containerRef={completedImagesRef}
           render={(image) => (
-            <div key={image.id} style={{ contentVisibility: 'auto', containIntrinsicSize: '650px' }}>
-              <LazyMount placeholderHeight={650} keepMounted={false}>
-                <CompletedMetadataCard
-                  image={image}
-                  isLastCompleted={lastCompletedId === image.id}
-                  onCopy={handleCopyToClipboard}
-                  onDownloadCSV={handleDownloadCSV}
-                  onToggleKeyword={handleToggleKeyword}
-                  isShutterstock={isShutterstock}
-                  isFreepikOnly={isFreepikOnly}
-                  isAdobeStock={isAdobeStock}
-                  copiedId={copiedId}
-                />
-              </LazyMount>
+            <div key={image.id} className="mb-6">
+              <CompletedMetadataCard
+                image={image}
+                isLastCompleted={lastCompletedId === image.id}
+                onCopy={handleCopyToClipboard}
+                onDownloadCSV={handleDownloadCSV}
+                onToggleKeyword={handleToggleKeyword}
+                isShutterstock={isShutterstock}
+                isFreepikOnly={isFreepikOnly}
+                isAdobeStock={isAdobeStock}
+                copiedId={copiedId}
+              />
             </div>
           )}
         />
@@ -705,16 +714,14 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
         <VirtualList
           items={pendingImages}
           estimateHeight={140}
-          className="max-h-[55vh] overflow-auto space-y-3"
+          className="max-h-[55vh] overflow-auto"
           render={(image) => (
-            <div key={image.id} style={{ contentVisibility: 'auto', containIntrinsicSize: '120px' }}>
-              <LazyMount placeholderHeight={120} keepMounted={false} rootMargin="400px 0px">
-                <PendingImageCard
-                  image={image}
-                  onRemove={onRemoveImage}
-                  onRegenerate={onRegenerateImage}
-                />
-              </LazyMount>
+            <div key={image.id} className="mb-3">
+              <PendingImageCard
+                image={image}
+                onRemove={onRemoveImage}
+                onRegenerate={onRegenerateImage}
+              />
             </div>
           )}
         />

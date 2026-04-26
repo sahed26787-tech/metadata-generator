@@ -290,7 +290,7 @@ export const isValidImageType = (file: File): boolean => {
  * Check if the file size is within limits
  */
 export const isValidFileSize = (file: File): boolean => {
-  const MAX_SIZE = 50 * 1024 * 1024; // 50MB
+  const MAX_SIZE = 100 * 1024 * 1024; // 100MB
   return file.size <= MAX_SIZE;
 };
 

@@ -258,16 +258,6 @@ const Index: React.FC = () => {
     }
   }, [aiProvider]);
   
-  if (isLoading) {
-    return <div className="flex min-h-screen items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>;
-  }
-  
-  const handleApiKeyChange = (key: string) => {
-    setApiKey(key);
-  };
-
   const createPendingBatches = useCallback((sourceImages: ProcessedImage[]) => {
     const pendingImages = sourceImages.filter(img => img.status === 'pending');
     const nextBatches: ProcessedImage[][] = [];
@@ -314,6 +304,16 @@ const Index: React.FC = () => {
 
     return optimizedFiles;
   }, [queueImageMutation]);
+
+  if (isLoading) {
+    return <div className="flex min-h-screen items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>;
+  }
+  
+  const handleApiKeyChange = (key: string) => {
+    setApiKey(key);
+  };
   
   const handleImagesSelected = (newImages: ProcessedImage[]) => {
     const allImages = [...imagesRef.current, ...newImages];

@@ -15,7 +15,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
   onImagesSelected,
   isProcessing
 }) => {
-  const MAX_TOTAL_UPLOAD_BYTES = 250 * 1024 * 1024; // 250MB
+  const MAX_TOTAL_UPLOAD_BYTES = 1200 * 1024 * 1024; // 1200MB
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [activeTab, setActiveTab] = useState<'JPG' | 'PNG' | 'Videos'>('JPG');
@@ -29,7 +29,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
     try {
       const tasks = fileArray.map(async (file, index) => {
         if (!isValidFileSize(file)) {
-          toast.error(`File ${file.name} is too large. Maximum size is 50MB.`);
+          toast.error(`File ${file.name} is too large. Maximum size is 100MB.`);
           return null;
         }
 
