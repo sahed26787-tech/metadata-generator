@@ -307,11 +307,13 @@ serve(async (req) => {
     // Build prompt
     const prompt = buildPrompt({ ...options, isFreepikOnly, isShutterstock, isAdobeStock });
 
-    // Get DeepInfra API key from environment
-    const deepinfraApiKey = Deno.env.get("DEEPINFRA_API_KEY");
-    if (!deepinfraApiKey) {
+    // Get DeepInfra API keys from environment (primary and fallback)
+    const primaryApiKey = Deno.env.get("DEEPINFRA_API_KEY");
+    const fallbackApiKey = Deno.env.get("DEEPINFRA_API_KEY_2");
+    
+    if (!primaryApiKey && !fallbackApiKey) {
       return new Response(
-        JSON.stringify({ error: "Server configuration error: DEEPINFRA_API_KEY not set" }),
+        JSON.stringify({ error: "Server configuration error: No DeepInfra API key configured" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -367,44 +369,79 @@ RULES:
 - Ensure 99% similarity by focusing on texture and lighting.
 - Output ONLY the prompt text. No JSON, no markdown, no intro/outro.`;
 
-    // Call DeepInfra API
-    const response = await fetch("https://api.deepinfra.com/v1/openai/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${deepinfraApiKey}`,
-      },
-      body: JSON.stringify({
-        model: "google/gemma-3-27b-it",
-        max_tokens: 4092,
-        messages: [
-          {
-            role: "system",
-            content: generationMode === 'imageToPrompt' 
-              ? imageToPromptSystemPrompt
-              : metadataSystemPrompt
-          },
-          {
-            role: "user",
-            content: requiresVision
-              ? [
-                  { type: "text", text: prompt },
-                  { type: "image_url", image_url: { url: image } }
-                ]
-              : `${prompt}\n\nEPS Metadata:\n${image}`
-          }
-        ],
-        temperature: 0.3,
-        top_p: 0.9,
-        stream: false,
-      }),
-    });
+    // Helper function to call DeepInfra API with a specific key
+    async function callDeepInfra(apiKey: string): Promise<Response> {
+      return await fetch("https://api.deepinfra.com/v1/openai/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model: "google/gemma-3-27b-it",
+          max_tokens: 4092,
+          messages: [
+            {
+              role: "system",
+              content: generationMode === 'imageToPrompt' 
+                ? imageToPromptSystemPrompt
+                : metadataSystemPrompt
+            },
+            {
+              role: "user",
+              content: requiresVision
+                ? [
+                    { type: "text", text: prompt },
+                    { type: "image_url", image_url: { url: image } }
+                  ]
+                : `${prompt}\n\nEPS Metadata:\n${image}`
+            }
+          ],
+          temperature: 0.3,
+          top_p: 0.9,
+          stream: false,
+        }),
+      });
+    }
 
-    if (!response.ok) {
-      const errorText = await response.text();
+    // Call DeepInfra API with fallback mechanism
+    let response: Response | null = null;
+    let lastError: string = '';
+    
+    // Try primary key first
+    if (primaryApiKey) {
+      try {
+        response = await callDeepInfra(primaryApiKey);
+        if (response.ok) {
+          console.log("DeepInfra API call successful with primary key");
+        }
+      } catch (error) {
+        lastError = error instanceof Error ? error.message : 'Primary key request failed';
+        console.log(`Primary key failed: ${lastError}`);
+      }
+    }
+    
+    // If primary key failed or not available, try fallback key
+    if ((!response || !response.ok) && fallbackApiKey) {
+      try {
+        console.log("Trying fallback API key...");
+        response = await callDeepInfra(fallbackApiKey);
+        if (response.ok) {
+          console.log("DeepInfra API call successful with fallback key");
+        }
+      } catch (error) {
+        lastError = error instanceof Error ? error.message : 'Fallback key request failed';
+        console.log(`Fallback key failed: ${lastError}`);
+      }
+    }
+    
+    // If both keys failed, return error
+    if (!response || !response.ok) {
+      const errorStatus = response?.status || 500;
+      const errorText = lastError || (response ? await response.text() : 'Unknown error');
       return new Response(
-        JSON.stringify({ error: `DeepInfra API error: ${response.status} - ${errorText}` }),
-        { status: response.status, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({ error: `DeepInfra API error: ${errorStatus} - ${errorText}` }),
+        { status: errorStatus, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
@@ -473,8 +510,6 @@ RULES:
     }
 
     const singleWordKeywordsEnabled = options.singleWordKeywordsEnabled || false;
-    const maxKeywords = options.maxKeywords || 35;
-    const minKeywords = options.minKeywords || 20;
 
     if (singleWordKeywordsEnabled && result.keywords && result.keywords.length > 0) {
       const singleWordKeywords: string[] = [];
