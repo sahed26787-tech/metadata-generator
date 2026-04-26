@@ -35,6 +35,7 @@ interface PaidPlanConfig {
   title: string;
   verifyTitle: string;
   amount: number;
+  originalAmount?: number;
 }
 
 const PricingPage: React.FC = () => {
@@ -44,6 +45,8 @@ const PricingPage: React.FC = () => {
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethod>('bKash');
   const [trxId, setTrxId] = useState('');
   const [phone, setPhone] = useState('');
+  const [couponCode, setCouponCode] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState<string | null>(null);
 
   const currentPlanType = profile?.plan_type?.toLowerCase() || 'free';
 
@@ -71,6 +74,26 @@ const PricingPage: React.FC = () => {
     setActivePlan(paidPlans[planKey]);
     setSelectedMethod('bKash');
     setTrxId('');
+    setCouponCode('');
+    setAppliedCoupon(null);
+  };
+
+  const applyCoupon = () => {
+    const code = couponCode.trim().toUpperCase();
+    if (code === 'TIMESAI27') {
+      setAppliedCoupon('TIMESAI27');
+      toast.success('Coupon applied! 27% discount');
+    } else {
+      toast.error('Invalid coupon code');
+      setAppliedCoupon(null);
+    }
+  };
+
+  const getDiscountedAmount = (amount: number) => {
+    if (appliedCoupon === 'TIMESAI27') {
+      return Math.round(amount * 0.73); // 27% discount
+    }
+    return amount;
   };
 
   const handleCopyWallet = async () => {
@@ -89,7 +112,9 @@ const PricingPage: React.FC = () => {
       return;
     }
 
-    const message = `*Payment Verification Request*\n*Plan:* ${activePlan.verifyTitle}\n*Amount:* ৳${activePlan.amount}\n*Payment Method:* ${selectedMethod}\n*Customer Details:*\n• Name: ${customerName}\n• Email: ${user?.email || ''}\n• Phone: ${phone.trim()}\n*Transaction ID:* ${trxId.trim()}\nPlease verify my payment. Thank you!`;
+    const finalAmount = getDiscountedAmount(activePlan.amount);
+    const discountInfo = appliedCoupon ? `\n*Coupon Applied:* ${appliedCoupon} (27% off)\n*Original Amount:* ৳${activePlan.amount}` : '';
+    const message = `*Payment Verification Request*\n*Plan:* ${activePlan.verifyTitle}\n*Amount:* ৳${finalAmount}${discountInfo}\n*Payment Method:* ${selectedMethod}\n*Customer Details:*\n• Name: ${customerName}\n• Email: ${user?.email || ''}\n• Phone: ${phone.trim()}\n*Transaction ID:* ${trxId.trim()}\nPlease verify my payment. Thank you!`;
     const waUrl = `https://wa.me/${walletNumberRaw}?text=${encodeURIComponent(message)}`;
     window.open(waUrl, '_blank');
   };
@@ -243,8 +268,37 @@ const PricingPage: React.FC = () => {
                     </div>
                     <div className="text-right">
                       <p className="text-xs uppercase tracking-wider text-muted-foreground mb-1">Amount</p>
-                      <p className="text-2xl font-bold text-primary">৳{activePlan.amount}</p>
+                      {appliedCoupon ? (
+                        <div className="flex flex-col items-end">
+                          <p className="text-sm text-muted-foreground line-through">৳{activePlan.amount}</p>
+                          <p className="text-2xl font-bold text-primary">৳{getDiscountedAmount(activePlan.amount)}</p>
+                          <p className="text-xs text-green-500 font-medium">27% off applied</p>
+                        </div>
+                      ) : (
+                        <p className="text-2xl font-bold text-primary">৳{activePlan.amount}</p>
+                      )}
                     </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">Have a coupon?</p>
+                    <div className="flex gap-2">
+                      <input
+                        value={couponCode}
+                        onChange={(e) => setCouponCode(e.target.value)}
+                        placeholder="Enter coupon code"
+                        className="flex-1 rounded-xl border border-border bg-background px-4 py-2.5 text-sm text-foreground outline-none focus:border-primary/50 transition-all placeholder:text-muted-foreground/30 uppercase"
+                      />
+                      <button
+                        onClick={applyCoupon}
+                        className="px-4 py-2.5 rounded-xl bg-secondary hover:bg-secondary/80 text-secondary-foreground text-sm font-semibold transition-all active:scale-95 border border-border"
+                      >
+                        Apply
+                      </button>
+                    </div>
+                    {appliedCoupon && (
+                      <p className="text-xs text-green-500">✓ Coupon TIMESAI27 applied - 27% discount!</p>
+                    )}
                   </div>
 
                   <div>

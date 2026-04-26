@@ -91,23 +91,25 @@ const CompletedImageToPromptCard = React.memo(({
   );
 });
 
-const CompletedMetadataCard = React.memo(({ 
-  image, 
-  isLastCompleted, 
-  onCopy, 
-  onDownloadCSV, 
+const CompletedMetadataCard = React.memo(({
+  image,
+  isLastCompleted,
+  onCopy,
+  onDownloadCSV,
   onToggleKeyword,
   isShutterstock,
   isFreepikOnly,
+  isAdobeStock,
   copiedId
-}: { 
-  image: ProcessedImage; 
-  isLastCompleted: boolean; 
+}: {
+  image: ProcessedImage;
+  isLastCompleted: boolean;
   onCopy: (text: string, id: string) => void;
   onDownloadCSV: () => void;
   onToggleKeyword: (id: string, index: number) => void;
   isShutterstock: boolean;
   isFreepikOnly: boolean;
+  isAdobeStock: boolean;
   copiedId: string | null;
 }) => {
   const cleanTitle = useMemo(() => 
@@ -170,7 +172,7 @@ const CompletedMetadataCard = React.memo(({
                 <p className="text-foreground text-sm">{cleanTitle}</p>
               </div>
             )}
-            {image.result?.description && image.result.description !== 'N/A' && (
+            {!isAdobeStock && image.result?.description && image.result.description !== 'N/A' && (
               <div>
                 <div className="flex justify-between items-center">
                   <h4 className="text-primary font-medium text-sm">Description:</h4>
@@ -518,7 +520,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
         <div className="overflow-auto" ref={completedImagesRef}>
           {completedImages.map(image => (
             <div key={image.id} ref={el => completedImageRefs.current[image.id] = el}>
-              <CompletedMetadataCard 
+              <CompletedMetadataCard
                 image={image}
                 isLastCompleted={lastCompletedId === image.id}
                 onCopy={handleCopyToClipboard}
@@ -526,6 +528,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                 onToggleKeyword={handleToggleKeyword}
                 isShutterstock={isShutterstock}
                 isFreepikOnly={isFreepikOnly}
+                isAdobeStock={isAdobeStock}
                 copiedId={copiedId}
               />
             </div>

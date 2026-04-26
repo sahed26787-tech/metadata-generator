@@ -123,23 +123,25 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
     if (isProcessing) return;
 
     const files = e.dataTransfer.files;
-    if (files.length > 500) {
-      toast.error('Maximum 500 images allowed at once');
-      return;
+    let fileArray = Array.from(files);
+    if (fileArray.length > 100) {
+      fileArray = fileArray.slice(0, 100);
+      toast.info('Only first 100 files will be processed');
     }
-    if (files.length > 0) {
-      processFiles(files);
+    if (fileArray.length > 0) {
+      processFiles(fileArray as unknown as FileList);
     }
   }, [isProcessing, processFiles]);
 
   const handleFileInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
-    if (files && files.length > 500) {
-      toast.error('Maximum 500 images allowed at once');
-      return;
-    }
     if (files && files.length > 0) {
-      processFiles(files);
+      let fileArray = Array.from(files);
+      if (fileArray.length > 100) {
+        fileArray = fileArray.slice(0, 100);
+        toast.info('Only first 100 files will be processed');
+      }
+      processFiles(fileArray as unknown as FileList);
     }
     // Reset the input value so the same file can be selected again
     e.target.value = '';
@@ -233,7 +235,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
               </p>
               
               {/* Bottom Text */}
-              <p className="text-foreground text-xs md:text-sm font-medium">Process 500 images in a Single Action</p>
+              <p className="text-foreground text-xs md:text-sm font-medium">Process 100 images in a Single Action</p>
             </>
           )}
         </div>

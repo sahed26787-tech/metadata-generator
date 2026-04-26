@@ -242,12 +242,13 @@ const BackgroundRemoval: React.FC<BackgroundRemovalProps> = ({
   const handleBatchFiles = useCallback((files: File[]) => {
     if (files.length === 0) return;
 
-    if (files.length > 500) {
-      toast.error('Maximum 500 images allowed at once');
-      return;
+    let filesToProcess = files;
+    if (files.length > 100) {
+      filesToProcess = files.slice(0, 100);
+      toast.info('Only first 100 files will be processed');
     }
 
-    const validFiles = files.filter(file => 
+    const validFiles = filesToProcess.filter(file => 
       ['image/jpeg', 'image/png', 'image/webp'].includes(file.type)
     );
 
