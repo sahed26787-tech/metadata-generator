@@ -369,76 +369,132 @@ RULES:
 - Ensure 99% similarity by focusing on texture and lighting.
 - Output ONLY the prompt text. No JSON, no markdown, no intro/outro.`;
 
-    // Helper function to call DeepInfra API with a specific key
-    async function callDeepInfra(apiKey: string): Promise<Response> {
-      return await fetch("https://api.deepinfra.com/v1/openai/chat/completions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${apiKey}`,
-        },
-        body: JSON.stringify({
-          model: "google/gemma-3-27b-it",
-          max_tokens: 4092,
-          messages: [
-            {
-              role: "system",
-              content: generationMode === 'imageToPrompt' 
-                ? imageToPromptSystemPrompt
-                : metadataSystemPrompt
-            },
-            {
-              role: "user",
-              content: requiresVision
-                ? [
-                    { type: "text", text: prompt },
-                    { type: "image_url", image_url: { url: image } }
-                  ]
-                : `${prompt}\n\nEPS Metadata:\n${image}`
-            }
-          ],
-          temperature: 0.3,
-          top_p: 0.9,
-          stream: false,
-        }),
-      });
+    // Helper: single DeepInfra API call with timeout
+    async function callDeepInfra(apiKey: string, timeoutMs: number = 30000): Promise<Response> {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+      try {
+        return await fetch("https://api.deepinfra.com/v1/openai/chat/completions", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${apiKey}`,
+          },
+          body: JSON.stringify({
+            model: "google/gemma-3-27b-it",
+            max_tokens: 4092,
+            messages: [
+              {
+                role: "system",
+                content: generationMode === 'imageToPrompt' 
+                  ? imageToPromptSystemPrompt
+                  : metadataSystemPrompt
+              },
+              {
+                role: "user",
+                content: requiresVision
+                  ? [
+                      { type: "text", text: prompt },
+                      { type: "image_url", image_url: { url: image } }
+                    ]
+                  : `${prompt}\n\nEPS Metadata:\n${image}`
+              }
+            ],
+            temperature: 0.3,
+            top_p: 0.9,
+            stream: false,
+          }),
+          signal: controller.signal,
+        });
+      } finally {
+        clearTimeout(timeoutId);
+      }
     }
 
-    // Call DeepInfra API with fallback mechanism
+    // Helper: call with retry + exponential backoff
+    async function callWithRetry(
+      apiKey: string,
+      maxRetries: number = 3,
+      keyLabel: string = 'key'
+    ): Promise<{ response: Response | null; lastError: string }> {
+      let lastError: string = '';
+
+      for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+          console.log(`[${keyLabel}] Attempt ${attempt}/${maxRetries}`);
+          const response = await callDeepInfra(apiKey);
+
+          // Success
+          if (response.ok) {
+            console.log(`[${keyLabel}] Success on attempt ${attempt}`);
+            return { response, lastError: '' };
+          }
+
+          // Non-retryable errors: 401 (auth), 400 (bad request) → skip to fallback
+          if (response.status === 401 || response.status === 400) {
+            const errBody = await response.text().catch(() => '');
+            lastError = `Status ${response.status} (non-retryable): ${errBody}`;
+            console.log(`[${keyLabel}] Non-retryable error: ${lastError}`);
+            return { response: null, lastError };
+          }
+
+          // Retryable errors: 429, 5xx, etc.
+          const errBody = await response.text().catch(() => '');
+          lastError = `Status ${response.status}: ${errBody}`;
+          console.log(`[${keyLabel}] Retryable error on attempt ${attempt}: ${lastError}`);
+
+          // If last attempt, don't wait
+          if (attempt < maxRetries) {
+            const backoffMs = Math.pow(2, attempt) * 1000; // 2s, 4s, 8s...
+            console.log(`[${keyLabel}] Waiting ${backoffMs}ms before retry...`);
+            await new Promise(resolve => setTimeout(resolve, backoffMs));
+          }
+        } catch (error) {
+          // Network errors, timeouts, abort errors
+          if (error instanceof DOMException && error.name === 'AbortError') {
+            lastError = 'Request timed out';
+          } else {
+            lastError = error instanceof Error ? error.message : 'Network error';
+          }
+          console.log(`[${keyLabel}] Network error on attempt ${attempt}: ${lastError}`);
+
+          if (attempt < maxRetries) {
+            const backoffMs = Math.pow(2, attempt) * 1000;
+            console.log(`[${keyLabel}] Waiting ${backoffMs}ms before retry...`);
+            await new Promise(resolve => setTimeout(resolve, backoffMs));
+          }
+        }
+      }
+
+      return { response: null, lastError };
+    }
+
+    // Call DeepInfra API with retry + fallback mechanism
+    // Level 1: Primary key with 3 retries
+    // Level 2: Fallback key with 2 retries
     let response: Response | null = null;
     let lastError: string = '';
-    
-    // Try primary key first
+
     if (primaryApiKey) {
-      try {
-        response = await callDeepInfra(primaryApiKey);
-        if (response.ok) {
-          console.log("DeepInfra API call successful with primary key");
-        }
-      } catch (error) {
-        lastError = error instanceof Error ? error.message : 'Primary key request failed';
-        console.log(`Primary key failed: ${lastError}`);
-      }
+      const result = await callWithRetry(primaryApiKey, 3, 'Primary');
+      response = result.response;
+      lastError = result.lastError;
     }
-    
-    // If primary key failed or not available, try fallback key
+
+    // If primary key exhausted all retries, try fallback
     if ((!response || !response.ok) && fallbackApiKey) {
-      try {
-        console.log("Trying fallback API key...");
-        response = await callDeepInfra(fallbackApiKey);
-        if (response.ok) {
-          console.log("DeepInfra API call successful with fallback key");
-        }
-      } catch (error) {
-        lastError = error instanceof Error ? error.message : 'Fallback key request failed';
-        console.log(`Fallback key failed: ${lastError}`);
-      }
+      console.log('Switching to fallback API key...');
+      const result = await callWithRetry(fallbackApiKey, 2, 'Fallback');
+      response = result.response;
+      lastError = result.lastError;
     }
-    
+
     // If both keys failed, return error
     if (!response || !response.ok) {
       const errorStatus = response?.status || 500;
       const errorText = lastError || (response ? await response.text() : 'Unknown error');
+      console.log(`All attempts failed. Last error: ${errorText}`);
       return new Response(
         JSON.stringify({ error: `DeepInfra API error: ${errorStatus} - ${errorText}` }),
         { status: errorStatus, headers: { ...corsHeaders, "Content-Type": "application/json" } }
