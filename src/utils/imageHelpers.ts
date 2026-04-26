@@ -21,6 +21,9 @@ export interface ProcessedImage {
   error?: string;
 }
 
+// Cache optimized outputs per input file to avoid repeated work on accidental re-calls.
+const optimizedImageCache = new WeakMap<File, File>();
+
 /**
  * Format images as CSV
  */
@@ -186,7 +189,61 @@ export const escapeCSV = (field: string): string => {
  * Create a preview for an image file
  */
 export const createImagePreview = (file: File): Promise<string> => {
-  return Promise.resolve(URL.createObjectURL(file));
+  if (!file.type.startsWith('image/') || file.type === 'image/svg+xml') {
+    return Promise.resolve(URL.createObjectURL(file));
+  }
+
+  return new Promise((resolve) => {
+    const sourceUrl = URL.createObjectURL(file);
+    const img = new Image();
+    img.src = sourceUrl;
+
+    img.onload = () => {
+      try {
+        const maxDimension = 320;
+        const scale = Math.min(1, maxDimension / Math.max(img.width, img.height));
+        const width = Math.max(1, Math.round(img.width * scale));
+        const height = Math.max(1, Math.round(img.height * scale));
+
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          URL.revokeObjectURL(sourceUrl);
+          resolve(URL.createObjectURL(file));
+          return;
+        }
+
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+        ctx.drawImage(img, 0, 0, width, height);
+
+        canvas.toBlob(
+          (blob) => {
+            URL.revokeObjectURL(sourceUrl);
+            if (!blob) {
+              resolve(URL.createObjectURL(file));
+              return;
+            }
+            resolve(URL.createObjectURL(blob));
+          },
+          'image/jpeg',
+          0.7
+        );
+      } catch (error) {
+        void error;
+        URL.revokeObjectURL(sourceUrl);
+        resolve(URL.createObjectURL(file));
+      }
+    };
+
+    img.onerror = () => {
+      URL.revokeObjectURL(sourceUrl);
+      resolve(URL.createObjectURL(file));
+    };
+  });
 };
 
 /**
@@ -316,9 +373,24 @@ export const suggestCategoriesForAdobeStock = (title: string, keywords: string[]
  * @param file Original image file
  * @param quality Quality percentage (1-100) - increased for better AI recognition
  * @param targetWidth Target width in pixels (default 1024px for good AI vision)
+ * @param allowOptimization Explicit gate. If false, returns original file immediately.
  * @returns A promise that resolves to a new File with reduced size
  */
-export async function reduceImageSize(file: File, quality: number = 80, targetWidth: number = 1024): Promise<File> {
+export async function reduceImageSize(
+  file: File,
+  quality: number = 80,
+  targetWidth: number = 1024,
+  allowOptimization: boolean = false
+): Promise<File> {
+  if (!allowOptimization) {
+    return file;
+  }
+
+  const cachedOptimized = optimizedImageCache.get(file);
+  if (cachedOptimized) {
+    return cachedOptimized;
+  }
+
   // Skip reduction for non-image files or SVG files
   if (!file.type.startsWith('image/') || file.type === 'image/svg+xml') {
     return file;
@@ -334,6 +406,13 @@ export async function reduceImageSize(file: File, quality: number = 80, targetWi
         img.src = event.target?.result as string;
         
         img.onload = () => {
+          // Already within target dimensions: skip unnecessary re-encoding.
+          if (img.width <= targetWidth) {
+            optimizedImageCache.set(file, file);
+            resolve(file);
+            return;
+          }
+
           // Calculate new dimensions - target width while maintaining aspect ratio
           let newWidth = img.width;
           let newHeight = img.height;
@@ -381,6 +460,8 @@ export async function reduceImageSize(file: File, quality: number = 80, targetWi
                 type: 'image/jpeg', // JPEG is generally better for vision models
                 lastModified: file.lastModified,
               });
+              optimizedImageCache.set(file, newFile);
+              optimizedImageCache.set(newFile, newFile);
               
               const originalSizeKB = file.size / 1024;
               const newSizeKB = newFile.size / 1024;
@@ -406,7 +487,8 @@ export async function reduceImageSize(file: File, quality: number = 80, targetWi
                       type: 'image/jpeg',
                       lastModified: file.lastModified,
                     });
-                    
+                    optimizedImageCache.set(file, finalFile);
+                    optimizedImageCache.set(finalFile, finalFile);
                     resolve(finalFile);
                   },
                   'image/jpeg',

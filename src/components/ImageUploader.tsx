@@ -2,7 +2,7 @@ import React, { useState, useCallback, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Plus, Upload, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { ProcessedImage, createImagePreview, generateId, isValidImageType, isValidFileSize, formatFileSize, reduceImageSize } from '@/utils/imageHelpers';
+import { ProcessedImage, generateId, createImagePreview, isValidImageType, isValidFileSize, formatFileSize } from '@/utils/imageHelpers';
 import { isVideoFile } from '@/utils/videoProcessor';
 import { isEpsFile } from '@/utils/epsMetadataExtractor';
 
@@ -15,24 +15,25 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
   onImagesSelected,
   isProcessing
 }) => {
+  const MAX_TOTAL_UPLOAD_BYTES = 250 * 1024 * 1024; // 250MB
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [activeTab, setActiveTab] = useState<'JPG' | 'PNG' | 'Videos'>('JPG');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const processFiles = useCallback(async (files: FileList) => {
-    const fileArray = Array.from(files);
+  const processFiles = useCallback(async (files: File[]) => {
+    const fileArray = files;
     const processedImages: ProcessedImage[] = [];
     setIsUploading(true);
     
     try {
-      for (const file of fileArray) {
-        try {
-          if (!isValidFileSize(file)) {
-            toast.error(`File ${file.name} is too large. Maximum size is 50MB.`);
-            continue;
-          }
+      const tasks = fileArray.map(async (file, index) => {
+        if (!isValidFileSize(file)) {
+          toast.error(`File ${file.name} is too large. Maximum size is 50MB.`);
+          return null;
+        }
 
+        try {
           let processedImage: ProcessedImage;
 
           if (isVideoFile(file)) {
@@ -60,26 +61,37 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
               status: 'pending'
             };
           } else if (isValidImageType(file)) {
-            const reducedFile = await reduceImageSize(file);
             const previewUrl = await createImagePreview(file);
             processedImage = {
               id: generateId(),
               file,
-              reducedFile,
               previewUrl,
               status: 'pending'
             };
           } else {
             toast.error(`File ${file.name} is not a supported format.`);
-            continue;
+            return null;
           }
 
-          processedImages.push(processedImage);
+          if ((index + 1) % 5 === 0) {
+            await new Promise((resolve) => setTimeout(resolve, 0));
+          }
+
+          return { index, processedImage };
         } catch (error) {
           console.error('Error processing file:', file.name, error);
           toast.error(`Error processing ${file.name}`);
+          return null;
         }
-      }
+      });
+
+      const results = await Promise.all(tasks);
+      results
+        .filter((item): item is { index: number; processedImage: ProcessedImage } => item !== null)
+        .sort((a, b) => a.index - b.index)
+        .forEach((item) => {
+          processedImages.push(item.processedImage);
+        });
 
       if (processedImages.length > 0) {
         onImagesSelected(processedImages);
@@ -128,10 +140,25 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
       fileArray = fileArray.slice(0, 100);
       toast.info('Only first 100 files will be processed');
     }
-    if (fileArray.length > 0) {
-      processFiles(fileArray as unknown as FileList);
+
+    let cumulativeSize = 0;
+    const acceptedFiles: File[] = [];
+    let skippedForTotalSize = 0;
+    for (const file of fileArray) {
+      if (cumulativeSize + file.size > MAX_TOTAL_UPLOAD_BYTES) {
+        skippedForTotalSize++;
+        continue;
+      }
+      cumulativeSize += file.size;
+      acceptedFiles.push(file);
     }
-  }, [isProcessing, processFiles]);
+    if (skippedForTotalSize > 0) {
+      toast.info(`Skipped ${skippedForTotalSize} file(s). Max total upload is ${formatFileSize(MAX_TOTAL_UPLOAD_BYTES)} per action.`);
+    }
+    if (acceptedFiles.length > 0) {
+      processFiles(acceptedFiles);
+    }
+  }, [isProcessing, processFiles, MAX_TOTAL_UPLOAD_BYTES]);
 
   const handleFileInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -141,11 +168,27 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
         fileArray = fileArray.slice(0, 100);
         toast.info('Only first 100 files will be processed');
       }
-      processFiles(fileArray as unknown as FileList);
+
+      let cumulativeSize = 0;
+      const acceptedFiles: File[] = [];
+      let skippedForTotalSize = 0;
+      for (const file of fileArray) {
+        if (cumulativeSize + file.size > MAX_TOTAL_UPLOAD_BYTES) {
+          skippedForTotalSize++;
+          continue;
+        }
+        cumulativeSize += file.size;
+        acceptedFiles.push(file);
+      }
+      if (skippedForTotalSize > 0) {
+        toast.info(`Skipped ${skippedForTotalSize} file(s). Max total upload is ${formatFileSize(MAX_TOTAL_UPLOAD_BYTES)} per action.`);
+      }
+
+      processFiles(acceptedFiles);
     }
     // Reset the input value so the same file can be selected again
     e.target.value = '';
-  }, [processFiles]);
+  }, [processFiles, MAX_TOTAL_UPLOAD_BYTES]);
 
   const handleBrowseClick = useCallback(() => {
     if (!isProcessing && fileInputRef.current) {

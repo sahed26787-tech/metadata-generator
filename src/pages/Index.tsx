@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useReducer, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import ImageUploader from '@/components/ImageUploader';
 import ResultsDisplay from '@/components/ResultsDisplay';
 import ThemeToggle from '@/components/ThemeToggle';
 import { Button } from '@/components/ui/button';
-import { ProcessedImage, revokePreviewUrl } from '@/utils/imageHelpers';
+import { ProcessedImage, reduceImageSize, revokePreviewUrl } from '@/utils/imageHelpers';
 import { isVideoFile } from '@/utils/videoProcessor';
 import { isSvgFile } from '@/utils/svgToPng';
 import { isEpsFile } from '@/utils/epsMetadataExtractor';
@@ -22,6 +22,20 @@ import AppHeader from '@/components/AppHeader';
 import Sidebar from '@/components/Sidebar';
 import { setupVideoDebug, testVideoSupport, testSpecificVideo } from '@/utils/videoDebug';
 import { supabase } from '@/integrations/supabase/client';
+
+type ImageMutation = (prev: ProcessedImage[]) => ProcessedImage[];
+
+type ImageStateAction =
+  | { type: 'MUTATE'; mutate: ImageMutation }
+  | { type: 'MUTATE_BATCH'; mutations: ImageMutation[] };
+
+const imageStateReducer = (state: ProcessedImage[], action: ImageStateAction): ProcessedImage[] => {
+  if (action.type === 'MUTATE') {
+    return action.mutate(state);
+  }
+
+  return action.mutations.reduce((current, mutation) => mutation(current), state);
+};
 
 const initiateEpsPayment = async () => {
   try {
@@ -57,7 +71,10 @@ const Index: React.FC = () => {
   } = useAuth();
 
   const [apiKey, setApiKey] = useState('');
-  const [images, setImages] = useState<ProcessedImage[]>([]);
+  const [images, dispatchImages] = useReducer(imageStateReducer, []);
+  const imageMutationQueueRef = useRef<ImageMutation[]>([]);
+  const imageFlushTimerRef = useRef<number | null>(null);
+  const optimizedFileCacheRef = useRef<Map<string, File>>(new Map());
   
   // Background Removal state
   const [bgRemovalMode, setBgRemovalMode] = useState<'single' | 'batch'>('single');
@@ -114,6 +131,21 @@ const Index: React.FC = () => {
     const secs = seconds % 60;
     return `${mins}m ${secs}s`;
   };
+
+  const flushImageMutations = useCallback(() => {
+    if (imageMutationQueueRef.current.length === 0) return;
+    const mutations = imageMutationQueueRef.current.splice(0);
+    dispatchImages({ type: 'MUTATE_BATCH', mutations });
+  }, []);
+
+  const queueImageMutation = useCallback((mutation: ImageMutation) => {
+    imageMutationQueueRef.current.push(mutation);
+    if (imageFlushTimerRef.current !== null) return;
+    imageFlushTimerRef.current = window.setTimeout(() => {
+      imageFlushTimerRef.current = null;
+      flushImageMutations();
+    }, 80);
+  }, [flushImageMutations]);
   
   // Start the timer
   const startTimer = () => {
@@ -150,9 +182,14 @@ const Index: React.FC = () => {
       if (timerIntervalRef.current !== null) {
         window.clearInterval(timerIntervalRef.current);
       }
+      if (imageFlushTimerRef.current !== null) {
+        window.clearTimeout(imageFlushTimerRef.current);
+        imageFlushTimerRef.current = null;
+      }
       imagesRef.current.forEach((img) => {
         revokePreviewUrl(img.previewUrl);
       });
+      optimizedFileCacheRef.current.clear();
     };
   }, []);
 
@@ -230,49 +267,76 @@ const Index: React.FC = () => {
   const handleApiKeyChange = (key: string) => {
     setApiKey(key);
   };
+
+  const createPendingBatches = useCallback((sourceImages: ProcessedImage[]) => {
+    const pendingImages = sourceImages.filter(img => img.status === 'pending');
+    const nextBatches: ProcessedImage[][] = [];
+    for (let i = 0; i < pendingImages.length; i += batchSize) {
+      nextBatches.push(pendingImages.slice(i, i + batchSize));
+    }
+    return nextBatches;
+  }, [batchSize]);
+
+  const getBatchOptimizedFiles = useCallback(async (batch: ProcessedImage[]) => {
+    const optimizedFiles: File[] = [];
+    const fileUpdates = new Map<string, File>();
+
+    for (const image of batch) {
+      const sourceFile = image.file;
+      const cacheKey = `${sourceFile.name}|${sourceFile.size}|${sourceFile.lastModified}`;
+      const cached = optimizedFileCacheRef.current.get(cacheKey);
+      if (cached) {
+        optimizedFiles.push(cached);
+        if (image.reducedFile !== cached) {
+          fileUpdates.set(image.id, cached);
+        }
+        continue;
+      }
+
+      const isOptimizableImage = sourceFile.type.startsWith('image/') && !isSvgFile(sourceFile) && !isVideoFile(sourceFile) && !isEpsFile(sourceFile);
+      if (!isOptimizableImage) {
+        optimizedFiles.push(sourceFile);
+        continue;
+      }
+
+      const optimized = await reduceImageSize(sourceFile, 80, 1024, true);
+      optimizedFileCacheRef.current.set(cacheKey, optimized);
+      optimizedFiles.push(optimized);
+      fileUpdates.set(image.id, optimized);
+    }
+
+    if (fileUpdates.size > 0) {
+      queueImageMutation(prev => prev.map(img => {
+        const optimized = fileUpdates.get(img.id);
+        return optimized ? { ...img, reducedFile: optimized } : img;
+      }));
+    }
+
+    return optimizedFiles;
+  }, [queueImageMutation]);
   
   const handleImagesSelected = (newImages: ProcessedImage[]) => {
-    setImages(prev => [...prev, ...newImages]);
-    
-    // Create batches of images
-    const allImages = [...images, ...newImages];
-    const pendingImages = allImages.filter(img => img.status === 'pending');
-    
-    // Create batches of batchSize
-    const newBatches: ProcessedImage[][] = [];
-    for (let i = 0; i < pendingImages.length; i += batchSize) {
-      newBatches.push(pendingImages.slice(i, i + batchSize));
-    }
-    
-    setBatches(newBatches);
+    const allImages = [...imagesRef.current, ...newImages];
+    queueImageMutation(prev => [...prev, ...newImages]);
+    setBatches(createPendingBatches(allImages));
     setCurrentBatchIndex(0); // Reset batch index when new images are added
   };
   
   const handleRemoveImage = (id: string) => {
-    setImages(prev => {
-      const removedImage = prev.find(img => img.id === id);
-      if (removedImage) {
-        revokePreviewUrl(removedImage.previewUrl);
-      }
-      const updatedImages = prev.filter(img => img.id !== id);
-      
-      // Recalculate batches after removing an image
-      const pendingImages = updatedImages.filter(img => img.status === 'pending');
-      const newBatches: ProcessedImage[][] = [];
-      for (let i = 0; i < pendingImages.length; i += batchSize) {
-        newBatches.push(pendingImages.slice(i, i + batchSize));
-      }
-      setBatches(newBatches);
-      
-      return updatedImages;
-    });
+    const removedImage = imagesRef.current.find(img => img.id === id);
+    if (removedImage) {
+      revokePreviewUrl(removedImage.previewUrl);
+    }
+    const updatedImages = imagesRef.current.filter(img => img.id !== id);
+    queueImageMutation(prev => prev.filter(img => img.id !== id));
+    setBatches(createPendingBatches(updatedImages));
   };
   
   const handleClearAll = () => {
-    images.forEach((img) => {
+    imagesRef.current.forEach((img) => {
       revokePreviewUrl(img.previewUrl);
     });
-    setImages([]);
+    queueImageMutation(() => []);
     setCompletionTime(null);
     setBatches([]);
     setCurrentBatchIndex(0);
@@ -427,7 +491,7 @@ const Index: React.FC = () => {
     
     try {
       // Update only the current batch images to processing state
-      setImages(prev => prev.map(img => 
+      queueImageMutation(prev => prev.map(img => 
         currentBatch.some(batchImg => batchImg.id === img.id) ? {
           ...img,
           status: 'processing' as const
@@ -454,11 +518,12 @@ const Index: React.FC = () => {
         transparentBgEnabled,
         isolatedOnTransparentBgEnabled,
         silhouetteEnabled,
-        singleWordKeywordsEnabled
+        singleWordKeywordsEnabled,
+        skipImageOptimization: true
       };
       
-      // Use batch processing instead of processing one by one
-      const pendingFiles = currentBatch.map(img => img.reducedFile || img.file); // Use reducedFile if available, otherwise fall back to original file
+      // Optimize only current batch files, sequentially, with cache guard.
+      const pendingFiles = await getBatchOptimizedFiles(currentBatch);
       
       // Show batch size information
       console.log(`Processing ${pendingFiles.length} files in batch ${batchIndex + 1} of ${batches.length}`);
@@ -567,7 +632,7 @@ const Index: React.FC = () => {
         }
 
         if (updatesByImageId.size > 0) {
-          setImages(prev => prev.map(img => {
+          queueImageMutation(prev => prev.map(img => {
             const update = updatesByImageId.get(img.id);
             return update ? { ...img, ...update } : img;
           }));
@@ -577,9 +642,15 @@ const Index: React.FC = () => {
         toast.error('Batch processing failed. Falling back to processing images one by one.', {
           duration: 5000,
         });
+
+        const fallbackUpdatesByImageId = new Map<string, {
+          status: 'complete' | 'error';
+          result?: ProcessedImage['result'];
+          error?: string;
+        }>();
         
         // Process files with a short delay between each as fallback
-        for (const image of currentBatch) {
+        for (const [imageIndex, image] of currentBatch.entries()) {
           try {
             // Deduct 1 credit per image before processing
             const creditUsed = await incrementCreditsUsed();
@@ -591,7 +662,7 @@ const Index: React.FC = () => {
             // Removed delay - server-side processing handles rate limiting
             
             // Process the image/video with selected provider
-            const fileToProcess = image.reducedFile || image.file; // Use reducedFile if available, otherwise fall back to original
+            const fileToProcess = pendingFiles[imageIndex] || image.reducedFile || image.file;
             let result = aiProvider === 'Gemini'
               ? await analyzeImageWithGemini(fileToProcess, apiKey, options)
               : await analyzeImageWithGroq(fileToProcess, apiKey, options);
@@ -606,10 +677,9 @@ const Index: React.FC = () => {
                 result = await analyzeImageWithGemini(fileToProcess, fallbackKey, options);
               }
             }
-            
-            setImages(prev => prev.map(img => img.id === image.id ? {
-              ...img,
-              status: result.error ? 'error' as const : 'complete' as const,
+
+            fallbackUpdatesByImageId.set(image.id, {
+              status: result.error ? 'error' : 'complete',
               result: result.error ? undefined : {
                 title: result.title,
                 description: result.description,
@@ -631,15 +701,21 @@ const Index: React.FC = () => {
                 })
               },
               error: result.error
-            } : img));
+            });
           } catch (error) {
             console.error(`Error processing image ${image.file.name}:`, error);
-            setImages(prev => prev.map(img => img.id === image.id ? {
-              ...img,
-              status: 'error' as const,
+            fallbackUpdatesByImageId.set(image.id, {
+              status: 'error',
               error: error instanceof Error ? error.message : 'An unknown error occurred'
-            } : img));
+            });
           }
+        }
+
+        if (fallbackUpdatesByImageId.size > 0) {
+          queueImageMutation(prev => prev.map(img => {
+            const update = fallbackUpdatesByImageId.get(img.id);
+            return update ? { ...img, ...update } : img;
+          }));
         }
       }
       
@@ -647,7 +723,7 @@ const Index: React.FC = () => {
       if (batchIndex < batches.length - 1) {
         const nextBatch = batches[batchIndex + 1];
         // Immediately set next batch images to processing status to hide the delay
-        setImages(prev => prev.map(img => 
+        queueImageMutation(prev => prev.map(img => 
           nextBatch.some(batchImg => batchImg.id === img.id) ? {
             ...img,
             status: 'processing' as const
@@ -676,19 +752,17 @@ const Index: React.FC = () => {
   };
 
   const handleProcessImages = async () => {
+    flushImageMutations();
+
     // Update batches based on current pending images
-    const pendingImages = images.filter(img => img.status === 'pending');
+    const pendingImages = imagesRef.current.filter(img => img.status === 'pending');
     
     if (pendingImages.length === 0) {
       toast.info('No images to process');
       return;
     }
     
-    // Create batches of batchSize
-    const newBatches: ProcessedImage[][] = [];
-    for (let i = 0; i < pendingImages.length; i += batchSize) {
-      newBatches.push(pendingImages.slice(i, i + batchSize));
-    }
+    const newBatches = createPendingBatches(imagesRef.current);
     
     setBatches(newBatches);
     setCurrentBatchIndex(0);
@@ -709,7 +783,7 @@ const Index: React.FC = () => {
   // Function to regenerate metadata for a specific image that failed
   const handleRegenerateImage = (id: string) => {
     // Update the image status from error to pending
-    setImages(prev => prev.map(img => img.id === id ? {
+    queueImageMutation(prev => prev.map(img => img.id === id ? {
       ...img,
       status: 'pending' as const,
       error: undefined // Clear the error message

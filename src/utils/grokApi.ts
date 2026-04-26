@@ -27,6 +27,7 @@ interface AnalysisOptions {
   isolatedOnTransparentBgEnabled?: boolean;
   silhouetteEnabled?: boolean;
   singleWordKeywordsEnabled?: boolean;
+  skipImageOptimization?: boolean;
 }
 
 interface AnalysisResult {
@@ -265,9 +266,9 @@ export async function analyzeImageWithGroq(
     } else if (isVideoFile(imageFile)) {
       originalIsVideo = true;
       fileToProcess = await extractVideoThumbnail(imageFile);
-    } else if (fileToProcess.type.startsWith('image/')) {
+    } else if (fileToProcess.type.startsWith('image/') && !options.skipImageOptimization) {
       try {
-        fileToProcess = await reduceImageSize(fileToProcess);
+        fileToProcess = await reduceImageSize(fileToProcess, 80, 1024, true);
       } catch (e) { void e; }
     }
 

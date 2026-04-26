@@ -30,6 +30,7 @@ interface AnalysisOptions {
   isolatedOnTransparentBgEnabled?: boolean;
   silhouetteEnabled?: boolean;
   singleWordKeywordsEnabled?: boolean;
+  skipImageOptimization?: boolean;
 }
 
 interface AnalysisResult {
@@ -80,9 +81,9 @@ export async function analyzeImageWithGemini(
       originalIsVideo = true;
       // Extract a grid of 6 frames (3x2) for better context
       fileToProcess = await extractVideoFrameGrid(imageFile, 6);
-    } else if (fileToProcess.type.startsWith('image/')) {
+    } else if (fileToProcess.type.startsWith('image/') && !options.skipImageOptimization) {
       try {
-        fileToProcess = await reduceImageSize(fileToProcess);
+        fileToProcess = await reduceImageSize(fileToProcess, 80, 1024, true);
       } catch (e) { void e; }
     }
 
@@ -222,7 +223,7 @@ async function legacyAnalyzeImageWithGemini(
     // For regular image files, reduce the size
     else if (fileToProcess.type.startsWith('image/')) {
       try {
-        fileToProcess = await reduceImageSize(fileToProcess);
+        fileToProcess = await reduceImageSize(fileToProcess, 80, 1024, true);
         console.log(`Image size reduced for ${fileToProcess.name}`);
       } catch (reductionError) {
         console.warn('Image size reduction failed, using original:', reductionError);

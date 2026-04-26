@@ -26,6 +26,135 @@ interface ResultsDisplayProps {
   onRegenerateImage?: (id: string) => void;
 }
 
+const LazyMount: React.FC<{
+  children: React.ReactNode;
+  placeholderHeight: number;
+  keepMounted?: boolean;
+  rootMargin?: string;
+}> = ({
+  children,
+  placeholderHeight,
+  keepMounted = true,
+  rootMargin = '500px 0px'
+}) => {
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const [isVisible, setIsVisible] = useState(false);
+  const [hasBeenVisible, setHasBeenVisible] = useState(false);
+
+  useEffect(() => {
+    const element = containerRef.current;
+    if (!element) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+        const visible = entry.isIntersecting;
+        setIsVisible(visible);
+        if (visible) {
+          setHasBeenVisible(true);
+        }
+      },
+      {
+        root: null,
+        rootMargin,
+        threshold: 0.01
+      }
+    );
+
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [rootMargin]);
+
+  const shouldRender = isVisible || (keepMounted && hasBeenVisible);
+
+  return (
+    <div ref={containerRef} style={{ minHeight: shouldRender ? undefined : `${placeholderHeight}px` }}>
+      {shouldRender ? children : null}
+    </div>
+  );
+};
+
+const LazyPreviewImage: React.FC<{
+  src: string;
+  alt: string;
+  className: string;
+}> = ({ src, alt, className }) => {
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    const element = containerRef.current;
+    if (!element) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => setIsVisible(entry.isIntersecting),
+      { root: null, rootMargin: '300px 0px', threshold: 0.01 }
+    );
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <div ref={containerRef} className="min-h-[96px]">
+      {isVisible ? (
+        <img src={src} alt={alt} className={className} loading="lazy" />
+      ) : (
+        <div className="h-full min-h-[96px] w-full animate-pulse bg-secondary/40 rounded" />
+      )}
+    </div>
+  );
+};
+
+const VirtualList = <T,>({
+  items,
+  estimateHeight,
+  className,
+  containerRef,
+  render,
+}: {
+  items: T[];
+  estimateHeight: number;
+  className?: string;
+  containerRef?: React.RefObject<HTMLDivElement | null>;
+  render: (item: T, index: number) => React.ReactNode;
+}) => {
+  const internalRef = useRef<HTMLDivElement | null>(null);
+  const effectiveRef = containerRef ?? internalRef;
+  const [scrollTop, setScrollTop] = useState(0);
+  const [viewportHeight, setViewportHeight] = useState(0);
+  const overscan = 4;
+
+  useEffect(() => {
+    const element = effectiveRef.current;
+    if (!element) return;
+    const updateViewport = () => setViewportHeight(element.clientHeight);
+    updateViewport();
+    const observer = new ResizeObserver(updateViewport);
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [effectiveRef]);
+
+  const totalHeight = items.length * estimateHeight;
+  const startIndex = Math.max(0, Math.floor(scrollTop / estimateHeight) - overscan);
+  const visibleCount = Math.ceil((viewportHeight || estimateHeight * 4) / estimateHeight) + overscan * 2;
+  const endIndex = Math.min(items.length, startIndex + visibleCount);
+  const topSpacerHeight = startIndex * estimateHeight;
+  const bottomSpacerHeight = Math.max(0, totalHeight - topSpacerHeight - (endIndex - startIndex) * estimateHeight);
+  const visibleItems = items.slice(startIndex, endIndex);
+
+  return (
+    <div
+      ref={effectiveRef}
+      className={className || 'max-h-[72vh] overflow-auto'}
+      onScroll={(event) => setScrollTop(event.currentTarget.scrollTop)}
+    >
+      <div style={{ height: `${topSpacerHeight}px` }} />
+      {visibleItems.map((item, idx) => render(item, startIndex + idx))}
+      <div style={{ height: `${bottomSpacerHeight}px` }} />
+    </div>
+  );
+};
+
 // --- Memoized Components for Performance ---
 
 const CompletedImageToPromptCard = React.memo(({ 
@@ -58,11 +187,10 @@ const CompletedImageToPromptCard = React.memo(({
                 <span className="ml-2 text-muted-foreground">EPS Design File</span>
               </div>
             ) : (
-              <img 
-                src={image.previewUrl} 
-                alt={image.file?.name || 'Image'} 
-                className="w-full object-cover max-h-[400px]" 
-                loading="lazy"
+              <LazyPreviewImage
+                src={image.previewUrl}
+                alt={image.file?.name || 'Image'}
+                className="w-full object-cover max-h-[400px]"
               />
             )}
           </div>
@@ -134,11 +262,10 @@ const CompletedMetadataCard = React.memo(({
                 <span className="ml-2 text-muted-foreground">EPS Design File</span>
               </div>
             ) : (
-              <img 
-                src={image.previewUrl} 
-                alt={image.file?.name || 'Image'} 
-                className="w-full object-cover max-h-[400px]" 
-                loading="lazy"
+              <LazyPreviewImage
+                src={image.previewUrl}
+                alt={image.file?.name || 'Image'}
+                className="w-full object-cover max-h-[400px]"
               />
             )}
           </div>
@@ -255,7 +382,11 @@ const PendingImageCard = React.memo(({
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-3">
             <div className="relative h-10 w-10 overflow-hidden rounded border bg-secondary">
-              <img src={image.previewUrl} alt={image.file?.name || 'Image'} className="h-full w-full object-cover" loading="lazy" />
+              <LazyPreviewImage
+                src={image.previewUrl}
+                alt={image.file?.name || 'Image'}
+                className="h-full w-full object-cover"
+              />
             </div>
             <div className="overflow-hidden">
               <h3 className="font-medium text-xs truncate max-w-[140px] text-foreground" title={image.file?.name || 'Unknown file'}>
@@ -307,7 +438,8 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
   const [lastCompletedId, setLastCompletedId] = useState<string | null>(null);
   const [selectedFormat, setSelectedFormat] = useState<string>('original');
   const completedImagesRef = useRef<HTMLDivElement>(null);
-  const completedImageRefs = useRef<{[key: string]: HTMLDivElement | null}>({});
+  const scrollTimeoutRef = useRef<number | null>(null);
+  const scrollRafRef = useRef<number | null>(null);
   
   const formats = [
     { label: 'Original', value: 'original' },
@@ -326,16 +458,37 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
     
     if (lastCompleted && lastCompleted.id !== lastCompletedId) {
       setLastCompletedId(lastCompleted.id);
-      
-      // Scroll to the newly completed image with animation
-      setTimeout(() => {
-        const imageElement = completedImageRefs.current[lastCompleted.id];
-        if (imageElement && completedImagesRef.current) {
-          imageElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-      }, 300);
+
+      // Debounce smooth scrolling so multiple completions don't stack expensive animations.
+      if (scrollTimeoutRef.current !== null) {
+        window.clearTimeout(scrollTimeoutRef.current);
+      }
+      if (scrollRafRef.current !== null) {
+        window.cancelAnimationFrame(scrollRafRef.current);
+      }
+
+      scrollTimeoutRef.current = window.setTimeout(() => {
+        scrollRafRef.current = window.requestAnimationFrame(() => {
+          if (completedImagesRef.current) {
+            const estimatedItemHeight = generationMode === 'metadata' ? 650 : 500;
+            const targetTop = Math.max(0, (completedImages.length - 1) * estimatedItemHeight);
+            completedImagesRef.current.scrollTo({ top: targetTop, behavior: 'smooth' });
+          }
+        });
+      }, 180);
     }
-  }, [images, lastCompletedId]);
+  }, [images, lastCompletedId, generationMode]);
+
+  useEffect(() => {
+    return () => {
+      if (scrollTimeoutRef.current !== null) {
+        window.clearTimeout(scrollTimeoutRef.current);
+      }
+      if (scrollRafRef.current !== null) {
+        window.cancelAnimationFrame(scrollRafRef.current);
+      }
+    };
+  }, []);
 
   const handleCopyToClipboard = useCallback((text: string, id: string) => {
     navigator.clipboard.writeText(text);
@@ -501,61 +654,70 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
       </div>
 
       {generationMode === 'imageToPrompt' && hasCompletedImages && (
-        <div className="grid grid-cols-1 gap-6" ref={completedImagesRef}>
-          {completedImages.map(image => (
-            <div
-              key={image.id}
-              ref={el => completedImageRefs.current[image.id] = el}
-              style={{ contentVisibility: 'auto', containIntrinsicSize: '500px' }}
-            >
-              <CompletedImageToPromptCard 
-                image={image}
-                isLastCompleted={lastCompletedId === image.id}
-                onCopy={handleCopyToClipboard}
-                onDownload={downloadPromptText}
-                copiedId={copiedId}
-              />
+        <VirtualList
+          items={completedImages}
+          estimateHeight={520}
+          className="max-h-[72vh] overflow-auto"
+          containerRef={completedImagesRef}
+          render={(image) => (
+            <div key={image.id} style={{ contentVisibility: 'auto', containIntrinsicSize: '500px' }}>
+              <LazyMount placeholderHeight={500} keepMounted={false}>
+                <CompletedImageToPromptCard 
+                  image={image}
+                  isLastCompleted={lastCompletedId === image.id}
+                  onCopy={handleCopyToClipboard}
+                  onDownload={downloadPromptText}
+                  copiedId={copiedId}
+                />
+              </LazyMount>
             </div>
-          ))}
-        </div>
+          )}
+        />
       )}
 
       {generationMode === 'metadata' && hasCompletedImages && (
-        <div className="overflow-auto" ref={completedImagesRef}>
-          {completedImages.map(image => (
-            <div
-              key={image.id}
-              ref={el => completedImageRefs.current[image.id] = el}
-              style={{ contentVisibility: 'auto', containIntrinsicSize: '650px' }}
-            >
-              <CompletedMetadataCard
-                image={image}
-                isLastCompleted={lastCompletedId === image.id}
-                onCopy={handleCopyToClipboard}
-                onDownloadCSV={handleDownloadCSV}
-                onToggleKeyword={handleToggleKeyword}
-                isShutterstock={isShutterstock}
-                isFreepikOnly={isFreepikOnly}
-                isAdobeStock={isAdobeStock}
-                copiedId={copiedId}
-              />
+        <VirtualList
+          items={completedImages}
+          estimateHeight={680}
+          className="max-h-[72vh] overflow-auto"
+          containerRef={completedImagesRef}
+          render={(image) => (
+            <div key={image.id} style={{ contentVisibility: 'auto', containIntrinsicSize: '650px' }}>
+              <LazyMount placeholderHeight={650} keepMounted={false}>
+                <CompletedMetadataCard
+                  image={image}
+                  isLastCompleted={lastCompletedId === image.id}
+                  onCopy={handleCopyToClipboard}
+                  onDownloadCSV={handleDownloadCSV}
+                  onToggleKeyword={handleToggleKeyword}
+                  isShutterstock={isShutterstock}
+                  isFreepikOnly={isFreepikOnly}
+                  isAdobeStock={isAdobeStock}
+                  copiedId={copiedId}
+                />
+              </LazyMount>
             </div>
-          ))}
-        </div>
+          )}
+        />
       )}
       
       {pendingImages.length > 0 && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {pendingImages.map(image => (
+        <VirtualList
+          items={pendingImages}
+          estimateHeight={140}
+          className="max-h-[55vh] overflow-auto space-y-3"
+          render={(image) => (
             <div key={image.id} style={{ contentVisibility: 'auto', containIntrinsicSize: '120px' }}>
-              <PendingImageCard
-                image={image}
-                onRemove={onRemoveImage}
-                onRegenerate={onRegenerateImage}
-              />
+              <LazyMount placeholderHeight={120} keepMounted={false} rootMargin="400px 0px">
+                <PendingImageCard
+                  image={image}
+                  onRemove={onRemoveImage}
+                  onRegenerate={onRegenerateImage}
+                />
+              </LazyMount>
             </div>
-          ))}
-        </div>
+          )}
+        />
       )}
     </div>
   );
