@@ -348,33 +348,24 @@ RULES:
 - If silhouette/transparent/white background mentioned in user prompt, include those words in title + keywords + description. 
 - Title and keywords must reference the same subject.`;
 
-    const imageToPromptSystemPrompt = `You are an expert image analyst specialized in creating AI image generation prompts. Analyze the provided image and generate a precise, natural-language description that will recreate the image as closely as possible.
+    const imageToPromptSystemPrompt = `You are a Professional AI Prompt Engineer and Expert Photographer specializing in Reverse Engineering images. Your goal is to generate a prompt that recreates the input image with 99% accuracy in Midjourney, Leonardo AI, and Stable Diffusion.
 
-Follow these rules strictly:
+ANALYSIS PROTOCOL:
+1. SUBJECT: Identify every micro-detail (texture, skin pores, hair strands, material properties).
+2. LIGHTING: Precise light source, quality (soft, harsh), color temperature, and cinematic effects (Rim lighting, Global Illumination, Volumetric).
+3. CAMERA/LENS: Lens focal length (e.g., 85mm Macro, 35mm wide), aperture (f/1.8), perspective, and specific camera body (Sony A7R IV, Hasselblad).
+4. COMPOSITION: Depth of field, framing (Rule of thirds, centered), and eye-level.
+5. STYLE/MEDIUM: Classify medium (Hyper-realistic photo, 3D Octane render, Unreal Engine 5, Digital editorial).
+6. COLOR: Specific palette, saturation, and grading (Teal & Orange, Pastel, High contrast).
 
-STYLE FIRST: Always identify and state the art style at the beginning (e.g., "2D cartoon illustration", "flat vector art", "anime style", "realistic photograph", "3D render", "watercolor painting", etc.)
+PROMPT STRUCTURE:
+[Subject Description] + [Detailed Environment/Background] + [Technical Photography Specs: Lens, Camera, Aperture] + [Lighting & Mood] + [Style & Rendering Engine] + [High-Quality Tags].
 
-CHARACTER DETAILS (if present):
-- Hair: color, length, style, any unique features (tufts, bangs, etc.)
-- Face: skin tone, eyebrow shape/color, eye style, nose, mouth/expression
-- Clothing: every garment with exact colors, patterns, logos, symbols
-- Pose: body position, arm/hand placement, head direction, stance
-- Accessories: any jewelry, hats, glasses, etc.
-
-EXPRESSION & MOOD:
-- Describe the exact facial expression (skeptical, happy, angry, etc.)
-- Gaze direction (looking left, right, up, down, at viewer)
-- Overall body language
-
-SCENE & BACKGROUND:
-- Background color or scene (solid black, solid white, gradient, outdoor, etc.)
-- Any additional objects, UI elements, text, lines, or overlays visible in the image
-
-COMPOSITION:
-- Subject position (centered, left-aligned, etc.)
-- Cropping (full body, half body, close-up, etc.)
-
-OUTPUT: Write ONE clear paragraph of 80-150 words in plain English. Be specific with colors. Do not use bullet points. Do not add any extra commentary. Only output the descriptive prompt.`;
+RULES:
+- Use technical photography terminology.
+- Avoid storytelling; use descriptive, high-impact phrases.
+- Ensure 99% similarity by focusing on texture and lighting.
+- Output ONLY the prompt text. No JSON, no markdown, no intro/outro.`;
 
     // Call DeepInfra API
     const response = await fetch("https://api.deepinfra.com/v1/openai/chat/completions", {
@@ -482,6 +473,8 @@ OUTPUT: Write ONE clear paragraph of 80-150 words in plain English. Be specific 
     }
 
     const singleWordKeywordsEnabled = options.singleWordKeywordsEnabled || false;
+    const maxKeywords = options.maxKeywords || 35;
+    const minKeywords = options.minKeywords || 20;
 
     if (singleWordKeywordsEnabled && result.keywords && result.keywords.length > 0) {
       const singleWordKeywords: string[] = [];
