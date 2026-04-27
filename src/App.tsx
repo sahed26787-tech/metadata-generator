@@ -15,6 +15,7 @@ import Resources from "./pages/Resources";
 import TermsOfService from "./pages/TermsOfService";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import PaymentSuccess from "./pages/PaymentSuccess";
+import PaymentCancel from "./pages/PaymentCancel";
 import { AuthProvider } from "./context/AuthContext";
 import { LanguageProvider } from "./context/LanguageContext";
 import NoticePopup from "./components/NoticePopup";
@@ -51,6 +52,7 @@ const App = () => (
                 <Route path="/terms" element={<TermsOfService />} />
                 <Route path="/privacy" element={<PrivacyPolicy />} />
                 <Route path="/payment-success" element={<PaymentSuccess />} />
+                <Route path="/payment-cancel" element={<PaymentCancel />} />
                 {/* Direct HTML paths also routed to React pages for SPA navigation */}
                 <Route path="/terms-of-service.html" element={<TermsOfService />} />
                 <Route path="/privacy-policy.html" element={<PrivacyPolicy />} />

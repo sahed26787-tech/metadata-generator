@@ -2,70 +2,105 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '@/integrations/supabase/client'
 import { useAuth } from '@/context/AuthContext'
-import { Loader2, CheckCircle, AlertCircle } from 'lucide-react'
+import { Loader2, CheckCircle, XCircle } from 'lucide-react'
 import { toast } from 'sonner'
+import AppHeader from '@/components/AppHeader'
+
+type PaymentStatus = 'processing' | 'success' | 'failed'
 
 export default function PaymentSuccess() {
   const navigate = useNavigate()
-  const { user } = useAuth()
-  const [statusText, setStatusText] = useState<string>('Processing payment...')
+  const { user, refreshProfile } = useAuth()
+  const [status, setStatus] = useState<PaymentStatus>('processing')
+  const [statusText, setStatusText] = useState<string>('Verifying your payment...')
 
   useEffect(() => {
-    const run = async () => {
+    const verifyPayment = async () => {
       const params = new URLSearchParams(window.location.search)
-      const status = (params.get('Status') || params.get('status') || '').toLowerCase()
-      const referenceId = params.get('referenceId') || ''
-      const plan = referenceId.split('-')[0]
-      const days = plan === 'premium' ? 365 : 30
-      const expiration = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString()
+      const invoiceId = params.get('invoice_id') || params.get('invoiceId') || ''
 
-      if (!user) {
-        setStatusText('Please sign in to apply your plan')
-        toast.error('Please sign in')
-        setTimeout(() => navigate('/auth'), 1000)
+      if (!invoiceId) {
+        setStatus('failed')
+        setStatusText('No payment information found')
+        toast.error('Payment information missing')
+        setTimeout(() => navigate('/pricing'), 2000)
         return
       }
 
-      if (status !== 'success') {
-        setStatusText('Payment not completed')
-        toast.error('Payment not completed')
-        setTimeout(() => navigate('/pricing'), 1200)
+      if (!user) {
+        setStatus('failed')
+        setStatusText('Please sign in to apply your plan')
+        toast.error('Please sign in')
+        setTimeout(() => navigate('/auth'), 2000)
         return
       }
 
       try {
-        const { error } = await supabase
-          .from('profiles')
-          .update({ is_premium: true, expiration_date: expiration, updated_at: new Date().toISOString() })
-          .eq('id', user.id)
+        const { data, error } = await supabase.functions.invoke('verify-payment', {
+          body: {
+            invoiceId,
+            uddoktapayBaseUrl: import.meta.env.VITE_UDDOKTAPAY_BASE_URL,
+            uddoktapayApiKey: import.meta.env.VITE_UDDOKTAPAY_API_KEY,
+          },
+        })
 
         if (error) {
-          setStatusText('Failed to apply plan')
-          toast.error('Failed to apply plan')
-          setTimeout(() => navigate('/pricing'), 1200)
-          return
+          throw new Error(error.message || 'Payment verification failed')
         }
 
-        setStatusText('Plan applied successfully')
-        toast.success('Upgrade successful')
-        setTimeout(() => {
-          window.location.href = '/pricing'
-        }, 800)
-      } catch {
-        setStatusText('Unexpected error')
-        toast.error('Unexpected error')
-        setTimeout(() => navigate('/pricing'), 1200)
+        if (data?.status === 'COMPLETED') {
+          setStatus('success')
+          setStatusText('Plan upgraded successfully!')
+          toast.success('Upgrade successful! Your plan is now active.')
+
+          // Refresh user profile to reflect new plan
+          try {
+            await refreshProfile()
+          } catch {
+            // Profile refresh will happen on next page load anyway
+          }
+
+          setTimeout(() => {
+            window.location.href = '/pricing'
+          }, 2000)
+        } else {
+          setStatus('failed')
+          setStatusText(data?.message || 'Payment not completed yet')
+          toast.error('Payment not completed')
+          setTimeout(() => navigate('/pricing'), 2000)
+        }
+      } catch (err) {
+        console.error('Payment verification error:', err)
+        setStatus('failed')
+        setStatusText(err instanceof Error ? err.message : 'Payment verification failed')
+        toast.error('Payment verification failed')
+        setTimeout(() => navigate('/pricing'), 2000)
       }
     }
 
-    run()
-  }, [navigate, user])
+    verifyPayment()
+  }, [navigate, user, refreshProfile])
 
   return (
-    <div className="min-h-screen bg-[#171717] text-white flex items-center justify-center">
-      <div className="text-center">
-        <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4" />
-        <p className="text-sm text-gray-300">{statusText}</p>
+    <div className="min-h-screen bg-background text-foreground font-sans selection:bg-primary/30">
+      <AppHeader remainingCredits="0" apiKey="" onApiKeyChange={() => {}} />
+      
+      <div className="pt-16 pb-20 px-4 flex items-center justify-center" style={{ minHeight: 'calc(100vh - 64px)' }}>
+        <div className="text-center max-w-md">
+          {status === 'processing' && (
+            <Loader2 className="w-16 h-16 animate-spin mx-auto mb-6 text-primary" />
+          )}
+          {status === 'success' && (
+            <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-6" />
+          )}
+          {status === 'failed' && (
+            <XCircle className="w-16 h-16 text-red-500 mx-auto mb-6" />
+          )}
+          <h1 className="text-2xl font-bold text-foreground mb-3">
+            {status === 'processing' ? 'Processing...' : status === 'success' ? 'Payment Successful!' : 'Payment Failed'}
+          </h1>
+          <p className="text-muted-foreground leading-relaxed">{statusText}</p>
+        </div>
       </div>
     </div>
   )
