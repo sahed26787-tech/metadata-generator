@@ -49,7 +49,7 @@ const PricingPage: React.FC = () => {
   const currentPlanType = profile?.plan_type?.toLowerCase() || 'free';
 
   const paidPlans: Record<PaidPlanKey, PaidPlanConfig> = {
-    standard: { key: 'standard', title: 'Standard Plan', verifyTitle: 'Basic Plan (1 Month)', amount: 2 },
+    standard: { key: 'standard', title: 'Standard Plan', verifyTitle: 'Basic Plan (1 Month)', amount: 3 },
     exclusive: { key: 'exclusive', title: 'Exclusive Plan', verifyTitle: 'Exclusive Plan (Lifetime)', amount: 700 },
   };
 
@@ -188,7 +188,7 @@ const PricingPage: React.FC = () => {
               <div className="mb-8">
                 <h3 className="text-lg font-bold text-foreground mb-2">Standard</h3>
                 <div className="flex items-baseline mb-1">
-                  <span className="text-4xl font-bold text-foreground">2</span>
+                  <span className="text-4xl font-bold text-foreground">3</span>
                   <span className="text-lg text-muted-foreground ml-1">BDT/Month</span>
                 </div>
                 <p className="text-xs text-muted-foreground">5000 Credits</p>
