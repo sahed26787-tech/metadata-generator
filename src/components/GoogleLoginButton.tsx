@@ -40,7 +40,7 @@ export function GoogleLoginButton({ onSuccess, onError }: GoogleLoginButtonProps
     <Button
       variant="outline"
       onClick={handleGoogleLogin}
-      className="w-full flex items-center justify-center gap-2 bg-gray-900 text-white hover:bg-gray-800 transition-colors"
+      className="mx-auto flex items-center justify-center gap-2 bg-gray-900 px-4 text-white hover:bg-gray-800 transition-colors"
     >
       <svg
         className="w-5 h-5"

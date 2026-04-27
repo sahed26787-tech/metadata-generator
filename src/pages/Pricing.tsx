@@ -1,10 +1,9 @@
 import React, { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Check, X, Loader2, CreditCard } from 'lucide-react';
+import { Check, X, Copy } from 'lucide-react';
 import AppHeader from '@/components/AppHeader';
 import { toast } from 'sonner';
 import { useAuth } from '@/context/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
 
 interface PricingItemProps {
   text: string;
@@ -28,6 +27,7 @@ const PricingItem: React.FC<PricingItemProps> = ({ text, included }) => {
   );
 };
 
+type PaymentMethod = 'bKash' | 'Nagad' | 'Rocket' | 'Upay';
 type PaidPlanKey = 'standard' | 'exclusive';
 
 interface PaidPlanConfig {
@@ -42,14 +42,19 @@ const PricingPage: React.FC = () => {
   const navigate = useNavigate();
   const { user, profile } = useAuth();
   const [activePlan, setActivePlan] = useState<PaidPlanConfig | null>(null);
+  const [selectedMethod, setSelectedMethod] = useState<PaymentMethod>('bKash');
+  const [trxId, setTrxId] = useState('');
+  const [phone, setPhone] = useState('');
   const [couponCode, setCouponCode] = useState('');
   const [appliedCoupon, setAppliedCoupon] = useState<string | null>(null);
-  const [isProcessing, setIsProcessing] = useState(false);
 
   const currentPlanType = profile?.plan_type?.toLowerCase() || 'free';
 
+  const walletNumberDisplay = '+880 1610-632737';
+  const walletNumberRaw = '8801610632737';
+
   const paidPlans: Record<PaidPlanKey, PaidPlanConfig> = {
-    standard: { key: 'standard', title: 'Standard Plan', verifyTitle: 'Basic Plan (1 Month)', amount: 3 },
+    standard: { key: 'standard', title: 'Standard Plan', verifyTitle: 'Basic Plan (1 Month)', amount: 250 },
     exclusive: { key: 'exclusive', title: 'Exclusive Plan', verifyTitle: 'Exclusive Plan (Lifetime)', amount: 700 },
   };
 
@@ -67,6 +72,8 @@ const PricingPage: React.FC = () => {
       return;
     }
     setActivePlan(paidPlans[planKey]);
+    setSelectedMethod('bKash');
+    setTrxId('');
     setCouponCode('');
     setAppliedCoupon(null);
   };
@@ -84,59 +91,32 @@ const PricingPage: React.FC = () => {
 
   const getDiscountedAmount = (amount: number) => {
     if (appliedCoupon === 'TIMESAI27') {
-      return Math.round(amount * 0.73);
+      return Math.round(amount * 0.73); // 27% discount
     }
     return amount;
   };
 
-  const handlePayment = async () => {
-    if (!activePlan || !user) return;
-    setIsProcessing(true);
-
+  const handleCopyWallet = async () => {
     try {
-      const finalAmount = getDiscountedAmount(activePlan.amount);
-
-      const { data, error } = await supabase.functions.invoke('create-charge', {
-        body: {
-          planKey: activePlan.key,
-          amount: finalAmount,
-          fullName: customerName,
-          email: user.email,
-          userId: user.id,
-          uddoktapayBaseUrl: import.meta.env.VITE_UDDOKTAPAY_BASE_URL,
-          uddoktapayApiKey: import.meta.env.VITE_UDDOKTAPAY_API_KEY,
-        },
-      });
-
-      if (error) {
-        throw new Error(error.message || 'Failed to create payment');
-      }
-
-      if (data?.paymentUrl) {
-        try {
-          localStorage.setItem(
-            'uddoktapay:last_payment',
-            JSON.stringify({
-              invoiceId: data.invoiceId,
-              planKey: activePlan.key,
-              amount: finalAmount,
-              createdAt: Date.now(),
-            })
-          );
-        } catch {
-          // ignore
-        }
-        // Redirect to UddoktaPay checkout page
-        window.location.href = data.paymentUrl;
-      } else {
-        throw new Error('No payment URL received');
-      }
-    } catch (err) {
-      console.error('Payment error:', err);
-      toast.error(err instanceof Error ? err.message : 'Payment failed. Please try again.');
-    } finally {
-      setIsProcessing(false);
+      await navigator.clipboard.writeText(walletNumberDisplay);
+      toast.success('Wallet number copied');
+    } catch {
+      toast.error('Copy failed');
     }
+  };
+
+  const handleVerifyOnWhatsApp = () => {
+    if (!activePlan) return;
+    if (!trxId.trim()) {
+      toast.error('Please enter transaction ID');
+      return;
+    }
+
+    const finalAmount = getDiscountedAmount(activePlan.amount);
+    const discountInfo = appliedCoupon ? `\n*Coupon Applied:* ${appliedCoupon} (27% off)\n*Original Amount:* ৳${activePlan.amount}` : '';
+    const message = `*Payment Verification Request*\n*Plan:* ${activePlan.verifyTitle}\n*Amount:* ৳${finalAmount}${discountInfo}\n*Payment Method:* ${selectedMethod}\n*Customer Details:*\n• Name: ${customerName}\n• Email: ${user?.email || ''}\n• Phone: ${phone.trim()}\n*Transaction ID:* ${trxId.trim()}\nPlease verify my payment. Thank you!`;
+    const waUrl = `https://wa.me/${walletNumberRaw}?text=${encodeURIComponent(message)}`;
+    window.open(waUrl, '_blank');
   };
 
   return (
@@ -151,7 +131,7 @@ const PricingPage: React.FC = () => {
               Choose Your Plan
             </h1>
             <p className="text-muted-foreground max-w-lg mx-auto leading-relaxed text-sm">
-              Pick the perfect plan for your workflow. Instant auto payment via bKash, Nagad, Rocket & more.
+              Pick the perfect plan for your workflow. Contact admin via WhatsApp to subscribe.
             </p>
           </div>
           
@@ -201,7 +181,7 @@ const PricingPage: React.FC = () => {
               <div className="mb-8">
                 <h3 className="text-lg font-bold text-foreground mb-2">Standard</h3>
                 <div className="flex items-baseline mb-1">
-                  <span className="text-4xl font-bold text-foreground">3</span>
+                  <span className="text-4xl font-bold text-foreground">250</span>
                   <span className="text-lg text-muted-foreground ml-1">BDT/Month</span>
                 </div>
                 <p className="text-xs text-muted-foreground">5000 Credits</p>
@@ -275,7 +255,6 @@ const PricingPage: React.FC = () => {
                   <button
                     className="text-muted-foreground hover:text-foreground transition-all duration-150 active:scale-90"
                     onClick={() => setActivePlan(null)}
-                    disabled={isProcessing}
                   >
                     <X className="w-5 h-5" />
                   </button>
@@ -309,12 +288,10 @@ const PricingPage: React.FC = () => {
                         onChange={(e) => setCouponCode(e.target.value)}
                         placeholder="Enter coupon code"
                         className="flex-1 rounded-xl border border-border bg-background px-4 py-2.5 text-sm text-foreground outline-none focus:border-primary/50 transition-all placeholder:text-muted-foreground/30 uppercase"
-                        disabled={isProcessing}
                       />
                       <button
                         onClick={applyCoupon}
                         className="px-4 py-2.5 rounded-xl bg-secondary hover:bg-secondary/80 text-secondary-foreground text-sm font-semibold transition-all active:scale-95 border border-border"
-                        disabled={isProcessing}
                       >
                         Apply
                       </button>
@@ -324,40 +301,81 @@ const PricingPage: React.FC = () => {
                     )}
                   </div>
 
-                  <div className="rounded-xl bg-primary/5 border border-primary/20 p-4">
-                    <div className="flex items-center gap-3 mb-3">
-                      <CreditCard className="w-5 h-5 text-primary" />
-                      <p className="text-sm font-bold text-foreground">Auto Payment via UddoktaPay</p>
+                  <div>
+                    <p className="text-xs uppercase tracking-wider text-muted-foreground mb-3 font-semibold">Select payment method</p>
+                    <div className="grid grid-cols-2 gap-3">
+                      {(['bKash', 'Nagad', 'Rocket', 'Upay'] as PaymentMethod[]).map((method) => (
+                        <button
+                          key={method}
+                          onClick={() => setSelectedMethod(method)}
+                          className={`rounded-xl px-4 py-3 text-sm font-bold border transition-all ${
+                            selectedMethod === method
+                              ? 'bg-primary border-primary text-primary-foreground shadow-lg shadow-primary/20'
+                              : 'bg-muted/20 border-border text-muted-foreground hover:border-primary/50'
+                          } active:scale-95`}
+                        >
+                          {method}
+                        </button>
+                      ))}
                     </div>
-                    <p className="text-xs text-muted-foreground leading-relaxed">
-                      You'll be redirected to our secure payment page. Supports bKash, Nagad, Rocket, Upay and more. Your plan will be activated instantly after payment.
-                    </p>
                   </div>
 
-                  <div className="rounded-xl border border-border bg-muted/20 p-4">
-                    <p className="text-xs uppercase tracking-wider text-muted-foreground mb-3 font-semibold">Customer Details</p>
-                    <div className="space-y-2">
-                      <p className="text-sm text-foreground/90"><span className="text-muted-foreground font-medium">Name:</span> {customerName}</p>
-                      <p className="text-sm text-foreground/90"><span className="text-muted-foreground font-medium">Email:</span> {user?.email || ''}</p>
+                  <div className="rounded-xl bg-muted/30 border border-border p-4">
+                    <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2 font-semibold">Send to this number</p>
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="text-xl font-bold text-foreground tracking-wider">{walletNumberDisplay}</span>
+                      <button
+                        onClick={handleCopyWallet}
+                        className="inline-flex items-center gap-2 rounded-xl bg-secondary hover:bg-secondary/80 text-secondary-foreground px-4 py-2 text-sm font-bold transition-all active:scale-95 border border-border"
+                      >
+                        <Copy className="w-4 h-4" />
+                        Copy
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="rounded-xl border border-yellow-500/20 bg-yellow-500/10 p-4 text-sm text-yellow-600 dark:text-yellow-200/80 leading-relaxed">
+                    <p className="font-bold text-yellow-600 dark:text-yellow-500 mb-2 text-base">Instructions</p>
+                    <ol className="list-decimal pl-5 space-y-1.5 font-medium">
+                      <li>Select payment method</li>
+                      <li>Send money to {walletNumberDisplay}</li>
+                      <li>Copy your transaction ID (TrxID)</li>
+                      <li>Enter TrxID and click verify on WhatsApp</li>
+                    </ol>
+                  </div>
+
+                  <div className="space-y-5">
+                    <div>
+                      <label className="block text-xs uppercase tracking-wider text-muted-foreground mb-2 ml-1 font-semibold">Transaction ID (TrxID) *</label>
+                      <input
+                        value={trxId}
+                        onChange={(e) => setTrxId(e.target.value)}
+                        placeholder="Enter your TrxID"
+                        className="w-full rounded-xl border border-border bg-background px-4 py-3 text-base text-foreground outline-none focus:border-primary/50 transition-all placeholder:text-muted-foreground/30"
+                      />
+                    </div>
+
+                    <div className="rounded-xl border border-border bg-muted/20 p-4">
+                      <p className="text-xs uppercase tracking-wider text-muted-foreground mb-3 font-semibold">Customer Details</p>
+                      <div className="space-y-2 mb-4">
+                        <p className="text-sm text-foreground/90"><span className="text-muted-foreground font-medium">Name:</span> {customerName}</p>
+                        <p className="text-sm text-foreground/90"><span className="text-muted-foreground font-medium">Email:</span> {user?.email || ''}</p>
+                      </div>
+                      <label className="block text-xs uppercase tracking-wider text-muted-foreground mb-2 ml-1 font-semibold">Phone</label>
+                      <input
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                        placeholder="01XXXXXXXXX"
+                        className="w-full rounded-xl border border-border bg-background px-4 py-3 text-base text-foreground outline-none focus:border-primary/50 transition-all placeholder:text-muted-foreground/30"
+                      />
                     </div>
                   </div>
 
                   <button
-                    onClick={handlePayment}
-                    disabled={isProcessing}
-                    className="w-full rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground text-base font-bold py-4 transition-all active:scale-[0.98] shadow-lg shadow-primary/20 flex items-center justify-center gap-2"
+                    onClick={handleVerifyOnWhatsApp}
+                    className="w-full rounded-xl bg-green-500 hover:bg-green-600 text-white text-base font-bold py-4 transition-all active:scale-[0.98] shadow-lg shadow-green-500/20 mb-2"
                   >
-                    {isProcessing ? (
-                      <>
-                        <Loader2 className="w-5 h-5 animate-spin" />
-                        Processing...
-                      </>
-                    ) : (
-                      <>
-                        <CreditCard className="w-5 h-5" />
-                        Pay ৳{getDiscountedAmount(activePlan.amount)}
-                      </>
-                    )}
+                    Verify on WhatsApp
                   </button>
                 </div>
               </div>
