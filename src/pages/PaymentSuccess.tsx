@@ -36,38 +36,53 @@ export default function PaymentSuccess() {
       }
 
       try {
-        const { data, error } = await supabase.functions.invoke('verify-payment', {
-          body: {
-            invoiceId,
-            uddoktapayBaseUrl: import.meta.env.VITE_UDDOKTAPAY_BASE_URL,
-            uddoktapayApiKey: import.meta.env.VITE_UDDOKTAPAY_API_KEY,
-          },
-        })
+        const startedAt = Date.now()
+        const maxWaitMs = 60_000
+        const pollIntervalMs = 2_500
 
-        if (error) {
-          throw new Error(error.message || 'Payment verification failed')
-        }
+        while (true) {
+          const { data, error } = await supabase.functions.invoke('verify-payment', {
+            body: {
+              invoiceId,
+              uddoktapayBaseUrl: import.meta.env.VITE_UDDOKTAPAY_BASE_URL,
+              uddoktapayApiKey: import.meta.env.VITE_UDDOKTAPAY_API_KEY,
+            },
+          })
 
-        if (data?.status === 'COMPLETED') {
-          setStatus('success')
-          setStatusText('Plan upgraded successfully!')
-          toast.success('Upgrade successful! Your plan is now active.')
-
-          // Refresh user profile to reflect new plan
-          try {
-            await refreshProfile()
-          } catch {
-            // Profile refresh will happen on next page load anyway
+          if (error) {
+            throw new Error(error.message || 'Payment verification failed')
           }
 
-          setTimeout(() => {
-            window.location.href = '/pricing'
-          }, 2000)
-        } else {
-          setStatus('failed')
-          setStatusText(data?.message || 'Payment not completed yet')
-          toast.error('Payment not completed')
-          setTimeout(() => navigate('/pricing'), 2000)
+          const serverStatus = String(data?.status || '').toUpperCase()
+          if (serverStatus === 'COMPLETED') {
+            setStatus('success')
+            setStatusText('Plan upgraded successfully!')
+            toast.success('Upgrade successful! Your plan is now active.')
+
+            try {
+              await refreshProfile()
+            } catch {
+              // ignore
+            }
+
+            setTimeout(() => {
+              window.location.href = '/pricing'
+            }, 2000)
+            return
+          }
+
+          const elapsed = Date.now() - startedAt
+          if (elapsed >= maxWaitMs) {
+            setStatus('failed')
+            setStatusText(data?.message || 'Payment not completed yet')
+            toast.error('Payment not completed')
+            setTimeout(() => navigate('/pricing'), 2000)
+            return
+          }
+
+          setStatus('processing')
+          setStatusText('Payment pending... verifying again')
+          await new Promise((resolve) => setTimeout(resolve, pollIntervalMs))
         }
       } catch (err) {
         console.error('Payment verification error:', err)
