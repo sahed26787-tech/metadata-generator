@@ -200,7 +200,7 @@ export const createImagePreview = (file: File): Promise<string> => {
 
     img.onload = () => {
       try {
-        const maxDimension = 320;
+        const maxDimension = 600;
         const scale = Math.min(1, maxDimension / Math.max(img.width, img.height));
         const width = Math.max(1, Math.round(img.width * scale));
         const height = Math.max(1, Math.round(img.height * scale));
@@ -230,7 +230,7 @@ export const createImagePreview = (file: File): Promise<string> => {
             resolve(URL.createObjectURL(blob));
           },
           'image/jpeg',
-          0.7
+          0.85
         );
       } catch (error) {
         void error;

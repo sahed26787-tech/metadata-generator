@@ -278,7 +278,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
               </p>
               
               {/* Bottom Text */}
-              <p className="text-foreground text-xs md:text-sm font-medium">Process 100 images in a Single Action</p>
+              <p className="text-foreground text-xs md:text-sm font-medium">100 images in a Single Action</p>
             </>
           )}
         </div>
