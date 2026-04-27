@@ -113,6 +113,19 @@ const PricingPage: React.FC = () => {
       }
 
       if (data?.paymentUrl) {
+        try {
+          localStorage.setItem(
+            'uddoktapay:last_payment',
+            JSON.stringify({
+              invoiceId: data.invoiceId,
+              planKey: activePlan.key,
+              amount: finalAmount,
+              createdAt: Date.now(),
+            })
+          );
+        } catch {
+          // ignore
+        }
         // Redirect to UddoktaPay checkout page
         window.location.href = data.paymentUrl;
       } else {

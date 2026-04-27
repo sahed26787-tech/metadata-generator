@@ -12,7 +12,7 @@ serve(async (req) => {
   }
 
   try {
-    const { invoiceId, uddoktapayBaseUrl, uddoktapayApiKey } = await req.json();
+    const { invoiceId, uddoktapayBaseUrl, uddoktapayApiKey, userId: bodyUserId, planKey: bodyPlanKey } = await req.json();
 
     if (!invoiceId) {
       throw new Error("Missing required field: invoiceId");
@@ -57,11 +57,20 @@ serve(async (req) => {
 
     // Payment completed — upgrade user plan in Supabase
     const metadata = result.metadata || {};
-    const userId = metadata.user_id;
-    const planKey = metadata.plan_key;
+    const userId = metadata.user_id || bodyUserId;
+    const planKey = metadata.plan_key || bodyPlanKey;
 
     if (!userId || !planKey) {
-      throw new Error("Missing user_id or plan_key in payment metadata");
+      return new Response(
+        JSON.stringify({
+          status: "COMPLETED",
+          message: "Payment completed but missing plan information",
+        }),
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 200,
+        }
+      );
     }
 
     const supabaseClient = createClient(

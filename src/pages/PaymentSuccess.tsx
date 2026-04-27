@@ -19,6 +19,19 @@ export default function PaymentSuccess() {
       const params = new URLSearchParams(window.location.search)
       const invoiceId = params.get('invoice_id') || params.get('invoiceId') || ''
 
+      let fallbackPlanKey: string | undefined
+      try {
+        const raw = localStorage.getItem('uddoktapay:last_payment')
+        if (raw) {
+          const parsed = JSON.parse(raw) as { invoiceId?: string; planKey?: string }
+          if (parsed?.invoiceId && parsed.invoiceId === invoiceId) {
+            fallbackPlanKey = parsed.planKey
+          }
+        }
+      } catch {
+        // ignore
+      }
+
       if (!invoiceId) {
         setStatus('failed')
         setStatusText('No payment information found')
@@ -46,6 +59,8 @@ export default function PaymentSuccess() {
               invoiceId,
               uddoktapayBaseUrl: import.meta.env.VITE_UDDOKTAPAY_BASE_URL,
               uddoktapayApiKey: import.meta.env.VITE_UDDOKTAPAY_API_KEY,
+              userId: user.id,
+              planKey: fallbackPlanKey,
             },
           })
 
