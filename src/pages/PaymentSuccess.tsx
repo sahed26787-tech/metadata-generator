@@ -37,7 +37,7 @@ export default function PaymentSuccess() {
 
       try {
         const startedAt = Date.now()
-        const maxWaitMs = 60_000
+        const maxWaitMs = 300_000
         const pollIntervalMs = 2_500
 
         while (true) {
@@ -81,7 +81,7 @@ export default function PaymentSuccess() {
           }
 
           setStatus('processing')
-          setStatusText('Payment pending... verifying again')
+          setStatusText(`Payment pending... verifying again (${Math.floor(elapsed / 1000)}s)`)
           await new Promise((resolve) => setTimeout(resolve, pollIntervalMs))
         }
       } catch (err) {
