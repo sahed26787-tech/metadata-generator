@@ -53,9 +53,11 @@ serve(async (req) => {
          RETURN QUERY
          SELECT 
            p.id,
+           String(
+             paymentMetadata.plan_key || paymentMetadata.plan || body.plan || "regular"
+           ).toLowerCase() AS plan,
            p.full_name,
            p.avatar_url,
-           p.plan,
            p.created_at
          FROM public.profiles p
          WHERE p.id = user_id
@@ -75,7 +77,7 @@ serve(async (req) => {
              user_id,
              NULL,
              NULL,
-             'free',
+             'starter',
              NOW()
            )
            ON CONFLICT (id) DO NOTHING;

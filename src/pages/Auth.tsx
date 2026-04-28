@@ -35,7 +35,7 @@ const Auth: React.FC = () => {
       {/* Left section with image */}
       <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-secondary items-center justify-center">
         <img 
-          src="/images/hosting/website-hosting-illustration.jpg" 
+          src="/images/auth-login.jpg" 
           alt="Website Hosting Illustration"
           className="w-full h-full object-cover"
         />

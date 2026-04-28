@@ -41,7 +41,7 @@ const initiateEpsPayment = async () => {
   try {
     const referenceId = `upgrade-${Date.now()}`
     const { data, error } = await supabase.functions.invoke('eps_init_order', {
-      body: { amount: 1000, referenceId, description: 'Upgrade to premium' }
+      body: { amount: 1000, referenceId, description: 'Upgrade to exclusive' }
     })
     if (error) {
       toast.error('Payment init failed')
@@ -881,7 +881,7 @@ const Index: React.FC = () => {
                       <div className="mr-3 text-amber-500 dark:text-amber-400">⚠️</div>
                       <div>
                         <p className="font-medium">You have {Math.max(0, 15 - profile.credits_used)} credits remaining</p>
-                        <p className="text-sm">Starter users are limited to 15 lifetime credits. <a href="/pricing" className="text-amber-600 dark:text-amber-400 underline">Upgrade to Premium</a> for unlimited processing.</p>
+                        <p className="text-sm">Free users are limited to 15 lifetime credits. <a href="/pricing" className="text-amber-600 dark:text-amber-400 underline">Upgrade to Premium</a> for unlimited processing.</p>
                       </div>
                     </div>
                   </div>

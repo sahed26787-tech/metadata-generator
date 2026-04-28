@@ -182,15 +182,30 @@ const AppHeader: React.FC<AppHeaderProps> = ({
             Resources
           </Button>
 
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="hidden md:flex text-muted-foreground hover:bg-accent hover:text-foreground border border-transparent hover:border-border"
-            onClick={() => window.open("https://youtube.com", "_blank")}
-          >
-            <Video className="h-4 w-4 mr-2" />
-            Learn
-          </Button>
+          <div className="hidden md:block">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="text-muted-foreground hover:bg-accent hover:text-foreground border border-transparent hover:border-border"
+                >
+                  <Video className="h-4 w-4 mr-2" />
+                  Learn
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56 bg-card border-border">
+                <DropdownMenuItem className="cursor-pointer" onClick={() => window.open("https://www.youtube.com/@timesitofficial", "_blank")}>
+                  <Youtube className="h-4 w-4 mr-2 text-red-600" />
+                  <span>Free</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem className="cursor-pointer" onClick={() => window.open("https://timesitbd.com/step/ai-powered-passive-income/", "_blank")}>
+                  <BookOpen className="h-4 w-4 mr-2 text-blue-500" />
+                  <span>Course</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
 
           <div className="hidden md:block">
             <DropdownMenu>
@@ -201,29 +216,25 @@ const AppHeader: React.FC<AppHeaderProps> = ({
                   className="text-muted-foreground hover:bg-accent hover:text-foreground border border-transparent hover:border-border"
                 >
                   <MessageSquare className="h-4 w-4 mr-2" />
-                  Contact
+                  Community
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48 bg-card border-border">
-                <DropdownMenuItem className="cursor-pointer" onClick={() => window.open("https://chat.whatsapp.com/FX3SIHK7Fec63XWh3P06jt", "_blank")}>
-                  <MessageCircle className="h-4 w-4 mr-2 text-green-500" />
-                  <span>WhatsApp</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem className="cursor-pointer" onClick={() => window.open("https://discord.com", "_blank")}>
-                  <MessageSquare className="h-4 w-4 mr-2 text-indigo-500" />
-                  <span>Discord</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem className="cursor-pointer" onClick={() => window.open("https://facebook.com", "_blank")}>
+                <DropdownMenuItem className="cursor-pointer" onClick={() => window.open("https://www.facebook.com/groups/540072879671244", "_blank")}>
                   <Facebook className="h-4 w-4 mr-2 text-blue-600" />
                   <span>Facebook</span>
                 </DropdownMenuItem>
-                <DropdownMenuItem className="cursor-pointer" onClick={() => window.open("https://facebook.com/page", "_blank")}>
-                  <Globe className="h-4 w-4 mr-2 text-blue-400" />
-                  <span>Page</span>
+                <DropdownMenuItem className="cursor-pointer" onClick={() => window.open("https://discord.gg/2TUuCtFm", "_blank")}>
+                  <MessageSquare className="h-4 w-4 mr-2 text-indigo-500" />
+                  <span>Discord</span>
                 </DropdownMenuItem>
-                <DropdownMenuItem className="cursor-pointer" onClick={() => window.open("https://youtube.com", "_blank")}>
-                  <Youtube className="h-4 w-4 mr-2 text-red-600" />
-                  <span>YouTube</span>
+                <DropdownMenuItem className="cursor-pointer" onClick={() => window.open("https://chat.whatsapp.com/CW9KgkKJ0jCLNPz4gBEDEO", "_blank")}>
+                  <MessageCircle className="h-4 w-4 mr-2 text-green-500" />
+                  <span>WhatsApp</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem className="cursor-pointer" onClick={() => window.open("https://timesitbd.com/", "_blank")}> 
+                  <Globe className="h-4 w-4 mr-2 text-blue-400" />
+                  <span>Visit Us</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

@@ -195,8 +195,8 @@ serve(async (req) => {
 
     if (completed) {
       const creditsByPlan: Record<string, number> = {
-        regular: 5000,
-        premium: 15000,
+        standard: 5000,
+        exclusive: 15000,
       };
 
       const now = new Date();

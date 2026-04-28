@@ -123,7 +123,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const buildFallbackProfile = (userId: string, email: string): UserProfile => ({
     id: userId,
     email,
-    plan_type: 'starter',
+    plan_type: 'free',
     total_credits: 15,
     credits_used: 0,
     remaining_credits: 15,
@@ -340,7 +340,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
       
       if (!data.success) {
-        const planName = profile.plan_type === 'starter' ? 'Starter' : profile.plan_type;
+        const planName = profile.plan_type === 'free' ? 'Free' : profile.plan_type;
         toast.error(`You have used all your credits for this ${profile.credits_reset_type === 'monthly' ? 'month' : 'period'}. Please upgrade to continue.`);
         return false;
       }
@@ -378,7 +378,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       // Check if user has enough credits
       if (profile.remaining_credits < amount) {
-        const planName = profile.plan_type === 'starter' ? 'Starter' : profile.plan_type;
+        const planName = profile.plan_type === 'free' ? 'Free' : profile.plan_type;
         toast.error(`Not enough credits. You need ${amount} credits but only have ${profile.remaining_credits}. Please upgrade to continue.`);
         return false;
       }

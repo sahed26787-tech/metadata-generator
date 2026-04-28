@@ -115,7 +115,7 @@ serve(async (req) => {
       (typeof checkoutUrl === "string" ? checkoutUrl.split("/").filter(Boolean).pop() : null);
 
     const resolvedPlan = String(
-      incomingMetadata.plan_key || incomingMetadata.plan || "pro",
+      incomingMetadata.plan_key || incomingMetadata.plan || "standard",
     ).toLowerCase();
 
     const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey);
