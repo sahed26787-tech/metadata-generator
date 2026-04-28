@@ -28,7 +28,7 @@ const PricingItem: React.FC<PricingItemProps> = ({ text, included }) => {
   );
 };
 
-type PaidPlanKey = 'standard' | 'exclusive';
+type PaidPlanKey = 'regular' | 'premium';
 
 interface PaidPlanConfig {
   key: PaidPlanKey;
@@ -46,11 +46,11 @@ const PricingPage: React.FC = () => {
   const [appliedCoupon, setAppliedCoupon] = useState<string | null>(null);
   const [isCreatingCheckout, setIsCreatingCheckout] = useState(false);
 
-  const currentPlanType = profile?.plan_type?.toLowerCase() || 'free';
+  const currentPlanType = profile?.plan_type?.toLowerCase() || 'starter';
 
   const paidPlans: Record<PaidPlanKey, PaidPlanConfig> = {
-    standard: { key: 'standard', title: 'Standard Plan', verifyTitle: 'Basic Plan (1 Month)', amount: 3 },
-    exclusive: { key: 'exclusive', title: 'Exclusive Plan', verifyTitle: 'Exclusive Plan (Lifetime)', amount: 4 },
+    regular: { key: 'regular', title: 'Regular Plan', verifyTitle: 'Regular Plan (1 Month)', amount: 3 },
+    premium: { key: 'premium', title: 'Premium Plan', verifyTitle: 'Premium Plan (Lifetime)', amount: 4 },
   };
 
   const customerName = useMemo(() => {
@@ -172,10 +172,10 @@ const PricingPage: React.FC = () => {
           {/* Pricing Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-10 max-w-5xl mx-auto">
             
-            {/* Free Plan */}
+            {/* Starter Plan */}
             <div className="bg-card border border-border rounded-2xl p-8 flex flex-col h-full transition-all duration-300 hover:border-primary/20 hover:bg-accent/5">
               <div className="mb-8">
-                <h3 className="text-lg font-bold text-foreground mb-2">Free</h3>
+                <h3 className="text-lg font-bold text-foreground mb-2">Starter</h3>
                 <div className="flex items-baseline mb-1">
                   <span className="text-4xl font-bold text-foreground">0</span>
                   <span className="text-lg text-muted-foreground ml-1">Tk</span>
@@ -199,21 +199,21 @@ const PricingPage: React.FC = () => {
               <button 
                 disabled
                 className={`w-full font-semibold py-3.5 rounded-xl transition-all duration-200 cursor-default ${
-                  currentPlanType === 'free' 
+                  currentPlanType === 'starter' 
                     ? 'bg-primary/10 text-primary border border-primary/20' 
                     : 'bg-muted text-muted-foreground'
                 }`}
               >
-                {currentPlanType === 'free' ? 'Current Plan' : 'Free Plan'}
+                {currentPlanType === 'starter' ? 'Current Plan' : 'Starter Plan'}
               </button>
             </div>
             
-            {/* Standard Plan */}
+            {/* Regular Plan */}
             <div className={`bg-card rounded-2xl p-8 flex flex-col h-full transition-all duration-300 hover:bg-accent/5 border ${
-              currentPlanType === 'standard' ? 'border-primary shadow-[0_0_20px_rgba(31,113,220,0.15)] ring-2 ring-primary/20' : 'border-primary/30'
+              currentPlanType === 'regular' ? 'border-primary shadow-[0_0_20px_rgba(31,113,220,0.15)] ring-2 ring-primary/20' : 'border-primary/30'
             }`}>
               <div className="mb-8">
-                <h3 className="text-lg font-bold text-foreground mb-2">Standard</h3>
+                <h3 className="text-lg font-bold text-foreground mb-2">Regular</h3>
                 <div className="flex items-baseline mb-1">
                   <span className="text-4xl font-bold text-foreground">3</span>
                   <span className="text-lg text-muted-foreground ml-1">BDT/Month</span>
@@ -232,24 +232,24 @@ const PricingPage: React.FC = () => {
               </ul>
               
               <button 
-                onClick={() => currentPlanType !== 'standard' && openPaymentModal('standard')}
-                disabled={currentPlanType === 'standard'}
+                onClick={() => currentPlanType !== 'regular' && openPaymentModal('regular')}
+                disabled={currentPlanType === 'regular'}
                 className={`w-full font-bold py-3.5 rounded-xl transition-all duration-200 active:scale-[0.98] shadow-lg ${
-                  currentPlanType === 'standard'
+                  currentPlanType === 'regular'
                     ? 'bg-primary/10 text-primary border border-primary/20 cursor-default shadow-none'
                     : 'bg-primary hover:bg-primary/90 text-primary-foreground shadow-primary/20'
                 }`}
               >
-                {currentPlanType === 'standard' ? 'Current Plan' : 'Upgrade to Standard'}
+                {currentPlanType === 'regular' ? 'Current Plan' : 'Upgrade to Regular'}
               </button>
             </div>
             
-            {/* Exclusive Plan */}
+            {/* Premium Plan */}
             <div className={`bg-card rounded-2xl p-8 flex flex-col h-full transition-all duration-300 hover:bg-accent/5 border ${
-              currentPlanType === 'exclusive' ? 'border-primary shadow-[0_0_20px_rgba(31,113,220,0.15)] ring-2 ring-primary/20' : 'border-border'
+              currentPlanType === 'premium' ? 'border-primary shadow-[0_0_20px_rgba(31,113,220,0.15)] ring-2 ring-primary/20' : 'border-border'
             }`}>
               <div className="mb-8">
-                <h3 className="text-lg font-bold text-foreground mb-2">Exclusive</h3>
+                <h3 className="text-lg font-bold text-foreground mb-2">Premium</h3>
                 <div className="flex items-baseline mb-1">
                   <span className="text-4xl font-bold text-foreground">4</span>
                   <span className="text-lg text-muted-foreground ml-1">BDT/Lifetime</span>
@@ -268,15 +268,15 @@ const PricingPage: React.FC = () => {
               </ul>
               
               <button 
-                onClick={() => currentPlanType !== 'exclusive' && openPaymentModal('exclusive')}
-                disabled={currentPlanType === 'exclusive'}
+                onClick={() => currentPlanType !== 'premium' && openPaymentModal('premium')}
+                disabled={currentPlanType === 'premium'}
                 className={`w-full font-semibold py-3.5 rounded-xl transition-all duration-200 active:scale-[0.98] border ${
-                  currentPlanType === 'exclusive'
+                  currentPlanType === 'premium'
                     ? 'bg-primary/10 text-primary border-primary/20 cursor-default'
                     : 'bg-secondary hover:bg-secondary/80 text-secondary-foreground border-border'
                 }`}
               >
-                {currentPlanType === 'exclusive' ? 'Current Plan' : 'Upgrade to Exclusive'}
+                {currentPlanType === 'premium' ? 'Current Plan' : 'Upgrade to Premium'}
               </button>
             </div>
           </div>

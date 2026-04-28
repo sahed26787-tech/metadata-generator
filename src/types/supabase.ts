@@ -2,7 +2,7 @@
 export interface UserProfile {
   id: string;
   email: string;
-  plan_type: 'free' | 'standard' | 'exclusive';
+  plan_type: 'starter' | 'regular' | 'premium';
   total_credits: number;      // 15, 5000, or 15000
   credits_used: number;
   remaining_credits: number;

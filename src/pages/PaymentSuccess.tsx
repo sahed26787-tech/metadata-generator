@@ -133,13 +133,13 @@ export default function PaymentSuccess() {
         }
 
         const metadata = (verifyData?.metadata || (verifyData?.data as any)?.metadata || {}) as Record<string, string>
-        const planKey = String(verifyData?.plan_key || metadata.plan_key || fallbackPlan || 'standard').toLowerCase()
+        const planKey = String(verifyData?.plan_key || metadata.plan_key || fallbackPlan || 'regular').toLowerCase()
 
         await refreshProfile()
         
-        let details: PlanDetails = { name: 'Standard Plan', duration: '1 Month', credits: 5000 };
-        if (planKey === 'exclusive') {
-          details = { name: 'Exclusive Plan', duration: 'Lifetime', credits: 15000 };
+        let details: PlanDetails = { name: 'Regular Plan', duration: '1 Month', credits: 5000 };
+        if (planKey === 'premium') {
+          details = { name: 'Premium Plan', duration: 'Lifetime', credits: 15000 };
         }
         
         setPlanDetails(details)
