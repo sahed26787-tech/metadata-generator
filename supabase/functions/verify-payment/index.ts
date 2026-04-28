@@ -205,6 +205,31 @@ serve(async (req) => {
     }
 
     if (completed) {
+      // If we have a payments table, claim this invoice application first to avoid double-credit
+      // when multiple verify requests happen concurrently (e.g. page reload + retries).
+      if (paymentsTableExists) {
+        const now = new Date();
+        const { data: claimedPayment, error: claimError } = await admin
+          .from("payments")
+          .update({ applied_to_profile: true, applied_at: now.toISOString() })
+          .eq("invoice_id", invoiceId)
+          .eq("applied_to_profile", false)
+          .select("invoice_id")
+          .maybeSingle();
+
+        if (claimError) {
+          return fail(500, "Failed to claim payment for profile update", { details: claimError.message });
+        }
+
+        if (!claimedPayment) {
+          // Someone else already applied or is applying it.
+          return new Response(JSON.stringify({ completed, status, data: verifyData, plan_key: resolvedPlanKey }), {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+            status: 200,
+          });
+        }
+      }
+
       const creditsByPlan: Record<string, number> = {
         standard: 5000,
         exclusive: 15000,
@@ -249,20 +274,6 @@ serve(async (req) => {
 
       if (updateError) {
         return fail(500, "Failed to update profile", { details: updateError.message });
-      }
-
-      if (paymentsTableExists) {
-        const { error: paymentApplyError } = await admin
-          .from("payments")
-          .update({
-            applied_to_profile: true,
-            applied_at: now.toISOString(),
-          })
-          .eq("invoice_id", invoiceId);
-
-        if (paymentApplyError) {
-          console.error("[verify-payment] failed to mark payment as applied:", paymentApplyError.message);
-        }
       }
     }
 

@@ -5,8 +5,8 @@ import { useAuth } from '@/context/AuthContext'
 import { Loader2, CheckCircle2, Home } from 'lucide-react'
 import { toast } from 'sonner'
 
-const VERIFY_MAX_ATTEMPTS = 30
-const VERIFY_INTERVAL_MS = 3000
+const VERIFY_MAX_ATTEMPTS = 5
+const VERIFY_BASE_DELAY_MS = 2000
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
@@ -48,6 +48,9 @@ export default function PaymentSuccess() {
   const [statusText, setStatusText] = useState<string>('Verifying payment...')
   const [isSuccess, setIsSuccess] = useState(false)
   const [planDetails, setPlanDetails] = useState<PlanDetails | null>(null)
+  const [attemptNumber, setAttemptNumber] = useState(0)
+  const [canRetry, setCanRetry] = useState(false)
+  const [retryNonce, setRetryNonce] = useState(0)
   
   const hasStartedRef = useRef(false)
   const waitLoggedRef = useRef(false)
@@ -57,6 +60,9 @@ export default function PaymentSuccess() {
 
     const run = async () => {
       if (hasStartedRef.current) return
+
+      setCanRetry(false)
+      setAttemptNumber(0)
 
       const params = new URLSearchParams(window.location.search)
       const invoiceId = params.get('invoice_id') || ''
@@ -95,6 +101,7 @@ export default function PaymentSuccess() {
         let isVerified = false
 
         for (let attempt = 1; attempt <= VERIFY_MAX_ATTEMPTS; attempt += 1) {
+          setAttemptNumber(attempt)
           setStatusText(`Verifying your payment... (${attempt}/${VERIFY_MAX_ATTEMPTS})`)
 
           const verifyResponse = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/verify-payment`, {
@@ -120,15 +127,16 @@ export default function PaymentSuccess() {
           }
 
           if (attempt < VERIFY_MAX_ATTEMPTS) {
-            await sleep(VERIFY_INTERVAL_MS)
+            const delay = VERIFY_BASE_DELAY_MS * Math.pow(2, attempt - 1)
+            await sleep(delay)
             if (isCancelled) return
           }
         }
 
         if (!isVerified || !verifyData) {
           setStatusText('Payment is still pending. Please try again after receiving the SMS.')
+          setCanRetry(true)
           toast.error('Payment not completed yet')
-          setTimeout(() => navigate('/pricing'), 1800)
           return
         }
 
@@ -158,16 +166,15 @@ export default function PaymentSuccess() {
         const message = error instanceof Error ? error.message : 'Unexpected error'
         setStatusText(`Unexpected error: ${message}`)
         toast.error(message)
-        setTimeout(() => navigate('/pricing'), 1200)
+        setCanRetry(true)
       }
     }
-
     run()
 
     return () => {
       isCancelled = true
     }
-  }, [navigate, user, isLoading, refreshProfile])
+  }, [navigate, user, isLoading, refreshProfile, retryNonce])
 
   if (isSuccess && planDetails) {
     return (
@@ -216,6 +223,23 @@ export default function PaymentSuccess() {
         <Loader2 className="w-10 h-10 animate-spin text-primary mx-auto mb-6" />
         <h2 className="text-lg font-semibold mb-2">Processing Payment</h2>
         <p className="text-sm text-muted-foreground">{statusText}</p>
+        {attemptNumber > 0 && (
+          <p className="text-xs text-muted-foreground mt-2">
+            Attempt {attemptNumber} of {VERIFY_MAX_ATTEMPTS}
+          </p>
+        )}
+
+        {canRetry && (
+          <button
+            onClick={() => {
+              hasStartedRef.current = false
+              setRetryNonce((n) => n + 1)
+            }}
+            className="w-full mt-6 bg-primary hover:bg-primary/90 text-primary-foreground py-3 px-4 rounded-xl font-semibold transition-all"
+          >
+            Try Again
+          </button>
+        )}
       </div>
     </div>
   )
