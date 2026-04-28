@@ -133,7 +133,12 @@ const UserProfile: React.FC = () => {
               <div className="flex items-center text-xs text-primary mt-1">
                 <Crown className="h-3 w-3 mr-1 text-yellow-500" />
                 <span className="capitalize">{profile.plan_type} Plan</span>
-                {timeRemaining && (profile.plan_type === 'standard' || profile.plan_type === 'exclusive') && (
+                {profile.plan_type === 'exclusive' ? (
+                  <span className="ml-2 flex items-center text-muted-foreground">
+                    <Clock className="h-3 w-3 mr-1" />
+                    Lifetime
+                  </span>
+                ) : timeRemaining && profile.plan_type === 'standard' && (
                   <span className="ml-2 flex items-center text-muted-foreground">
                     <Clock className="h-3 w-3 mr-1" />
                     Expires {timeRemaining}

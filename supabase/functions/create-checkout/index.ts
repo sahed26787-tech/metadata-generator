@@ -122,6 +122,7 @@ serve(async (req) => {
     const { error: paymentInsertError } = await supabaseAdmin.from("payments").insert({
       user_id: user.id,
       invoice_id: invoiceId,
+      plan_key: resolvedPlan,
       amount: amountRaw,
       currency: "BDT",
       status: "pending",

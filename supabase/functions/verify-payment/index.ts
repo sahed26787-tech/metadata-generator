@@ -129,6 +129,8 @@ serve(async (req) => {
     }
     const admin = createClient(supabaseUrl, serviceRoleKey);
 
+    let paymentAlreadyApplied = false;
+
     // Prefer stored payment record (if a payments table exists)
     let paymentsTableExists = false;
     const probe = await admin.from("payments").select("invoice_id", { count: "exact", head: true }).limit(1);
@@ -141,7 +143,7 @@ serve(async (req) => {
     if (paymentsTableExists) {
       const { data: paymentRow, error: paymentError } = await admin
         .from("payments")
-        .select("invoice_id, user_id, metadata")
+        .select("invoice_id, user_id, metadata, plan_key, applied_to_profile")
         .eq("invoice_id", invoiceId)
         .maybeSingle();
 
@@ -161,6 +163,7 @@ serve(async (req) => {
           {
             user_id: paymentUserId || user.id,
             invoice_id: invoiceId,
+            plan_key: resolvedPlanKey,
             amount: Number(verifyData.amount || (verifyData.data as Record<string, unknown> | undefined)?.amount || 0),
             currency: String(verifyData.currency || "BDT"),
             status: gatewayStatus,
@@ -184,13 +187,21 @@ serve(async (req) => {
         paymentUserId = String(paymentRow.user_id || "");
         const paymentMetadata = ((paymentRow.metadata || {}) as Record<string, unknown>) || {};
         resolvedPlanKey = String(
-          paymentMetadata.plan_key || paymentMetadata.plan || body.plan || "standard",
+          paymentRow.plan_key || paymentMetadata.plan_key || paymentMetadata.plan || body.plan || "standard",
         ).toLowerCase();
+        paymentAlreadyApplied = Boolean(paymentRow.applied_to_profile);
       }
     }
 
     if (paymentUserId && paymentUserId !== user.id) {
       return fail(400, "Payment does not belong to this user", { payment_user_id: paymentUserId, user_id: user.id });
+    }
+
+    if (completed && paymentAlreadyApplied) {
+      return new Response(JSON.stringify({ completed, status, data: verifyData, plan_key: resolvedPlanKey }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
     }
 
     if (completed) {
@@ -201,21 +212,57 @@ serve(async (req) => {
 
       const now = new Date();
       const planExpiresAt = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000); // 30 days from now
+      const planExpiresAtValue = resolvedPlanKey === "exclusive" ? null : planExpiresAt.toISOString();
+      const resolvedPlanCredits = creditsByPlan[resolvedPlanKey] ?? 250;
+      const resolvedCreditsResetType = resolvedPlanKey === "standard" ? "monthly" : "never";
+
+      const { data: existingProfile, error: profileReadError } = await admin
+        .from("profiles")
+        .select("total_credits, credits_used, remaining_credits")
+        .eq("id", user.id)
+        .maybeSingle();
+
+      if (profileReadError) {
+        return fail(500, "Failed to read existing profile", { details: profileReadError.message });
+      }
+
+      const existingRemaining =
+        typeof existingProfile?.remaining_credits === "number"
+          ? existingProfile.remaining_credits
+          : Math.max((existingProfile?.total_credits ?? 0) - (existingProfile?.credits_used ?? 0), 0);
+
+      const resolvedTotalCredits = resolvedPlanCredits + Math.max(existingRemaining, 0);
 
       const { error: updateError } = await admin
         .from("profiles")
         .update({
           plan_type: resolvedPlanKey,
-          total_credits: creditsByPlan[resolvedPlanKey] ?? 250,
+          total_credits: resolvedTotalCredits,
           credits_used: 0,
+          remaining_credits: resolvedTotalCredits,
+          credits_reset_type: resolvedCreditsResetType,
           is_premium: true,
           plan_started_at: now.toISOString(),
-          plan_expires_at: planExpiresAt.toISOString(),
+          plan_expires_at: planExpiresAtValue,
         })
-        .eq("email", user.email);
+        .eq("id", user.id);
 
       if (updateError) {
         return fail(500, "Failed to update profile", { details: updateError.message });
+      }
+
+      if (paymentsTableExists) {
+        const { error: paymentApplyError } = await admin
+          .from("payments")
+          .update({
+            applied_to_profile: true,
+            applied_at: now.toISOString(),
+          })
+          .eq("invoice_id", invoiceId);
+
+        if (paymentApplyError) {
+          console.error("[verify-payment] failed to mark payment as applied:", paymentApplyError.message);
+        }
       }
     }
 

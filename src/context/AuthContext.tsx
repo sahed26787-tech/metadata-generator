@@ -131,6 +131,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     is_premium: false
   });
 
+  const fetchProfileDirect = async (userId: string): Promise<UserProfile | null> => {
+    if (!supabase) return null;
+
+    const { data, error } = await supabase
+      .from('profiles')
+      .select(
+        'id,email,plan_type,total_credits,credits_used,remaining_credits,credits_reset_type,is_premium,plan_expires_at,created_at,updated_at'
+      )
+      .eq('id', userId)
+      .maybeSingle();
+
+    if (error) {
+      console.error('Error fetching profile directly:', error);
+      return null;
+    }
+
+    return data as UserProfile | null;
+  };
+
   const fetchUserProfile = async (userId: string, sessionEmail?: string) => {
     if (!supabase) return;
     if (isFetchingProfileRef.current) return;
@@ -148,10 +167,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       // Use the get_user_profile RPC function (handles fetch or create)
       const { data: profileData, error: profileError } = await supabase
-        .rpc('get_user_profile', { p_user_id: userId });
+        .rpc('get_user_profile', { user_id: userId });
       
       if (profileError) {
         console.error('Error fetching profile:', profileError);
+        const directProfile = await fetchProfileDirect(userId);
+        if (directProfile) {
+          setProfile(directProfile);
+          return;
+        }
+
         if (resolvedEmail) {
           setProfile(buildFallbackProfile(userId, resolvedEmail));
         }
@@ -181,6 +206,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       // If no profile returned, use fallback
       console.warn('No profile returned from get_user_profile');
+      const directProfile = await fetchProfileDirect(userId);
+      if (directProfile) {
+        setProfile(directProfile);
+        return;
+      }
+
       if (resolvedEmail) {
         setProfile(buildFallbackProfile(userId, resolvedEmail));
       }
@@ -470,11 +501,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       // Use the get_user_profile RPC function
       const { data: profileData, error: profileError } = await supabase
-        .rpc('get_user_profile', { p_user_id: user.id });
+        .rpc('get_user_profile', { user_id: user.id });
       
       if (profileError) {
         console.error('Error refreshing profile:', profileError);
-        throw profileError;
+        const directProfile = await fetchProfileDirect(user.id);
+        if (directProfile) {
+          setProfile(directProfile);
+        }
+        return;
       }
       
       if (profileData && profileData.length > 0) {
@@ -496,6 +531,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // Force update the profile state
         setProfile(mappedProfile);
         console.log('Profile refreshed successfully:', mappedProfile);
+      }
+
+      if (!profileData || profileData.length === 0) {
+        const directProfile = await fetchProfileDirect(user.id);
+        if (directProfile) {
+          setProfile(directProfile);
+        }
       }
     } catch (error) {
       console.error('Error in refreshProfile:', error);
