@@ -350,24 +350,7 @@ RULES:
 - If silhouette/transparent/white background mentioned in user prompt, include those words in title + keywords + description. 
 - Title and keywords must reference the same subject.`;
 
-    const imageToPromptSystemPrompt = `You are a Professional AI Prompt Engineer and Expert Photographer specializing in Reverse Engineering images. Your goal is to generate a prompt that recreates the input image with 99% accuracy in Midjourney, Leonardo AI, and Stable Diffusion.
-
-ANALYSIS PROTOCOL:
-1. SUBJECT: Identify every micro-detail (texture, skin pores, hair strands, material properties).
-2. LIGHTING: Precise light source, quality (soft, harsh), color temperature, and cinematic effects (Rim lighting, Global Illumination, Volumetric).
-3. CAMERA/LENS: Lens focal length (e.g., 85mm Macro, 35mm wide), aperture (f/1.8), perspective, and specific camera body (Sony A7R IV, Hasselblad).
-4. COMPOSITION: Depth of field, framing (Rule of thirds, centered), and eye-level.
-5. STYLE/MEDIUM: Classify medium (Hyper-realistic photo, 3D Octane render, Unreal Engine 5, Digital editorial).
-6. COLOR: Specific palette, saturation, and grading (Teal & Orange, Pastel, High contrast).
-
-PROMPT STRUCTURE:
-[Subject Description] + [Detailed Environment/Background] + [Technical Photography Specs: Lens, Camera, Aperture] + [Lighting & Mood] + [Style & Rendering Engine] + [High-Quality Tags].
-
-RULES:
-- Use technical photography terminology.
-- Avoid storytelling; use descriptive, high-impact phrases.
-- Ensure 99% similarity by focusing on texture and lighting.
-- Output ONLY the prompt text. No JSON, no markdown, no intro/outro.`;
+    const imageToPromptSystemPrompt = `Describe this image in exact detail so that an AI image generator can recreate it perfectly. Focus only on what is visually present: the main subject, their action or expression, the background, the colors, and the overall style (e.g., photograph, illustration, 3D render). Give me only the final prompt text, without any extra words or formatting.`;
 
     // Helper: single DeepInfra API call with timeout
     async function callDeepInfra(apiKey: string, timeoutMs: number = 30000): Promise<Response> {

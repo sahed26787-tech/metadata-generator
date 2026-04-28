@@ -36,6 +36,7 @@ export const formatImagesAsCSV = (
   isDepositphotos?: boolean,
   is123RF?: boolean,
   isAlamy?: boolean,
+  isDreamstime?: boolean,
   targetFormat?: string
 ): string => {
   const header = isFreepikOnly

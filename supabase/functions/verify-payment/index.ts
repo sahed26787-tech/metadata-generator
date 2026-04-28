@@ -195,11 +195,12 @@ serve(async (req) => {
 
     if (completed) {
       const creditsByPlan: Record<string, number> = {
-        standard: 250,
-        premium: 1000,
-        exclusive: 999999,
-        pro: 250,
+        standard: 5000,
+        exclusive: 15000,
       };
+
+      const now = new Date();
+      const planExpiresAt = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000); // 30 days from now
 
       const { error: updateError } = await admin
         .from("profiles")
@@ -207,6 +208,9 @@ serve(async (req) => {
           plan_type: resolvedPlanKey,
           total_credits: creditsByPlan[resolvedPlanKey] ?? 250,
           credits_used: 0,
+          is_premium: true,
+          plan_started_at: now.toISOString(),
+          plan_expires_at: planExpiresAt.toISOString(),
         })
         .eq("email", user.email);
 

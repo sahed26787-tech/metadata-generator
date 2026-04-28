@@ -144,6 +144,10 @@ const CustomizationControls: React.FC<CustomizationControlsProps> = ({
       <div className={selectedPlatforms.includes('Alamy') ? 'block' : 'hidden'}>
         
       </div>
+
+      <div className={selectedPlatforms.includes('Dreamstime') ? 'block' : 'hidden'}>
+        
+      </div>
     </div>;
 };
 

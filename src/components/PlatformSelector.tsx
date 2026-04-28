@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useTheme } from 'next-themes';
 
-export type Platform = 'Freepik' | 'AdobeStock' | 'Shutterstock' | 'Vecteezy' | 'Depositphotos' | '123RF' | 'Alamy';
+export type Platform = 'Freepik' | 'AdobeStock' | 'Shutterstock' | 'Vecteezy' | 'Depositphotos' | '123RF' | 'Alamy' | 'Dreamstime';
 
 interface PlatformSelectorProps {
   selectedPlatforms: Platform[];
@@ -63,6 +63,12 @@ const PlatformSelector: React.FC<PlatformSelectorProps> = ({
       lightIcon: '/images/platforms/theme-aware/123rf-black.png',
       darkIcon: '/images/platforms/theme-aware/123rf-white.png',
       name: '123RF'
+    },
+    {
+      id: 'Dreamstime',
+      lightIcon: '/images/platforms/theme-aware/dreamstime-black.png',
+      darkIcon: '/images/platforms/theme-aware/dreamstime-white.png',
+      name: 'Dreamstime'
     }
   ];
 
@@ -73,7 +79,7 @@ const PlatformSelector: React.FC<PlatformSelectorProps> = ({
   return (
     <div className="space-y-3 w-full">
       <h3 className="text-sm font-medium text-foreground text-center px-3 py-1 inline-block mb-2 w-full tracking-wide">PLATFORMS</h3>
-      <div className="flex flex-wrap justify-center gap-2 md:gap-3 px-2 max-w-full md:max-w-6xl mx-auto">
+      <div className="flex flex-wrap justify-center gap-1.5 md:gap-2 px-1 max-w-full w-full mx-auto">
         {platforms.map(platform => {
           const isSelected = selectedPlatforms.includes(platform.id);
           // If selected, always use white icon. Otherwise use theme-based icon.
@@ -87,7 +93,7 @@ const PlatformSelector: React.FC<PlatformSelectorProps> = ({
                     type="button"
                     onClick={() => togglePlatform(platform.id)}
                     className={cn(
-                      "flex items-center justify-center gap-2 px-3 md:px-4 py-1.5 md:py-2 rounded-full text-xs md:text-sm font-medium transition-all duration-200 border",
+                      "flex items-center justify-center gap-1.5 px-3 py-1.5 md:py-2 rounded-full text-[11px] md:text-xs font-medium transition-all duration-200 border",
                       "hover:scale-[1.02]",
                       isSelected
                         ? "bg-gradient-to-r from-[#0086FF] to-[#003E81] border-[#2f8fff] text-white shadow-[0_0_8px_rgba(0,134,255,0.22)]"
@@ -95,7 +101,7 @@ const PlatformSelector: React.FC<PlatformSelectorProps> = ({
                     )}
                   >
                     <div className={cn(
-                      "flex items-center justify-center w-4 h-4 md:w-5 md:h-5 rounded-sm p-0.5 transition-colors",
+                      "flex items-center justify-center w-3.5 h-3.5 md:w-4 md:h-4 rounded-sm p-[1px] transition-colors",
                       isSelected 
                         ? "bg-white/20" 
                         : "bg-muted dark:bg-[#3F3F42]/30"

@@ -369,7 +369,7 @@ The description should be at least 50 words but not more than 150 words. Importa
         } else if (originalIsVideo) {
           prompt = `${prohibitedWordsInstructions}${transparentBgInstructions}${isolatedOnTransparentBgInstructions}${silhouetteInstructions}This is a thumbnail from a video file named "${originalFilename}". Generate a detailed description of what this video appears to contain based on this frame. Include details about content, style, colors, movement, and composition. The description should be at least 50 words but not more than 150 words.`;
         } else {
-          prompt = `${prohibitedWordsInstructions}${transparentBgInstructions}${isolatedOnTransparentBgInstructions}${silhouetteInstructions}Generate a detailed prompt description to recreate this image with an AI image generator. Include details about content, style, colors, lighting, and composition. The prompt should be at least 50 words but not more than 150 words.`;
+          prompt = `${prohibitedWordsInstructions}${transparentBgInstructions}${isolatedOnTransparentBgInstructions}${silhouetteInstructions}Describe this image in exact detail so that an AI image generator can recreate it perfectly. Focus only on what is visually present: the main subject, their action or expression, the background, the colors, and the overall style (e.g., photograph, illustration, 3D render). Give me only the final prompt text, without any extra words or formatting.`;
         }
       } else if (isFreepikOnly) {
         if (originalIsEps) {

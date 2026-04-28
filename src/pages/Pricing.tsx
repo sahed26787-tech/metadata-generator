@@ -49,8 +49,8 @@ const PricingPage: React.FC = () => {
   const currentPlanType = profile?.plan_type?.toLowerCase() || 'free';
 
   const paidPlans: Record<PaidPlanKey, PaidPlanConfig> = {
-    standard: { key: 'standard', title: 'Standard Plan', verifyTitle: 'Basic Plan (1 Month)', amount: 2 },
-    exclusive: { key: 'exclusive', title: 'Exclusive Plan', verifyTitle: 'Exclusive Plan (Lifetime)', amount: 700 },
+    standard: { key: 'standard', title: 'Standard Plan', verifyTitle: 'Basic Plan (1 Month)', amount: 3 },
+    exclusive: { key: 'exclusive', title: 'Exclusive Plan', verifyTitle: 'Exclusive Plan (Lifetime)', amount: 4 },
   };
 
   const customerName = useMemo(() => {
@@ -215,7 +215,7 @@ const PricingPage: React.FC = () => {
               <div className="mb-8">
                 <h3 className="text-lg font-bold text-foreground mb-2">Standard</h3>
                 <div className="flex items-baseline mb-1">
-                  <span className="text-4xl font-bold text-foreground">2</span>
+                  <span className="text-4xl font-bold text-foreground">3</span>
                   <span className="text-lg text-muted-foreground ml-1">BDT/Month</span>
                 </div>
                 <p className="text-xs text-muted-foreground">5000 Credits</p>
@@ -251,7 +251,7 @@ const PricingPage: React.FC = () => {
               <div className="mb-8">
                 <h3 className="text-lg font-bold text-foreground mb-2">Exclusive</h3>
                 <div className="flex items-baseline mb-1">
-                  <span className="text-4xl font-bold text-foreground">700</span>
+                  <span className="text-4xl font-bold text-foreground">4</span>
                   <span className="text-lg text-muted-foreground ml-1">BDT/Lifetime</span>
                 </div>
                 <p className="text-xs text-muted-foreground">15000 Credits</p>

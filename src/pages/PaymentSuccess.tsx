@@ -1,10 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '@/integrations/supabase/client'
 import { useAuth } from '@/context/AuthContext'
-import { Loader2 } from 'lucide-react'
+import { Loader2, CheckCircle2, Home } from 'lucide-react'
 import { toast } from 'sonner'
-import { useRef } from 'react'
 
 const VERIFY_MAX_ATTEMPTS = 30
 const VERIFY_INTERVAL_MS = 3000
@@ -37,22 +36,24 @@ const isCompletedPayment = (data: unknown): boolean => {
   return false
 }
 
+interface PlanDetails {
+  name: string;
+  duration: string;
+  credits: number;
+}
+
 export default function PaymentSuccess() {
   const navigate = useNavigate()
   const { user, isLoading, refreshProfile } = useAuth()
-  const [statusText, setStatusText] = useState<string>('Processing payment...')
-  const [debugSteps, setDebugSteps] = useState<string[]>([])
+  const [statusText, setStatusText] = useState<string>('Verifying payment...')
+  const [isSuccess, setIsSuccess] = useState(false)
+  const [planDetails, setPlanDetails] = useState<PlanDetails | null>(null)
+  
   const hasStartedRef = useRef(false)
   const waitLoggedRef = useRef(false)
 
   useEffect(() => {
     let isCancelled = false
-
-    const pushStep = (step: string) => {
-      if (isCancelled) return
-      setDebugSteps((prev) => [...prev, step])
-      console.log(`[PaymentSuccess] ${step}`)
-    }
 
     const run = async () => {
       if (hasStartedRef.current) return
@@ -61,12 +62,9 @@ export default function PaymentSuccess() {
       const invoiceId = params.get('invoice_id') || ''
       const fallbackPlan = (params.get('plan') || '').toLowerCase()
 
-      pushStep(`Init -> invoice_id: ${invoiceId || 'missing'}, fallback plan: ${fallbackPlan || 'none'}`)
-
       if (isLoading || !user) {
         setStatusText('Checking your session...')
         if (!waitLoggedRef.current) {
-          pushStep('Auth/session not ready, waiting...')
           waitLoggedRef.current = true
         }
         return
@@ -76,7 +74,6 @@ export default function PaymentSuccess() {
       hasStartedRef.current = true
 
       if (!invoiceId) {
-        pushStep('invoice_id missing -> redirect /pricing')
         setStatusText('Payment reference missing')
         toast.error('Invoice id not found')
         setTimeout(() => navigate('/pricing'), 1200)
@@ -93,14 +90,12 @@ export default function PaymentSuccess() {
         if (!session.user || session.user.id !== user.id) {
           throw new Error('Session mismatch. Please sign in again')
         }
-        pushStep('Gateway verify will run via Supabase Edge Function')
 
         let verifyData: Record<string, unknown> | null = null
         let isVerified = false
 
         for (let attempt = 1; attempt <= VERIFY_MAX_ATTEMPTS; attempt += 1) {
           setStatusText(`Verifying your payment... (${attempt}/${VERIFY_MAX_ATTEMPTS})`)
-          pushStep(`Verify attempt ${attempt}/${VERIFY_MAX_ATTEMPTS} via edge`)
 
           const verifyResponse = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/verify-payment`, {
             method: 'POST',
@@ -118,19 +113,9 @@ export default function PaymentSuccess() {
 
           const parsed = await verifyResponse.json().catch(() => null)
           verifyData = (parsed || null) as Record<string, unknown> | null
-          const statusSnapshot = String(
-            verifyData?.payment_status ||
-              verifyData?.status_text ||
-              verifyData?.transaction_status ||
-              verifyData?.status ||
-              (verifyData?.data as Record<string, unknown> | undefined)?.status ||
-              'unknown',
-          )
-          pushStep(`Verify response HTTP ${verifyResponse.status}, status: ${statusSnapshot}`)
 
           if (verifyResponse.ok && verifyData && (verifyData.completed === true || isCompletedPayment(verifyData))) {
             isVerified = true
-            pushStep(`Payment marked completed at attempt ${attempt}`)
             break
           }
 
@@ -141,28 +126,36 @@ export default function PaymentSuccess() {
         }
 
         if (!isVerified || !verifyData) {
-          pushStep('Max retry reached, payment এখনও completed হয়নি')
-          setStatusText('Payment এখনও pending. SMS verify শেষ হলে আবার চেষ্টা করুন।')
+          setStatusText('Payment is still pending. Please try again after receiving the SMS.')
           toast.error('Payment not completed yet')
           setTimeout(() => navigate('/pricing'), 1800)
           return
         }
 
-        const metadata = (verifyData?.metadata || verifyData?.data?.metadata || {}) as Record<string, string>
+        const metadata = (verifyData?.metadata || (verifyData?.data as any)?.metadata || {}) as Record<string, string>
         const planKey = String(verifyData?.plan_key || metadata.plan_key || fallbackPlan || 'standard').toLowerCase()
-        pushStep(`Plan detected -> ${planKey}`)
-        pushStep('Profile update done on server, refreshing profile...')
 
         await refreshProfile()
-        pushStep('Profile refresh done')
+        
+        let details: PlanDetails = { name: 'Standard Plan', duration: '1 Month', credits: 5000 };
+        if (planKey === 'exclusive') {
+          details = { name: 'Exclusive Plan', duration: 'Lifetime', credits: 15000 };
+        }
+        
+        setPlanDetails(details)
+        setIsSuccess(true)
         setStatusText('Plan applied successfully')
-        toast.success('Upgrade successful')
+        toast.success('Upgrade successful!')
+        
+        // Auto redirect after 3 seconds
         setTimeout(() => {
-          window.location.href = '/pricing'
-        }, 800)
+          if (!isCancelled) {
+            navigate('/')
+          }
+        }, 3000)
+
       } catch (error) {
         const message = error instanceof Error ? error.message : 'Unexpected error'
-        pushStep(`Unexpected error -> ${message}`)
         setStatusText(`Unexpected error: ${message}`)
         toast.error(message)
         setTimeout(() => navigate('/pricing'), 1200)
@@ -176,21 +169,53 @@ export default function PaymentSuccess() {
     }
   }, [navigate, user, isLoading, refreshProfile])
 
-  return (
-    <div className="min-h-screen bg-[#171717] text-white flex items-center justify-center">
-      <div className="text-center max-w-2xl px-4">
-        <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4" />
-        <p className="text-sm text-gray-300">{statusText}</p>
-        {debugSteps.length > 0 && (
-          <div className="mt-5 rounded-xl border border-white/10 bg-white/5 text-left p-4">
-            <p className="text-xs uppercase tracking-wider text-gray-400 mb-2">Debug Breakdown</p>
-            <ul className="space-y-1.5 text-xs text-gray-200">
-              {debugSteps.map((step, idx) => (
-                <li key={`${idx}-${step}`}>{idx + 1}. {step}</li>
-              ))}
-            </ul>
+  if (isSuccess && planDetails) {
+    return (
+      <div className="min-h-screen bg-[#171717] text-white flex items-center justify-center p-4">
+        <div className="text-center max-w-md w-full bg-card border border-border rounded-2xl p-8 shadow-2xl animate-in fade-in zoom-in duration-500">
+          <div className="mx-auto w-16 h-16 bg-green-500/20 text-green-500 rounded-full flex items-center justify-center mb-6">
+            <CheckCircle2 className="w-8 h-8" />
           </div>
-        )}
+          <h1 className="text-2xl font-bold mb-2">Payment Successful!</h1>
+          <p className="text-muted-foreground mb-8">Your account has been upgraded.</p>
+          
+          <div className="bg-muted/30 rounded-xl p-4 mb-8 text-left space-y-3">
+            <div className="flex justify-between items-center pb-3 border-b border-border/50">
+              <span className="text-muted-foreground">Plan</span>
+              <span className="font-semibold text-primary">{planDetails.name}</span>
+            </div>
+            <div className="flex justify-between items-center pb-3 border-b border-border/50">
+              <span className="text-muted-foreground">Duration</span>
+              <span className="font-semibold">{planDetails.duration}</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-muted-foreground">Credits</span>
+              <span className="font-semibold">{planDetails.credits}</span>
+            </div>
+          </div>
+
+          <p className="text-sm text-muted-foreground mb-6">
+            Redirecting to home in a few seconds...
+          </p>
+
+          <button
+            onClick={() => navigate('/')}
+            className="w-full flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground py-3 px-4 rounded-xl font-semibold transition-all"
+          >
+            <Home className="w-4 h-4" />
+            Go to Home
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="min-h-screen bg-[#171717] text-white flex items-center justify-center p-4">
+      <div className="text-center max-w-sm w-full bg-card border border-border rounded-2xl p-8 shadow-2xl">
+        <Loader2 className="w-10 h-10 animate-spin text-primary mx-auto mb-6" />
+        <h2 className="text-lg font-semibold mb-2">Processing Payment</h2>
+        <p className="text-sm text-muted-foreground">{statusText}</p>
       </div>
     </div>
   )

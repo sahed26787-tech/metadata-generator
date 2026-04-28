@@ -520,6 +520,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
   const isDepositphotos = selectedPlatforms.length === 1 && selectedPlatforms[0] === 'Depositphotos';
   const is123RF = selectedPlatforms.length === 1 && selectedPlatforms[0] === '123RF';
   const isAlamy = selectedPlatforms.length === 1 && selectedPlatforms[0] === 'Alamy';
+  const isDreamstime = selectedPlatforms.length === 1 && selectedPlatforms[0] === 'Dreamstime';
 
   const handleDownloadCSV = useCallback(() => {
     // Check if there are any videos to process
@@ -536,12 +537,12 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
 
     // Process regular images if they exist
     if (regularImages.length > 0) {
-      const csvContent = formatImagesAsCSV(regularImages, isFreepikOnly, isShutterstock, isAdobeStock, isVecteezy, isDepositphotos, is123RF, isAlamy, selectedFormat);
+      const csvContent = formatImagesAsCSV(regularImages, isFreepikOnly, isShutterstock, isAdobeStock, isVecteezy, isDepositphotos, is123RF, isAlamy, isDreamstime, selectedFormat);
       const selectedPlatform = selectedPlatforms.length === 1 ? selectedPlatforms[0] : undefined;
       downloadCSV(csvContent, 'image-metadata.csv', selectedPlatform);
       toast.success(`Metadata CSV downloaded`);
     }
-  }, [images, selectedPlatforms, selectedFormat, isFreepikOnly, isShutterstock, isAdobeStock, isVecteezy, isDepositphotos, is123RF, isAlamy]);
+  }, [images, selectedPlatforms, selectedFormat, isFreepikOnly, isShutterstock, isAdobeStock, isVecteezy, isDepositphotos, is123RF, isAlamy, isDreamstime]);
 
   const downloadPromptText = useCallback((text: string, filename: string) => {
     const element = document.createElement("a");
