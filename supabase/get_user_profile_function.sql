@@ -58,7 +58,7 @@ BEGIN
       user_id,
       NULL, -- Will be updated by user later
       NULL, -- Will be updated by user later
-      'free', -- Default plan
+      'starter', -- Default plan
       NOW()
     )
     ON CONFLICT (id) DO NOTHING;
