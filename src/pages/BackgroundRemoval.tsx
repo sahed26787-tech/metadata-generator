@@ -3,7 +3,7 @@ import { toast } from 'sonner';
 import { 
   Upload, Download, 
   Image as ImageIcon, Images, Trash2, AlertCircle,
-  CheckCircle2, Loader2, X, FileArchive
+  CheckCircle2, Loader2, X, FileArchive, RefreshCw
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -31,13 +31,15 @@ const RemovalTaskCard = React.memo(({
   isProcessing, 
   isCurrentTask, 
   onRemove, 
-  onDownload 
+  onDownload,
+  onRetry
 }: { 
   task: RemovalTask; 
   isProcessing: boolean; 
   isCurrentTask: boolean;
   onRemove: (id: string) => void;
   onDownload: (url: string, filename: string) => void;
+  onRetry: (id: string) => void;
 }) => {
   const StatusBadge = ({ status }: { status: RemovalTask['status'] }) => {
     switch (status) {
@@ -68,7 +70,7 @@ const RemovalTaskCard = React.memo(({
         >
           <X className="w-3 h-3" />
         </button>
-        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
           {task.status === 'done' && task.resultUrl && (
             <Button
               size="sm"
@@ -76,6 +78,17 @@ const RemovalTaskCard = React.memo(({
               className="bg-green-600 hover:bg-green-700 h-8 w-8 p-0"
             >
               <Download className="w-4 h-4" />
+            </Button>
+          )}
+          {task.status === 'failed' && (
+            <Button
+              size="sm"
+              onClick={() => onRetry(task.id)}
+              disabled={isProcessing}
+              className="bg-blue-600 hover:bg-blue-700 h-8 w-8 p-0"
+              title="Retry"
+            >
+              <RefreshCw className="w-4 h-4" />
             </Button>
           )}
         </div>
@@ -101,6 +114,26 @@ const RemovalTaskCard = React.memo(({
 });
 
 type ProcessingMode = 'single' | 'batch';
+
+// Utility: Retry an async function
+const retryAsync = async <T,>(
+  fn: () => Promise<T>,
+  retries: number = 3,
+  delay: number = 1000
+): Promise<T> => {
+  let lastError: any;
+  for (let i = 0; i < retries; i++) {
+    try {
+      return await fn();
+    } catch (error) {
+      lastError = error;
+      if (i < retries - 1) {
+        await new Promise(resolve => setTimeout(resolve, delay * Math.pow(2, i)));
+      }
+    }
+  }
+  throw lastError;
+};
 
 // Utility: Convert file to base64
 const fileToBase64 = (file: File): Promise<string> => {
@@ -338,6 +371,18 @@ const BackgroundRemoval: React.FC<BackgroundRemovalProps> = ({
     setCurrentTaskIndex(0);
   }, []);
 
+  // Retry a specific task
+  const retryTask = useCallback((id: string) => {
+    setTasks(prev => prev.map(t => 
+      t.id === id ? { ...t, status: 'pending', error: undefined } : t
+    ));
+    
+    // If in single mode, trigger processing immediately
+    if (mode === 'single') {
+      setTimeout(() => processSingle(), 0);
+    }
+  }, [mode]);
+
   // Process single image
   const processSingle = async () => {
     if (tasks.length === 0) {
@@ -350,7 +395,12 @@ const BackgroundRemoval: React.FC<BackgroundRemovalProps> = ({
 
     try {
       const base64 = await fileToBase64(task.file);
-      const resultUrl = await removeBackground(base64, preserveAlpha, outputFormat);
+      
+      // Use retry logic for the API call
+      const resultUrl = await retryAsync(() => 
+        removeBackground(base64, preserveAlpha, outputFormat),
+        3 // Try 3 times
+      );
       
       // Deduct credits only after successful API call
       const creditsDeducted = await deductCredits(CREDIT_COST_PER_IMAGE);
@@ -374,7 +424,7 @@ const BackgroundRemoval: React.FC<BackgroundRemovalProps> = ({
 
   // Process all images in batch
   const processBatch = async () => {
-    const pendingTasks = tasks.filter(t => t.status === 'pending');
+    const pendingTasks = tasks.filter(t => t.status === 'pending' || t.status === 'failed');
     if (pendingTasks.length === 0) {
       toast.info('No pending images to process');
       return;
@@ -386,16 +436,21 @@ const BackgroundRemoval: React.FC<BackgroundRemovalProps> = ({
 
     for (let i = 0; i < tasks.length; i++) {
       const task = tasks[i];
-      if (task.status !== 'pending') continue;
+      if (task.status !== 'pending' && task.status !== 'failed') continue;
 
       setCurrentTaskIndex(i);
       setTasks(prev => prev.map(t => 
-        t.id === task.id ? { ...t, status: 'processing' } : t
+        t.id === task.id ? { ...t, status: 'processing', error: undefined } : t
       ));
 
       try {
         const base64 = await fileToBase64(task.file);
-        const resultUrl = await removeBackground(base64, preserveAlpha, outputFormat);
+        
+        // Use retry logic for each image in the batch
+        const resultUrl = await retryAsync(() => 
+          removeBackground(base64, preserveAlpha, outputFormat),
+          3 // Try 3 times
+        );
         
         // Deduct credits only after successful API call for each image
         const creditsDeducted = await deductCredits(CREDIT_COST_PER_IMAGE);
@@ -585,10 +640,12 @@ const BackgroundRemoval: React.FC<BackgroundRemovalProps> = ({
               <Button
                 onClick={processSingle}
                 disabled={tasks[0].status === 'processing' || tasks[0].status === 'done'}
-                className="bg-primary hover:bg-primary/90 w-full sm:w-auto"
+                className={`${tasks[0].status === 'failed' ? 'bg-blue-600 hover:bg-blue-700' : 'bg-primary hover:bg-primary/90'} w-full sm:w-auto`}
               >
                 {tasks[0].status === 'processing' ? (
                   <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Processing...</>
+                ) : tasks[0].status === 'failed' ? (
+                  <><RefreshCw className="w-4 h-4 mr-2" />Retry Removal</>
                 ) : (
                   <>Remove Background</>
                 )}
@@ -626,11 +683,13 @@ const BackgroundRemoval: React.FC<BackgroundRemovalProps> = ({
                 <Button
                   onClick={processBatch}
                   size="sm"
-                  disabled={isProcessing || tasks.filter(t => t.status === 'pending').length === 0}
+                  disabled={isProcessing || tasks.filter(t => t.status === 'pending' || t.status === 'failed').length === 0}
                   className="bg-green-600 hover:bg-green-700 text-white flex-1 sm:flex-none"
                 >
                   {isProcessing ? (
                     <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Processing...</>
+                  ) : tasks.some(t => t.status === 'failed') ? (
+                    <><RefreshCw className="w-4 h-4 mr-2" />Retry Failed & Generate</>
                   ) : (
                     <><ImageIcon className="w-4 h-4 mr-2" />Generate all</>
                   )}
@@ -681,6 +740,7 @@ const BackgroundRemoval: React.FC<BackgroundRemovalProps> = ({
                   isCurrentTask={isProcessing && currentTaskIndex === index}
                   onRemove={removeTask}
                   onDownload={handleDownloadSingle}
+                  onRetry={retryTask}
                 />
               ))}
             </div>

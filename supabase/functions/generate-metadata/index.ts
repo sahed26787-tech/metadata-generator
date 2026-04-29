@@ -35,14 +35,14 @@ interface AnalysisOptions {
   } | null;
 }
 
-function buildPrompt(params: AnalysisOptions & { isFreepikOnly: boolean; isShutterstock: boolean; isAdobeStock: boolean }): string {
+function buildPrompt(params: AnalysisOptions & { isMagnificOnly: boolean; isShutterstock: boolean; isAdobeStock: boolean }): string {
   const {
     originalFilename = '',
     originalIsSvg = false,
     originalIsVideo = false,
     originalIsEps = false,
     epsMetadata = null,
-    isFreepikOnly,
+    isMagnificOnly,
     isShutterstock,
     isAdobeStock,
     generationMode = 'metadata',
@@ -96,7 +96,7 @@ function buildPrompt(params: AnalysisOptions & { isFreepikOnly: boolean; isShutt
 
     if (generationMode === 'imageToPrompt') {
       formattingPrompt += '\n\nReturn the prompt description only, nothing else.';
-    } else if (isFreepikOnly) {
+    } else if (isMagnificOnly) {
       formattingPrompt += `\n\nFormat your response as a JSON object with the fields "title", "prompt", and "keywords" (as an array of at least ${minKeywords} terms).`;
     } else if (isShutterstock) {
       formattingPrompt += `\n\nFormat your response as a JSON object with the fields "description" and "keywords" (as an array of at least ${minKeywords} terms).`;
@@ -151,11 +151,11 @@ function buildPrompt(params: AnalysisOptions & { isFreepikOnly: boolean; isShutt
       }
     } else if (originalIsVideo) {
       // Prompt is already set above for videos
-    } else if (isFreepikOnly) {
+    } else if (isMagnificOnly) {
       if (originalIsEps) {
-        prompt = `${prohibitedWordsInstructions}${transparentBgInstructions}${isolatedOnTransparentBgInstructions}${silhouettePrompt}This is metadata extracted from an EPS file named "${originalFilename}". The metadata includes the following information:\n\nDocument Type: ${epsMetadata?.documentType || 'Vector Design'}\nImage Count: ${epsMetadata?.imageCount || 1}\nColors: ${epsMetadata?.colors?.join(', ') || 'Unknown'}\nFonts: ${epsMetadata?.fontInfo?.join(', ') || 'Unknown'}\n\nGenerate metadata for the Freepik platform:\n1. A clear, descriptive title between ${minTitleWords}-${maxTitleWords} words that accurately describes what's likely in this design file. The title should be relevant for stock image platforms. Don't use any symbols.\n2. Create an image generation prompt that describes this design file in 1-2 sentences (30-50 words). Important: Do not include phrases like "Vector EPS" or "EPS file" or "Vector file" in the prompt itself - just describe the content.\n3. Generate a detailed list of ${minKeywords}-${maxKeywords} relevant, specific keywords (single words or short phrases) that someone might search for to find this design. Focus on content, style, and technical aspects of the design.`;
+        prompt = `${prohibitedWordsInstructions}${transparentBgInstructions}${isolatedOnTransparentBgInstructions}${silhouettePrompt}This is metadata extracted from an EPS file named "${originalFilename}". The metadata includes the following information:\n\nDocument Type: ${epsMetadata?.documentType || 'Vector Design'}\nImage Count: ${epsMetadata?.imageCount || 1}\nColors: ${epsMetadata?.colors?.join(', ') || 'Unknown'}\nFonts: ${epsMetadata?.fontInfo?.join(', ') || 'Unknown'}\n\nGenerate metadata for the Magnific platform:\n1. A clear, descriptive title between ${minTitleWords}-${maxTitleWords} words that accurately describes what's likely in this design file. The title should be relevant for stock image platforms. Don't use any symbols.\n2. Create an image generation prompt that describes this design file in 1-2 sentences (30-50 words). Important: Do not include phrases like "Vector EPS" or "EPS file" or "Vector file" in the prompt itself - just describe the content.\n3. Generate a detailed list of ${minKeywords}-${maxKeywords} relevant, specific keywords (single words or short phrases) that someone might search for to find this design. Focus on content, style, and technical aspects of the design.`;
       } else {
-        prompt = `${prohibitedWordsInstructions}${transparentBgInstructions}${isolatedOnTransparentBgInstructions}${silhouettePrompt}Analyze this image and generate metadata for the Freepik platform:\n1. A clear, descriptive title between ${minTitleWords}-${maxTitleWords} words that accurately describes what's in the image. The title should be relevant for stock image platforms. Don't use any symbols.\n2. Create an image generation prompt that describes this image in 1-2 sentences (30-50 words).\n3. Generate a detailed list of ${minKeywords}-${maxKeywords} relevant, specific keywords (single words or short phrases) that someone might search for to find this image. Focus on content, style, emotions, and technical details of the image.`;
+        prompt = `${prohibitedWordsInstructions}${transparentBgInstructions}${isolatedOnTransparentBgInstructions}${silhouettePrompt}Analyze this image and generate metadata for the Magnific platform:\n1. A clear, descriptive title between ${minTitleWords}-${maxTitleWords} words that accurately describes what's in the image. The title should be relevant for stock image platforms. Don't use any symbols.\n2. Create an image generation prompt that describes this image in 1-2 sentences (30-50 words).\n3. Generate a detailed list of ${minKeywords}-${maxKeywords} relevant, specific keywords (single words or short phrases) that someone might search for to find this image. Focus on content, style, emotions, and technical details of the image.`;
       }
     } else if (isShutterstock) {
       if (originalIsEps) {
@@ -179,7 +179,7 @@ function buildPrompt(params: AnalysisOptions & { isFreepikOnly: boolean; isShutt
     if (generationMode !== 'imageToPrompt') {
       if (originalIsVideo) {
         prompt += `\n\nFormat your response as a JSON object with the fields "title", "description", and "keywords" (as an array).`;
-      } else if (isFreepikOnly) {
+      } else if (isMagnificOnly) {
         prompt += `\n\nFormat your response as a JSON object with the fields "title", "prompt", and "keywords" (as an array of at least ${minKeywords} terms).`;
       } else if (isShutterstock) {
         prompt += `\n\nFormat your response as a JSON object with the fields "description" and "keywords" (as an array).`;
@@ -202,7 +202,7 @@ function capitalizeFirstWord(text: string): string {
   return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
-function getRelevantFreepikKeywords(content: string): string[] {
+function getRelevantMagnificKeywords(content: string): string[] {
   const commonKeywords = [
     'vector', 'illustration', 'design', 'graphic', 'background', 'template',
     'abstract', 'banner', 'poster', 'creative', 'modern', 'minimal', 'colorful',
@@ -300,12 +300,12 @@ serve(async (req) => {
     }
 
     const platforms = options.platforms || ['AdobeStock'];
-    const isFreepikOnly = platforms.length === 1 && platforms[0] === 'Freepik';
+    const isMagnificOnly = platforms.length === 1 && platforms[0] === 'Magnific';
     const isShutterstock = platforms.length === 1 && platforms[0] === 'Shutterstock';
     const isAdobeStock = platforms.length === 1 && platforms[0] === 'AdobeStock';
 
     // Build prompt
-    const prompt = buildPrompt({ ...options, isFreepikOnly, isShutterstock, isAdobeStock });
+    const prompt = buildPrompt({ ...options, isMagnificOnly, isShutterstock, isAdobeStock });
 
     // Get DeepInfra API keys from environment (primary and fallback)
     const primaryApiKey = Deno.env.get("DEEPINFRA_API_KEY");
@@ -329,7 +329,15 @@ serve(async (req) => {
     const minDescriptionWords = options.minDescriptionWords || 30;
     const maxDescriptionWords = options.maxDescriptionWords || 40;
 
-    const metadataSystemPrompt = `You are a stock photography metadata expert (Adobe Stock, Shutterstock, Freepik). Output English only. 
+    const outputStructure = isMagnificOnly 
+      ? `"title": "${minTitleWords}-${maxTitleWords} words, sentence case, [subject] + [style/color/setting]", 
+  "keywords": ["${minKeywords}-${maxKeywords} unique lowercase keywords: ~40% subject+synonyms, ~25% style/format, ~20% mood/concept, ~15% use-case"], 
+  "prompt": "${minDescriptionWords}-${maxDescriptionWords} words, factual, mentions subject, no fluff"`
+      : `"title": "${minTitleWords}-${maxTitleWords} words, sentence case, [subject] + [style/color/setting]", 
+  "keywords": ["${minKeywords}-${maxKeywords} unique lowercase keywords: ~40% subject+synonyms, ~25% style/format, ~20% mood/concept, ~15% use-case"], 
+  "description": "${minDescriptionWords}-${maxDescriptionWords} words, factual, mentions subject, no fluff"`;
+
+    const metadataSystemPrompt = `You are a stock photography metadata expert (Adobe Stock, Shutterstock, Magnific). Output English only. 
 
 ANALYSIS STEPS: 
 1. Classify: (A) photo/3D, (B) physical object silhouette, (C) flat icon/pictogram, (D) vector pattern. 
@@ -339,9 +347,7 @@ ANALYSIS STEPS:
 
 OUTPUT (JSON only, no markdown): 
 { 
-  "title": "${minTitleWords}-${maxTitleWords} words, sentence case, [subject] + [style/color/setting]", 
-  "keywords": ["${minKeywords}-${maxKeywords} unique lowercase keywords: ~40% subject+synonyms, ~25% style/format, ~20% mood/concept, ~15% use-case"], 
-  "description": "${minDescriptionWords}-${maxDescriptionWords} words, factual, mentions subject, no fluff" 
+  ${outputStructure} 
 } 
 
 RULES: 
@@ -569,7 +575,7 @@ RULES:
         result.description || '',
         result.keywords.join(', ')
       ].join(' ');
-      const additionalKeywords = getRelevantFreepikKeywords(contentForKeywords);
+      const additionalKeywords = getRelevantMagnificKeywords(contentForKeywords);
       const combinedKeywords = [...new Set([...result.keywords, ...additionalKeywords])];
       result.keywords = combinedKeywords.slice(0, maxKeywords);
     }
@@ -598,8 +604,8 @@ RULES:
       result.categories = suggestCategoriesForAdobeStock(result.title || '', result.keywords || []);
     }
 
-    // Handle Freepik specific
-    if (isFreepikOnly) {
+    // Handle Magnific specific
+    if (isMagnificOnly) {
       result.baseModel = 'leonardo';
     }
 

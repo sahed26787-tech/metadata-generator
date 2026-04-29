@@ -239,7 +239,7 @@ const CompletedMetadataCard = React.memo(({
   onDownloadCSV,
   onToggleKeyword,
   isShutterstock,
-  isFreepikOnly,
+  isMagnificOnly,
   isAdobeStock,
   copiedId
 }: {
@@ -249,7 +249,7 @@ const CompletedMetadataCard = React.memo(({
   onDownloadCSV: () => void;
   onToggleKeyword: (id: string, index: number) => void;
   isShutterstock: boolean;
-  isFreepikOnly: boolean;
+  isMagnificOnly: boolean;
   isAdobeStock: boolean;
   copiedId: string | null;
 }) => {
@@ -312,7 +312,7 @@ const CompletedMetadataCard = React.memo(({
                 <p className="text-foreground text-sm">{cleanTitle}</p>
               </div>
             )}
-            {!isAdobeStock && image.result?.description && image.result.description !== 'N/A' && (
+            {!isAdobeStock && !isMagnificOnly && image.result?.description && image.result.description !== 'N/A' && (
               <div>
                 <div className="flex justify-between items-center">
                   <h4 className="text-primary font-medium text-sm">Description:</h4>
@@ -351,7 +351,7 @@ const CompletedMetadataCard = React.memo(({
                 )}
               </div>
             </div>
-            {isFreepikOnly && (
+            {isMagnificOnly && (
               <>
                 <div>
                   <div className="flex justify-between items-center">
@@ -513,7 +513,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
   }, []);
 
   // Check for specific platforms
-  const isFreepikOnly = selectedPlatforms.length === 1 && selectedPlatforms[0] === 'Freepik';
+  const isMagnificOnly = selectedPlatforms.length === 1 && selectedPlatforms[0] === 'Magnific';
   const isShutterstock = selectedPlatforms.length === 1 && selectedPlatforms[0] === 'Shutterstock';
   const isAdobeStock = selectedPlatforms.length === 1 && selectedPlatforms[0] === 'AdobeStock';
   const isVecteezy = selectedPlatforms.length === 1 && selectedPlatforms[0] === 'Vecteezy';
@@ -537,12 +537,12 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
 
     // Process regular images if they exist
     if (regularImages.length > 0) {
-      const csvContent = formatImagesAsCSV(regularImages, isFreepikOnly, isShutterstock, isAdobeStock, isVecteezy, isDepositphotos, is123RF, isAlamy, isDreamstime, selectedFormat);
+      const csvContent = formatImagesAsCSV(regularImages, isMagnificOnly, isShutterstock, isAdobeStock, isVecteezy, isDepositphotos, is123RF, isAlamy, isDreamstime, selectedFormat);
       const selectedPlatform = selectedPlatforms.length === 1 ? selectedPlatforms[0] : undefined;
       downloadCSV(csvContent, 'image-metadata.csv', selectedPlatform);
       toast.success(`Metadata CSV downloaded`);
     }
-  }, [images, selectedPlatforms, selectedFormat, isFreepikOnly, isShutterstock, isAdobeStock, isVecteezy, isDepositphotos, is123RF, isAlamy, isDreamstime]);
+  }, [images, selectedPlatforms, selectedFormat, isMagnificOnly, isShutterstock, isAdobeStock, isVecteezy, isDepositphotos, is123RF, isAlamy, isDreamstime]);
 
   const downloadPromptText = useCallback((text: string, filename: string) => {
     const element = document.createElement("a");
@@ -702,7 +702,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                 onDownloadCSV={handleDownloadCSV}
                 onToggleKeyword={handleToggleKeyword}
                 isShutterstock={isShutterstock}
-                isFreepikOnly={isFreepikOnly}
+                isMagnificOnly={isMagnificOnly}
                 isAdobeStock={isAdobeStock}
                 copiedId={copiedId}
               />

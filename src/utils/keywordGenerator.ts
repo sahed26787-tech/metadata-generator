@@ -1,8 +1,8 @@
 
 /**
- * Generates relevant keywords for Freepik platform
+ * Generates relevant keywords for Magnific platform
  */
-export const getRelevantFreepikKeywords = (content: string): string[] => {
+export const getRelevantMagnificKeywords = (content: string): string[] => {
   // Extract potential keywords from content
   const words = content.toLowerCase().split(/\s+/);
   

@@ -604,10 +604,10 @@ const Index: React.FC = () => {
                 ...(result.isEps && {
                   isEps: true
                 }),
-                // Include prompt and baseModel for Freepik
-                ...(platforms.length === 1 && platforms[0] === 'Freepik' && {
-                  prompt: result.prompt,
-                  baseModel: result.baseModel
+                // Include prompt and baseModel for Magnific
+                ...(platforms.length === 1 && platforms[0] === 'Magnific' && {
+                  prompt: result.prompt || result.description,
+                  baseModel: result.baseModel || 'leonardo'
                 }),
                 // Include categories for Shutterstock
                 ...(platforms.length === 1 && platforms[0] === 'Shutterstock' && {
@@ -694,10 +694,10 @@ const Index: React.FC = () => {
                 ...(result.isEps && {
                   isEps: true
                 }),
-                // Include prompt and baseModel for Freepik
-                ...(platforms.length === 1 && platforms[0] === 'Freepik' && {
-                  prompt: result.prompt,
-                  baseModel: result.baseModel
+                // Include prompt and baseModel for Magnific
+                ...(platforms.length === 1 && platforms[0] === 'Magnific' && {
+                  prompt: result.prompt || result.description,
+                  baseModel: result.baseModel || 'leonardo'
                 })
               },
               error: result.error

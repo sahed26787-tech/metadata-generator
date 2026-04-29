@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useTheme } from 'next-themes';
 
-export type Platform = 'Freepik' | 'AdobeStock' | 'Shutterstock' | 'Vecteezy' | 'Depositphotos' | '123RF' | 'Alamy' | 'Dreamstime';
+export type Platform = 'Magnific' | 'AdobeStock' | 'Shutterstock' | 'Vecteezy' | 'Depositphotos' | '123RF' | 'Alamy' | 'Dreamstime';
 
 interface PlatformSelectorProps {
   selectedPlatforms: Platform[];
@@ -35,10 +35,10 @@ const PlatformSelector: React.FC<PlatformSelectorProps> = ({
       name: 'AdobeStock'
     },
     {
-      id: 'Freepik',
-      lightIcon: '/images/platforms/theme-aware/freepik-black.png',
-      darkIcon: '/images/platforms/theme-aware/freepik-white.png',
-      name: 'Freepik'
+      id: 'Magnific',
+      lightIcon: '/images/platforms/theme-aware/magnific-black.png',
+      darkIcon: '/images/platforms/theme-aware/magnific-white.png',
+      name: 'Magnific'
     },
     {
       id: 'Shutterstock',

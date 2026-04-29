@@ -1,6 +1,6 @@
 import { Platform } from '@/components/PlatformSelector';
 import { removeSymbols } from './stringUtils';
-import { getRelevantFreepikKeywords } from './keywordGenerator';
+import { getRelevantMagnificKeywords } from './keywordGenerator';
 
 export interface ProcessedImage {
   id: string;
@@ -29,7 +29,7 @@ const optimizedImageCache = new WeakMap<File, File>();
  */
 export const formatImagesAsCSV = (
   images: ProcessedImage[],
-  isFreepikOnly?: boolean,
+  isMagnificOnly?: boolean,
   isShutterstock?: boolean,
   isAdobeStock?: boolean,
   isVecteezy?: boolean,
@@ -39,7 +39,7 @@ export const formatImagesAsCSV = (
   isDreamstime?: boolean,
   targetFormat?: string
 ): string => {
-  const header = isFreepikOnly
+  const header = isMagnificOnly
     ? '"File name";"Title";"Keywords";"Prompt";"Base-Model"'
     : isShutterstock
       ? '"Filename","Description","Keywords"'
@@ -65,7 +65,7 @@ export const formatImagesAsCSV = (
       const prompt = img.result?.prompt || '';
       const baseModel = img.result?.baseModel || 'leonardo';
 
-      return isFreepikOnly
+      return isMagnificOnly
         ? `"${escapeCSV(filename)}";"${escapeCSV(title)}";"${escapeCSV(keywords)}";"${escapeCSV(prompt)}";"${escapeCSV(baseModel)}"`
         : isShutterstock
           ? `"${escapeCSV(filename)}","${escapeCSV(description)}","${escapeCSV(keywords)}"`

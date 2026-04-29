@@ -16,7 +16,7 @@ const SEOContent: React.FC = () => {
           </h2>
           <p className="text-xl text-gray-400 max-w-4xl mx-auto leading-relaxed">
             Generate high-converting <strong>SEO metadata</strong>, <strong>keywords</strong>, and <strong>descriptions</strong> for your stock images using advanced AI. 
-            Perfect for <strong>Freepik</strong>, <strong>Shutterstock</strong>, <strong>Adobe Stock</strong>, and <strong>Getty Images</strong>. 
+            Perfect for <strong>Magnific</strong>, <strong>Shutterstock</strong>, <strong>Adobe Stock</strong>, and <strong>Getty Images</strong>. 
             Increase your image sales with professionally optimized titles, tags, and descriptions.
           </p>
         </div>
@@ -41,7 +41,7 @@ const SEOContent: React.FC = () => {
             </div>
             <p className="text-gray-400">
               Generate <strong>high-converting titles</strong> and <strong>keyword-rich descriptions</strong> that help your images get discovered. 
-              Perfect for photographers selling on Freepik, Shutterstock, Adobe Stock, and Getty Images.
+              Perfect for photographers selling on Magnific, Shutterstock, Adobe Stock, and Getty Images.
             </p>
           </div>
 
@@ -62,8 +62,8 @@ const SEOContent: React.FC = () => {
           <h2 className="text-3xl font-bold mb-8">Optimized for All Major Stock Photo Platforms</h2>
           <div className="grid md:grid-cols-4 gap-6">
             <div className="bg-slate-800/30 p-6 rounded-lg border border-slate-600">
-              <h4 className="font-semibold text-lg mb-2">Freepik Metadata</h4>
-              <p className="text-gray-400 text-sm">Generate AI prompts, base models, and SEO keywords specifically for Freepik's algorithm</p>
+              <h4 className="font-semibold text-lg mb-2">Magnific Metadata</h4>
+              <p className="text-gray-400 text-sm">Generate AI prompts, base models, and SEO keywords specifically for Magnific's algorithm</p>
             </div>
             <div className="bg-slate-800/30 p-6 rounded-lg border border-slate-600">
               <h4 className="font-semibold text-lg mb-2">Shutterstock SEO</h4>
@@ -97,7 +97,7 @@ const SEOContent: React.FC = () => {
             
             <div className="bg-[#111827] p-6 rounded-xl border border-gray-800">
               <h3 className="text-xl font-semibold text-white mb-3">Multi-Platform Support</h3>
-              <p className="text-gray-400">Generate metadata tailored for Freepik, Shutterstock, Adobe Stock, and Getty Images with a single click.</p>
+              <p className="text-gray-400">Generate metadata tailored for Magnific, Shutterstock, Adobe Stock, and Getty Images with a single click.</p>
             </div>
           </div>
 
@@ -114,7 +114,7 @@ const SEOContent: React.FC = () => {
           <div className="bg-slate-800/30 p-8 rounded-xl border border-slate-600">
             <p className="text-gray-400 leading-relaxed">
               <strong>AI metadata generator</strong> • <strong>stock photo SEO</strong> • <strong>image keywords generator</strong> • 
-              <strong>Freepik metadata</strong> • <strong>Shutterstock SEO</strong> • <strong>Adobe Stock optimization</strong> • 
+              <strong>Magnific metadata</strong> • <strong>Shutterstock SEO</strong> • <strong>Adobe Stock optimization</strong> • 
               <strong>Getty Images keywords</strong> • <strong>AI image tagging</strong> • <strong>stock photography tools</strong> • 
               <strong>SEO image descriptions</strong> • <strong>metadata automation</strong> • <strong>image title generator</strong> • 
               <strong>photo keywords</strong> • <strong>stock image optimization</strong> • <strong>AI-powered SEO</strong> • 

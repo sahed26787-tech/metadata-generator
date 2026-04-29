@@ -1,6 +1,6 @@
 import { Platform } from '@/components/PlatformSelector';
 import { GenerationMode } from '@/components/GenerationModeSelector';
-import { getRelevantFreepikKeywords } from './keywordGenerator';
+import { getRelevantMagnificKeywords } from './keywordGenerator';
 import { suggestCategoriesForShutterstock, suggestCategoriesForAdobeStock, removeSymbolsFromTitle, reduceImageSize } from './imageHelpers';
 import { convertSvgToPng, isSvgFile } from './svgToPng';
 import { extractVideoThumbnail, extractVideoFrameGrid, isVideoFile } from './videoProcessor';
@@ -121,12 +121,15 @@ export async function analyzeImageWithGemini(
       throw new Error(data.error);
     }
 
+    const platforms = options.platforms || ['AdobeStock'];
+    const isMagnificOnly = platforms.length === 1 && platforms[0] === 'Magnific';
+
     return {
       title: data.title || '',
       description: data.description || '',
       keywords: data.keywords || [],
-      prompt: data.prompt,
-      baseModel: data.baseModel,
+      prompt: data.prompt || (isMagnificOnly ? data.description : undefined),
+      baseModel: data.baseModel || (isMagnificOnly ? 'leonardo' : undefined),
       categories: data.categories,
       filename: originalFilename,
       isVideo: originalIsVideo,
@@ -170,7 +173,7 @@ async function legacyAnalyzeImageWithGemini(
     singleWordKeywordsEnabled = false
   } = options;
 
-  const isFreepikOnly = platforms.length === 1 && platforms[0] === 'Freepik';
+  const isMagnificOnly = platforms.length === 1 && platforms[0] === 'Magnific';
   const isShutterstock = platforms.length === 1 && platforms[0] === 'Shutterstock';
   const isAdobeStock = platforms.length === 1 && platforms[0] === 'AdobeStock';
   
@@ -292,7 +295,7 @@ async function legacyAnalyzeImageWithGemini(
       
       if (generationMode === 'imageToPrompt') {
         formattingPrompt += '\n\nReturn the prompt description only, nothing else.';
-      } else if (isFreepikOnly) {
+      } else if (isMagnificOnly) {
         formattingPrompt += `\n\nFormat your response as a JSON object with the fields "title", "prompt", and "keywords" (as an array of at least ${minKeywords} terms).`;
       } else if (isShutterstock) {
         formattingPrompt += `\n\nFormat your response as a JSON object with the fields "description" and "keywords" (as an array of at least ${minKeywords} terms).`;
@@ -371,7 +374,7 @@ The description should be at least 50 words but not more than 150 words. Importa
         } else {
           prompt = `${prohibitedWordsInstructions}${transparentBgInstructions}${isolatedOnTransparentBgInstructions}${silhouetteInstructions}Describe this image in exact detail so that an AI image generator can recreate it perfectly. Focus only on what is visually present: the main subject, their action or expression, the background, the colors, and the overall style (e.g., photograph, illustration, 3D render). Give me only the final prompt text, without any extra words or formatting.`;
         }
-      } else if (isFreepikOnly) {
+      } else if (isMagnificOnly) {
         if (originalIsEps) {
           prompt = `${prohibitedWordsInstructions}${transparentBgInstructions}${isolatedOnTransparentBgInstructions}${silhouetteInstructions}This is metadata extracted from an EPS file named "${originalFilename}". The metadata includes the following information:
 
@@ -380,12 +383,12 @@ Image Count: ${epsMetadata?.imageCount || 1}
 Colors: ${epsMetadata?.colors?.join(', ') || 'Unknown'}
 Fonts: ${epsMetadata?.fontInfo?.join(', ') || 'Unknown'}
 
-Generate metadata for the Freepik platform:
+Generate metadata for the Magnific platform:
 1. A clear, descriptive title between ${minTitleWords}-${maxTitleWords} words that accurately describes what's likely in this design file. The title should be relevant for stock image platforms. Don't use any symbols.
 2. Create an image generation prompt that describes this design file in 1-2 sentences (30-50 words). Important: Do not include phrases like "Vector EPS" or "EPS file" or "Vector file" in the prompt itself - just describe the content.
 3. Generate a detailed list of ${minKeywords}-${maxKeywords} relevant, specific keywords (single words or short phrases) that someone might search for to find this design. Focus on content, style, and technical aspects of the design.`;
         } else {
-          prompt = `${prohibitedWordsInstructions}${transparentBgInstructions}${isolatedOnTransparentBgInstructions}${silhouetteInstructions}Analyze this image and generate metadata for the Freepik platform:
+          prompt = `${prohibitedWordsInstructions}${transparentBgInstructions}${isolatedOnTransparentBgInstructions}${silhouetteInstructions}Analyze this image and generate metadata for the Magnific platform:
 1. A clear, descriptive title between ${minTitleWords}-${maxTitleWords} words that accurately describes what's in the image. The title should be relevant for stock image platforms. Don't use any symbols.
 2. Create an image generation prompt that describes this image in 1-2 sentences (30-50 words).
 3. Generate a detailed list of ${minKeywords}-${maxKeywords} relevant, specific keywords (single words or short phrases) that someone might search for to find this image. Focus on content, style, emotions, and technical details of the image.`;
@@ -453,7 +456,7 @@ Generate appropriate metadata for this design file:
       
       if (generationMode === 'imageToPrompt') {
         prompt += `\n\nReturn the prompt description only, nothing else.`;
-      } else if (isFreepikOnly) {
+      } else if (isMagnificOnly) {
         prompt += `\n\nFormat your response as a JSON object with the fields "title", "prompt", and "keywords" (as an array of at least ${minKeywords} terms).`;
       } else if (isShutterstock) {
         prompt += `\n\nFormat your response as a JSON object with the fields "description" and "keywords" (as an array).`;
@@ -685,7 +688,7 @@ Generate appropriate metadata for this design file:
       console.log('Not enough keywords provided, generating more...');
       
       // For custom prompts or any platform, generate additional keywords if needed
-      if (customPromptEnabled || (!isFreepikOnly && !isShutterstock && !isAdobeStock)) {
+      if (customPromptEnabled || (!isMagnificOnly && !isShutterstock && !isAdobeStock)) {
         // Use title and description to generate more keywords
         const contentForKeywords = [
           result.title || '',
@@ -693,8 +696,8 @@ Generate appropriate metadata for this design file:
           result.keywords.join(', ')
         ].join(' ');
         
-        // Use the existing Freepik keyword generator as a fallback
-        const additionalKeywords = getRelevantFreepikKeywords(contentForKeywords);
+        // Use the existing Magnific keyword generator as a fallback
+        const additionalKeywords = getRelevantMagnificKeywords(contentForKeywords);
         
         // Combine existing keywords with new ones, remove duplicates
         const combinedKeywords = [...new Set([...result.keywords, ...additionalKeywords])];
@@ -721,7 +724,7 @@ Generate appropriate metadata for this design file:
           
           // If we filtered too many keywords, generate replacements
           if (result.keywords.length < minKeywords) {
-            const additionalKeywords = getRelevantFreepikKeywords(result.title || '' + ' ' + (result.description || ''));
+            const additionalKeywords = getRelevantMagnificKeywords(result.title || '' + ' ' + (result.description || ''));
             const filteredAdditionalKeywords = additionalKeywords.filter(keyword => {
               const lowerKeyword = keyword.toLowerCase();
               return !prohibitedWordsArray.some(prohibited => lowerKeyword.includes(prohibited));
@@ -734,13 +737,13 @@ Generate appropriate metadata for this design file:
       }
     }
     
-    // For Freepik, use the keywords provided directly from the API response
-    if (isFreepikOnly) {
+    // For Magnific, use the keywords provided directly from the API response
+    if (isMagnificOnly) {
       // If keywords exist in the result, use them
       if (!result.keywords || result.keywords.length < minKeywords) {
         // Fallback: Generate keywords from the prompt if not enough keywords provided
-        const freepikKeywords = getRelevantFreepikKeywords(result.prompt || '');
-        result.keywords = freepikKeywords;
+        const magnificKeywords = getRelevantMagnificKeywords(result.prompt || '');
+        result.keywords = magnificKeywords;
       }
       result.baseModel = "leonardo";
     }
@@ -785,7 +788,7 @@ Generate appropriate metadata for this design file:
         filename: originalFilename,
         isVideo: true,
         isEps: false,
-        ...(!isFreepikOnly && !isShutterstock && !isAdobeStock ? { categories: result.categories } : {}),
+        ...(!isMagnificOnly && !isShutterstock && !isAdobeStock ? { categories: result.categories } : {}),
       };
     }
     
