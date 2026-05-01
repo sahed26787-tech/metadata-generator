@@ -186,16 +186,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (profileData && profileData.length > 0) {
         console.log('Profile found:', profileData[0]);
         const p = profileData[0];
+        const resolvedPlanType = (p.profile_plan_type || 'free') as UserProfile['plan_type'];
+        const resolvedIsPremium = resolvedPlanType !== 'free';
         // Map the returned columns to UserProfile interface
         const mappedProfile: UserProfile = {
           id: p.profile_id,
           email: p.profile_email,
-          plan_type: p.profile_plan_type,
+          plan_type: resolvedPlanType,
           total_credits: p.profile_total_credits,
           credits_used: p.profile_credits_used,
           remaining_credits: p.profile_remaining_credits,
           credits_reset_type: p.profile_credits_reset_type,
-          is_premium: p.profile_is_premium,
+          is_premium: typeof p.profile_is_premium === 'boolean' ? p.profile_is_premium : resolvedIsPremium,
           plan_expires_at: p.profile_plan_expires_at,
           created_at: new Date().toISOString(), // These aren't returned, use current time
           updated_at: new Date().toISOString()
@@ -514,15 +516,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       if (profileData && profileData.length > 0) {
         const p = profileData[0];
+        const resolvedPlanType = (p.profile_plan_type || 'free') as UserProfile['plan_type'];
+        const resolvedIsPremium = resolvedPlanType !== 'free';
         const mappedProfile: UserProfile = {
           id: p.profile_id,
           email: p.profile_email,
-          plan_type: p.profile_plan_type,
+          plan_type: resolvedPlanType,
           total_credits: p.profile_total_credits,
           credits_used: p.profile_credits_used,
           remaining_credits: p.profile_remaining_credits,
           credits_reset_type: p.profile_credits_reset_type,
-          is_premium: p.profile_is_premium,
+          is_premium: typeof p.profile_is_premium === 'boolean' ? p.profile_is_premium : resolvedIsPremium,
           plan_expires_at: p.profile_plan_expires_at,
           created_at: p.profile_created_at,
           updated_at: p.profile_updated_at

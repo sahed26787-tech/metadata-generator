@@ -798,7 +798,7 @@ const Index: React.FC = () => {
   const processingCount = images.filter(img => img.status === 'processing').length;
   const completedCount = images.filter(img => img.status === 'complete').length;
   const errorCount = images.filter(img => img.status === 'error').length;
-  const remainingCredits = profile?.is_premium ? '∞' : profile ? `${Math.max(0, profile.total_credits - profile.credits_used)}` : '0';
+  const remainingCredits = profile ? `${Math.max(0, profile.remaining_credits)}` : '0';
   
   return (
     <div className="bg-background flex flex-col min-h-screen text-foreground">
@@ -875,7 +875,7 @@ const Index: React.FC = () => {
                   )}
               
               <div className="mt-6">
-                {user && profile && !profile.is_premium && profile.credits_used > 14.5 && (
+                {user && profile && profile.plan_type === 'free' && profile.credits_used > 14.5 && (
                   <div className="bg-amber-100 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-700 text-amber-800 dark:text-amber-200 p-3 rounded-md mb-4">
                     <div className="flex items-center">
                       <div className="mr-3 text-amber-500 dark:text-amber-400">⚠️</div>

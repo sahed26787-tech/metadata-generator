@@ -129,7 +129,7 @@ const UserProfile: React.FC = () => {
           </Avatar>
           <div className="flex-1">
             <p className="text-base font-medium truncate">{user.email}</p>
-            {profile.is_premium ? (
+            {profile.plan_type !== 'free' ? (
               <div className="flex items-center text-xs text-primary mt-1">
                 <Crown className="h-3 w-3 mr-1 text-yellow-500" />
                 <span className="capitalize">{profile.plan_type} Plan</span>
